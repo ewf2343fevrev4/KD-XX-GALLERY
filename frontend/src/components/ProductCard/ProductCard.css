@@ -1,0 +1,264 @@
+.product-card {
+    background: white;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    position: relative;
+    cursor: pointer;
+    border: 3px solid transparent;
+    /* make cards stretch to equal height inside the grid */
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.1), rgba(255, 20, 147, 0.1));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1;
+    border-radius: 22px;
+}
+
+.product-card:hover::before {
+    opacity: 1;
+}
+
+.product-card:hover {
+    transform: translateY(-15px) scale(1.02);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+    border-color: rgba(138, 43, 226, 0.3);
+}
+
+.product-image {
+    width: 100%;
+    /* make image taller so product cards appear longer */
+    height: 420px;
+    background: #fafafa;
+    position: relative;
+    overflow: hidden;
+    flex: 0 0 auto;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.08);
+}
+
+/* Wishlist Heart Button - COMPLETELY ISOLATED */
+.wishlist-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    /* Critical: Isolate animation context */
+    isolation: isolate;
+    contain: layout style paint;
+    will-change: transform;
+}
+
+.wishlist-btn svg {
+    width: 20px;
+    height: 20px;
+    color: #ccc;
+    transition: all 0.3s ease;
+    stroke-width: 2;
+    pointer-events: none;
+    /* Prevent any interference */
+    user-select: none;
+}
+
+.wishlist-btn:hover {
+    background: white;
+    transform: scale(1.1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+.wishlist-btn:hover svg {
+    color: #e74c3c;
+}
+
+/* Active (favorited) state: keep circular background white, only heart icon should be red */
+.wishlist-btn.active {
+    /* keep the white circular background when active */
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.wishlist-btn.active svg {
+    color: #e74c3c; /* heart icon becomes red */
+    fill: #e74c3c;
+    stroke: #e74c3c;
+}
+
+/* when hovering an active button, keep background white but slightly scale */
+.wishlist-btn.active:hover {
+    background: rgba(255, 255, 255, 0.98);
+    transform: scale(1.05);
+}
+
+/* Animation keyframes - sẽ được apply via inline style */
+@keyframes heartPulseIsolated {
+    0% {
+        transform: scale(1) translateZ(0);
+    }
+    50% {
+        transform: scale(1.2) translateZ(0);
+    }
+    100% {
+        transform: scale(1) translateZ(0);
+    }
+}
+
+.product-info {
+    padding: 36px 30px 42px;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    /* allow info to stretch so cards are equal height and button sticks to bottom */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1 1 auto;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #000;
+    /* keep name on single line if possible */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.product-price {
+    font-size: 1.3rem;
+    font-weight: 300;
+    color: #666;
+    margin-bottom: 15px;
+    letter-spacing: 1px;
+}
+
+.product-description {
+    font-size: 0.9rem;
+    color: #888;
+    margin-bottom: 25px;
+    line-height: 1.4;
+    text-align: center;
+    /* limit description to 3 lines for consistent card height */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.add-to-cart {
+    background: linear-gradient(135deg, #000 0%, #333 100%);
+    color: white;
+    border: none;
+    padding: 14px 35px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-radius: 50px;
+    position: relative;
+    overflow: hidden;
+}
+
+.add-to-cart::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.add-to-cart:hover::before {
+    left: 100%;
+}
+
+.add-to-cart:hover {
+    background: linear-gradient(135deg, #333 0%, #555 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .product-card {
+        border-radius: 20px;
+    }
+    
+    .product-image {
+        height: 340px;
+    }
+    
+    .wishlist-btn {
+        width: 40px;
+        height: 40px;
+        top: 12px;
+        right: 12px;
+    }
+    
+    .wishlist-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+    
+    .product-info {
+        padding: 25px 20px;
+    }
+    
+    .product-name {
+        font-size: 1rem;
+        letter-spacing: 1px;
+    }
+    
+    .product-price {
+        font-size: 1.2rem;
+    }
+    
+    .add-to-cart {
+        padding: 12px 30px;
+        font-size: 0.8rem;
+        letter-spacing: 1.5px;
+    }
+}

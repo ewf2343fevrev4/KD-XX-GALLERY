@@ -1,0 +1,217 @@
+.auth-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
+  /* Thêm các thuộc tính này để đảm bảo căn giữa */
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.auth-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  max-width: 450px;
+  width: 100%;
+  max-height: calc(100vh - 40px); /* Thay đổi để tránh overflow */
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  animation: modalSlideIn 0.3s ease-out;
+  /* Thêm các thuộc tính này */
+  margin: auto;
+  position: relative;
+  transform: none; /* Reset transform nếu có conflict */
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.auth-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.auth-modal-header h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #000;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.3s ease;
+  border-radius: 50%;
+}
+
+.close-btn:hover {
+  color: #000;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  position: relative;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 15px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 50px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: #f9f9f9;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #000;
+  background: white;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.form-group input.error {
+  border-color: #e74c3c;
+  background: #ffeaea;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 0.85rem;
+  margin-top: 5px;
+  margin-left: 20px;
+  display: block;
+}
+
+.auth-error {
+  background: #ffeaea;
+  color: #e74c3c;
+  padding: 12px 20px;
+  border-radius: 50px;
+  text-align: center;
+  font-size: 0.9rem;
+  border: 1px solid #e74c3c;
+}
+
+.auth-submit-btn {
+  background: linear-gradient(135deg, #000 0%, #333 100%);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #333 0%, #555 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.auth-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.auth-switch p {
+  margin: 0;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.switch-btn {
+  background: none;
+  border: none;
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.3s ease;
+}
+
+.switch-btn:hover {
+  color: #333;
+}
+
+/* Media queries cải tiến */
+@media (max-width: 768px) {
+  .auth-modal-overlay {
+    padding: 15px;
+  }
+  
+  .auth-modal {
+    padding: 30px 25px;
+    border-radius: 15px;
+    max-width: 100%;
+  }
+  
+  .auth-modal-header h2 {
+    font-size: 1.5rem;
+    letter-spacing: 1px;
+  }
+  
+  .form-group input {
+    padding: 12px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-modal {
+    padding: 25px 20px;
+  }
+  
+  .auth-modal-header h2 {
+    font-size: 1.3rem;
+  }
+}

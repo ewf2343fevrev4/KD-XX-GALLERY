@@ -1,0 +1,159 @@
+.profile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 99999 !important;
+  padding: 60px 20px;
+  overflow-y: auto;
+}
+
+.profile-modal {
+  background: white;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+  z-index: 100000 !important;
+  position: relative;
+  padding: 20px;
+}
+
+/* Header: Căn giữa tiêu đề */
+.profile-modal-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+.profile-modal-header h2 {
+  margin: 0 auto;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Nút đóng */
+.close-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Avatar + tên người dùng */
+.profile-modal-avatar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px 0;
+}
+
+.avatar-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+}
+
+.profile-modal-avatar h3 {
+  margin-top: 10px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Form thông tin */
+.profile-form {
+  margin: 20px 0;
+}
+
+.form-row {
+  display: flex;
+  gap: 15px;
+}
+
+.form-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+input,
+select,
+textarea {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+
+input.editing,
+select.editing,
+textarea.editing {
+  border-color: #007bff;
+}
+
+/* Nút hành động */
+.profile-actions {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 0 5px;
+}
+
+.edit-btn {
+  background: #007bff;
+  color: white;
+}
+
+.save-btn {
+  background: #28a745;
+  color: white;
+}
+
+.cancel-btn {
+  background: #dc3545;
+  color: white;
+}
+
+/* Animation */
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(-40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
