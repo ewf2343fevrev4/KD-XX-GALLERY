@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import BrandShowcase from './BrandShowcase';
+import WaterWaveBackground from './WaterWaveBackground';
 import './Hero.css';
 
-const Hero = () => {
+const Hero = ({ selectedBrand, onSelectBrand }) => {
+  const [hoveredBrand, setHoveredBrand] = useState(null);
+
   const handleExploreClick = (e) => {
     e.preventDefault();
     const productsSection = document.getElementById('products-section');
@@ -19,8 +23,19 @@ const Hero = () => {
 
   return (
     <section className="hero" id="home">
+      {/* ── Interactive Water Ripple & Color Wave Canvas Background ── */}
+      <WaterWaveBackground activeTarget={hoveredBrand} />
+
+      {/* ── 3D Circular Brand Universe Showcase (8 Logos) ── */}
+      <BrandShowcase 
+        onHoverBrand={setHoveredBrand}
+        selectedBrand={selectedBrand}
+        onSelectBrand={onSelectBrand}
+      />
+
+      {/* ── Preserved Central Hero Content ── */}
       <div className="hero-content">
-        <h1 className="hero-title">AMIRI</h1>
+        <h1 className="hero-title">KD-XX</h1>
         <p className="hero-subtitle">Luxury Streetwear Redefined</p>
         <a 
           href="#products-section" 
@@ -30,11 +45,6 @@ const Hero = () => {
           Explore Collection
         </a>
       </div>
-      
-      {/* Floating Elements */}
-      <div className="floating-element floating-1"></div>
-      <div className="floating-element floating-2"></div>
-      <div className="floating-element floating-3"></div>
     </section>
   );
 };

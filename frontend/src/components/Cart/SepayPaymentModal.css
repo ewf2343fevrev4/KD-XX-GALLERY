@@ -1,0 +1,538 @@
+/* ==========================================
+   KD-XX SEPAY VIETQR PAYMENT MODAL
+   ========================================== */
+
+.sepay-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: sepayFadeIn 0.25s ease-out;
+}
+
+@keyframes sepayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sepay-modal-container {
+  background: #111114;
+  border: 1px solid #27272a;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 820px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: sepaySlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #f4f4f5;
+  font-family: inherit;
+}
+
+@keyframes sepaySlideUp {
+  from {
+    transform: translateY(20px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.sepay-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 22px 28px;
+  border-bottom: 1px solid #222226;
+  background: linear-gradient(180deg, #18181c 0%, #111114 100%);
+}
+
+.sepay-header-brand h3 {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin: 6px 0 3px 0;
+  color: #fafafa;
+}
+
+.sepay-header-brand p {
+  font-size: 12px;
+  color: #a1a1aa;
+  margin: 0;
+}
+
+.sepay-badge {
+  display: inline-block;
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.sepay-close-btn {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  font-size: 28px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.sepay-close-btn:hover {
+  color: #fff;
+  background: #27272a;
+}
+
+/* Body */
+.sepay-modal-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  max-height: calc(90vh - 120px);
+}
+
+/* Grid Layout */
+.sepay-content-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .sepay-content-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+/* Left Column: QR Card */
+.sepay-qr-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.sepay-qr-card {
+  width: 100%;
+  background: #18181b;
+  border: 1px solid #2e2e33;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.sepay-qr-wrapper {
+  background: #ffffff;
+  padding: 12px;
+  border-radius: 12px;
+  width: 260px;
+  height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.sepay-qr-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sepay-qr-footer {
+  width: 100%;
+  margin-top: 14px;
+  text-align: center;
+}
+
+.sepay-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 8px;
+}
+
+.sepay-timer strong {
+  font-family: monospace;
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+.sepay-scan-hint {
+  font-size: 11px;
+  color: #71717a;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0 8px;
+}
+
+/* Listening indicator */
+.sepay-listening-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #a1a1aa;
+  background: #18181b;
+  border: 1px solid #27272a;
+  padding: 8px 14px;
+  border-radius: 9999px;
+}
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulseGreen 1.8s infinite;
+}
+
+@keyframes pulseGreen {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+/* Right Column: Bank Details */
+.sepay-info-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.sepay-info-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #71717a;
+  margin: 0 0 14px 0;
+  text-transform: uppercase;
+}
+
+.sepay-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.sepay-detail-item {
+  background: #18181c;
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 11px 14px;
+  transition: all 0.2s;
+}
+
+.sepay-detail-item:hover {
+  border-color: #3f3f46;
+}
+
+.sepay-detail-item.highlight {
+  background: #191b22;
+  border-color: #2e384d;
+}
+
+.sepay-detail-item.critical {
+  background: #1f1816;
+  border-color: #5c3826;
+}
+
+.detail-label {
+  font-size: 11px;
+  color: #a1a1aa;
+  margin-bottom: 4px;
+}
+
+.detail-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.text-accent {
+  color: #60a5fa;
+  font-size: 15px;
+}
+
+.text-amount {
+  color: #34d399;
+  font-size: 17px;
+}
+
+.text-code {
+  color: #fb923c;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.text-warning {
+  color: #fb923c !important;
+  font-weight: 700;
+}
+
+.detail-sub {
+  font-size: 11px;
+  color: #71717a;
+  margin-top: 4px;
+}
+
+.detail-notice {
+  font-size: 11px;
+  color: #e4a275;
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.copy-btn {
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  color: #d4d4d8;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.copy-btn:hover {
+  background: #3f3f46;
+  color: #fff;
+}
+
+.copy-btn.primary {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+}
+
+.copy-btn.primary:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.copy-btn.highlight {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: #fb923c;
+}
+
+.copy-btn.highlight:hover {
+  background: rgba(249, 115, 22, 0.25);
+}
+
+.sepay-footer-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sepay-cancel-btn {
+  background: transparent;
+  border: 1px solid #27272a;
+  color: #a1a1aa;
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sepay-cancel-btn:hover {
+  background: #27272a;
+  color: #fff;
+}
+
+/* Success State */
+.sepay-success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 30px 10px;
+}
+
+.sepay-success-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(16, 185, 129, 0.15);
+  border: 2px solid #10b981;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #10b981;
+  margin-bottom: 18px;
+  animation: sepayScaleCheck 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sepay-success-badge svg {
+  width: 38px;
+  height: 38px;
+}
+
+@keyframes sepayScaleCheck {
+  0% {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.sepay-success-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #34d399;
+  margin: 0 0 8px 0;
+}
+
+.sepay-success-desc {
+  font-size: 13px;
+  color: #a1a1aa;
+  margin: 0 0 24px 0;
+  max-width: 440px;
+}
+
+.sepay-success-box {
+  background: #18181c;
+  border: 1px solid #27272a;
+  border-radius: 14px;
+  padding: 16px 20px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 26px;
+}
+
+.sepay-success-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #a1a1aa;
+}
+
+.text-emerald {
+  color: #34d399;
+  font-size: 15px;
+}
+
+.status-tag-paid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sepay-btn-primary {
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  padding: 13px 32px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.15);
+}
+
+.sepay-btn-primary:hover {
+  background: #e4e4e7;
+  transform: translateY(-1px);
+}
+
+/* Loading & Error States */
+.sepay-loading-state,
+.sepay-error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.sepay-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #27272a;
+  border-top-color: #34d399;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.sepay-error-icon {
+  font-size: 38px;
+  margin-bottom: 12px;
+}
+
+.sepay-btn-secondary {
+  margin-top: 18px;
+  background: #27272a;
+  color: #fff;
+  border: none;
+  padding: 8px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+

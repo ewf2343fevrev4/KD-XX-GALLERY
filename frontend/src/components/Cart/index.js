@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder } from '../../services/api';
+import SepayPaymentModal from './SepayPaymentModal';
 import './Cart.css';
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, clearCart, getTotalPrice, getTotalItems, isOpen, toggleCart } = useCart();
-  const { user } = useAuth();
+  const { user, token: authToken } = useAuth();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('sepay'); // 'sepay' | 'cod' | 'credit_card'
+  const [createdSepayOrder, setCreatedSepayOrder] = useState(null);
+  const [showSepayModal, setShowSepayModal] = useState(false);
 
   const handleQuantityChange = (productId, newQuantity) => {
     if (newQuantity <= 0) {
@@ -55,14 +60,15 @@ const Cart = () => {
       const shippingPrice = itemsPrice > 100 ? 0 : 10; // Free ship nếu > $100
       const totalPrice = itemsPrice + taxPrice + shippingPrice;
 
-      // ✅ FIX: Đổi orderItems thành items và sửa tên các field
       const orderData = {
         items: items.map(item => ({
           name: item.name,
           quantity: item.quantity,
           image: item.image || item.images?.[0] || '',
           price: item.price,
-          product: item.id || item._id // ID của sản phẩm
+          product: item.productId || item._id || item.id, // ID của sản phẩm
+          size: item.size || '',
+          color: item.color || ''
         })),
         shippingAddress: {
           address: user.address,
@@ -70,20 +76,20 @@ const Cart = () => {
           postalCode: user.postalCode || '00000',
           country: user.country || 'Vietnam'
         },
-        paymentMethod: 'credit_card', // ✅ Đổi thành lowercase với underscore
-        subtotal: itemsPrice,         // ✅ Đổi từ itemsPrice
-        tax: taxPrice,                // ✅ Đổi từ taxPrice
-        shipping: shippingPrice,      // ✅ Đổi từ shippingPrice
-        total: totalPrice             // ✅ Đổi từ totalPrice
+        paymentMethod: paymentMethod, // 'sepay' | 'cod' | 'credit_card'
+        subtotal: itemsPrice,
+        tax: taxPrice,
+        shipping: shippingPrice,
+        total: totalPrice
       };
 
-      console.log('Sending order data:', orderData); // Debug
+      console.log('Sending order data:', orderData);
 
-      // Lấy token từ localStorage
-      const token = localStorage.getItem('token');
+      // Lấy token từ AuthContext hoặc localStorage
+      const token = authToken || localStorage.getItem('token');
       
       if (!token) {
-        alert('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!');
+        alert('Phiên đăng nhập đã hết hạn hoặc chưa đăng nhập. Vui lòng bấm vào icon tài khoản ở góc trên bên phải để đăng nhập lại!');
         setIsProcessing(false);
         return;
       }
@@ -91,15 +97,20 @@ const Cart = () => {
       // Gọi API tạo order
       const result = await createOrder(token, orderData);
 
-      if (result.success) {
-        alert(`Đặt hàng thành công!\nMã đơn hàng: ${result.data.order._id}\nTổng tiền: $${totalPrice.toFixed(2)}`);
-        clearCart(); // Xóa giỏ hàng
-        toggleCart(); // Đóng cart
-        
-        // Optional: Chuyển hướng đến trang order detail
-        // window.location.href = `/orders/${result.data.order._id}`;
+      if (result.success && result.data?.order) {
+        const order = result.data.order;
+
+        if (paymentMethod === 'sepay') {
+          // Mở modal VietQR SePay để khách quét mã
+          setCreatedSepayOrder(order);
+          setShowSepayModal(true);
+        } else {
+          alert(`Đặt hàng thành công!\nMã đơn hàng: ${order._id}\nTổng tiền: $${totalPrice.toFixed(2)}`);
+          clearCart();
+          toggleCart();
+        }
       } else {
-        alert(`Đặt hàng thất bại: ${result.error}`);
+        alert(`Đặt hàng thất bại: ${result.error || 'Vui lòng kiểm tra lại thông tin'}`);
       }
     } catch (error) {
       console.error('Checkout error:', error);
@@ -107,6 +118,16 @@ const Cart = () => {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleSepaySuccess = () => {
+    clearCart();
+  };
+
+  const handleCloseSepayModal = () => {
+    setShowSepayModal(false);
+    clearCart();
+    toggleCart();
   };
 
   // Tính toán để hiển thị
@@ -128,7 +149,7 @@ const Cart = () => {
       </div>
 
       {/* Cart Sidebar */}
-      {isOpen && (
+      {isOpen && typeof document !== 'undefined' && createPortal(
         <>
           <div className="cart-overlay" onClick={toggleCart}></div>
           <div className="cart-sidebar">
@@ -155,6 +176,13 @@ const Cart = () => {
                         </div>
                         <div className="cart-item-details">
                           <h4>{item.name}</h4>
+                          {(item.size || item.color) && (
+                            <div style={{ fontSize: '11px', color: '#888', margin: '2px 0 4px' }}>
+                              {item.size ? `Size: ${item.size}` : ''}
+                              {item.size && item.color ? ' • ' : ''}
+                              {item.color ? `Color: ${item.color}` : ''}
+                            </div>
+                          )}
                           <p className="cart-item-price">${item.price}</p>
                           <div className="quantity-controls">
                             <button 
@@ -206,6 +234,37 @@ const Cart = () => {
                       </div>
                     </div>
 
+                    {/* Payment Method Selector */}
+                    <div className="payment-method-selector">
+                      <label className="payment-method-label">Phương thức thanh toán:</label>
+                      <div className="payment-options">
+                        <button 
+                          type="button"
+                          className={`payment-opt-btn ${paymentMethod === 'sepay' ? 'active' : ''}`}
+                          onClick={() => setPaymentMethod('sepay')}
+                        >
+                          <span className="opt-icon">⚡</span>
+                          <span>Chuyển khoản SePay (VietQR Tự động)</span>
+                        </button>
+                        <button 
+                          type="button"
+                          className={`payment-opt-btn ${paymentMethod === 'cod' ? 'active' : ''}`}
+                          onClick={() => setPaymentMethod('cod')}
+                        >
+                          <span className="opt-icon">📦</span>
+                          <span>COD (Thanh toán khi nhận hàng)</span>
+                        </button>
+                        <button 
+                          type="button"
+                          className={`payment-opt-btn ${paymentMethod === 'credit_card' ? 'active' : ''}`}
+                          onClick={() => setPaymentMethod('credit_card')}
+                        >
+                          <span className="opt-icon">💳</span>
+                          <span>Thẻ quốc tế (Credit Card)</span>
+                        </button>
+                      </div>
+                    </div>
+
                     <div className="cart-actions">
                       <button 
                         className="clear-cart" 
@@ -219,7 +278,11 @@ const Cart = () => {
                         onClick={handleCheckout}
                         disabled={isProcessing}
                       >
-                        {isProcessing ? 'PROCESSING...' : 'CHECKOUT'}
+                        {isProcessing 
+                          ? 'PROCESSING...' 
+                          : paymentMethod === 'sepay' 
+                          ? 'THANH TOÁN SEPAY QR' 
+                          : 'CHECKOUT'}
                       </button>
                     </div>
                   </div>
@@ -227,7 +290,18 @@ const Cart = () => {
               )}
             </div>
           </div>
-        </>
+        </>,
+        document.body
+      )}
+
+      {/* SePay VietQR Payment Modal */}
+      {showSepayModal && (
+        <SepayPaymentModal
+          isOpen={showSepayModal}
+          onClose={handleCloseSepayModal}
+          order={createdSepayOrder}
+          onPaymentSuccess={handleSepaySuccess}
+        />
       )}
     </>
   );

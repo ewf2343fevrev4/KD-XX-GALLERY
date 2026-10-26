@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
+  const navigate = useNavigate();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   
@@ -15,16 +17,26 @@ const ProductCard = ({ product }) => {
   
   const isWishlisted = isInWishlist(productId);
 
-  const handleAddToCart = () => {
+  const handleCardClick = (e) => {
+    if (e.target.closest('button')) return;
+    if (productId) {
+      navigate(`/products/${productId}`);
+    }
+  };
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
     // ✅ Đảm bảo pass đúng product object với _id
     addToCart({
       ...product,
       id: productId,
+      productId: productId,
       image: productImage
     });
   };
 
-  const handleWishlistToggle = () => {
+  const handleWishlistToggle = (e) => {
+    e.stopPropagation();
     const productData = {
       ...product,
       id: productId,
@@ -39,7 +51,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <div className="product-card">
+    <div className="product-card" onClick={handleCardClick}>
       <div className="product-image">
         <img 
           src={productImage} 
@@ -53,6 +65,7 @@ const ProductCard = ({ product }) => {
         <button 
           className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
           onClick={handleWishlistToggle}
+          title={isWishlisted ? 'Remove from Wishlist' : 'Add to Wishlist'}
         >
           <svg 
             viewBox="0 0 24 24" 

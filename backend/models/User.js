@@ -10,16 +10,32 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: [true, 'Email is required'],
+    required: false,
     unique: true,
+    sparse: true,
     lowercase: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
+    required: function() {
+      return !this.googleId && !this.facebookId;
+    },
     minlength: 6,
     select: false // Không trả về password khi query (BẢO MẬT)
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google', 'facebook'],
+    default: 'local'
+  },
+  googleId: {
+    type: String,
+    sparse: true
+  },
+  facebookId: {
+    type: String,
+    sparse: true
   },
   role: {
     type: String,
@@ -50,9 +66,9 @@ const userSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Hash password trước khi lưu
+// Hash password trước khi lưu (chỉ khi có password và password bị sửa đổi)
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.password || !this.isModified('password')) return next();
 
   try {
     const salt = await bcrypt.genSalt(12); // tăng độ bảo mật

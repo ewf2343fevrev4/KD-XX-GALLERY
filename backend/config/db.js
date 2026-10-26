@@ -18,12 +18,12 @@ const connectDB = async () => {
       },
       // Option 2: Atlas với connection string mới (format chuẩn)
       {
-        uri: 'mongodb+srv://amiri-admin:191205@amiri-store.apln27d.mongodb.net/amiri-store?retryWrites=true&w=majority&appName=amiri-ecommerce',
+        uri: 'mongodb+srv://amiri-admin:191205@amiri-store.ap1nz7d.mongodb.net/amiri-store?retryWrites=true&w=majority&appName=amiri-ecommerce',
         name: 'Atlas (corrected format)'
       },
       // Option 3: Atlas với DNS resolution fallback
       {
-        uri: 'mongodb+srv://amiri-admin:191205@amiri-store.apln27d.mongodb.net/?retryWrites=true&w=majority',
+        uri: 'mongodb+srv://amiri-admin:191205@amiri-store.ap1nz7d.mongodb.net/?retryWrites=true&w=majority',
         name: 'Atlas (no database specified)'
       }
     ];

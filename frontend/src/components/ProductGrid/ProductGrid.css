@@ -7,7 +7,9 @@
 }
 
 /* Section Title */
-.section-title {
+.product-container .section-title,
+.main-content .section-title,
+#new-arrivals .section-title {
     text-align: center;
     font-size: 2.8rem;
     font-weight: 200;
@@ -22,7 +24,9 @@
     text-transform: uppercase;
 }
 
-.section-title::after {
+.product-container .section-title::after,
+.main-content .section-title::after,
+#new-arrivals .section-title::after {
     content: '';
     position: absolute;
     /* move the underline up a bit so it stays close to the title */
@@ -33,6 +37,144 @@
     height: 3px;
     background: linear-gradient(90deg, transparent, #000, transparent);
     border-radius: 2px;
+}
+
+/* ===== BRAND ACTIVE FILTER BANNER ===== */
+.brand-active-filter-banner {
+  text-align: center;
+  margin-top: -36px;
+  margin-bottom: 70px;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.brand-active-filter-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(248, 246, 252, 0.95) 100%
+  );
+  padding: 26px 48px;
+  border-radius: 24px;
+  box-shadow: 
+    0 12px 35px rgba(0, 0, 0, 0.08),
+    0 0 30px rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  max-width: 650px;
+  width: 100%;
+}
+
+.brand-active-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: #9333ea;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.brand-active-filter-badge .section-title.brand-active-title {
+  margin: 0 0 16px 0 !important;
+  font-size: 2.6rem !important;
+  letter-spacing: 8px !important;
+  color: #111 !important;
+  line-height: 1.2;
+}
+
+.brand-active-filter-badge .section-title.brand-active-title::after {
+  display: none !important;
+}
+
+.brand-active-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.brand-count-tag {
+  font-size: 0.78rem;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: #4b5563;
+  background: #f3f4f6;
+  padding: 7px 16px;
+  border-radius: 30px;
+  border: 1px solid #e5e7eb;
+}
+
+.brand-clear-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #111;
+  color: #fff;
+  border: 1px solid #111;
+  border-radius: 30px;
+  padding: 7px 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.brand-clear-filter-btn:hover {
+  background: #9333ea;
+  border-color: #9333ea;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
+}
+
+.brand-clear-filter-btn .clear-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Brand Empty State */
+.brand-empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  max-width: 550px;
+  margin: 0 auto;
+}
+
+.brand-empty-icon {
+  font-size: 3rem;
+  color: #a855f7;
+  margin-bottom: 12px;
+  display: inline-block;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.brand-empty-state h3 {
+  font-size: 1.8rem;
+  letter-spacing: 4px;
+  margin-bottom: 14px;
+  color: #111;
+  font-weight: 300;
+  text-transform: uppercase;
+}
+
+.brand-empty-state p {
+  color: #666;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.brand-reset-btn {
+  margin-top: 25px;
 }
 
 /* Product Grid Layout */
@@ -49,6 +191,9 @@
 /* Make grid items stretch so product cards become uniform height */
 .product-item {
     display: flex;
+    border-radius: 25px;
+    background: transparent;
+    box-shadow: none;
 }
 
 .product-item > .product-card {
@@ -63,7 +208,6 @@
     opacity: 0;
     transform: translateY(30px) scale(0.95);
     animation: fadeInUp 0.6s ease-out forwards;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
     will-change: transform, opacity;
 }
 
@@ -79,10 +223,10 @@
     }
 }
 
-/* ✅ Hover effects cho product items */
+/* ✅ Hover effects delegated completely to .product-card (prevent square shadow) */
 .product-item:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    transform: none;
+    box-shadow: none;
 }
 
 /* ✅ Fade in animation cho các element khác */
@@ -558,8 +702,8 @@
     }
     
     .product-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        transform: none;
+        box-shadow: none;
     }
 }
 

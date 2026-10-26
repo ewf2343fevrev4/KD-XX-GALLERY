@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom'; // ✅ THÊM: Import Link và useLocation
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useWishlist } from '../../context/WishlistContext';
 import Cart from '../Cart';
 import SearchBox from '../SearchBox';
@@ -10,13 +10,24 @@ import './Header.css';
 const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [showWishlist, setShowWishlist] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { items: wishlistItems } = useWishlist();
-  const location = useLocation(); // ✅ THÊM: Để check current path
+  const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleNavClick = (e, hash, category = null) => {
     e.preventDefault();
     
-    // Nếu click vào category (Men/Women/Accessories/New Arrivals)
+    // Nếu click vào category (Men/Women/Accessories/Shoes/New Arrivals)
     if (category) {
       onCategoryChange(category);
       
@@ -35,7 +46,7 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
       return;
     }
     
-    // Xử lý các link khác (Home, About)
+    // Xử lý các link khác
     if (!hash) return;
     const el = document.querySelector(hash);
     if (!el) return;
@@ -54,10 +65,18 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
 
   return (
     <>
-      <header className="header">
+      <header className={`header ${isScrolled ? 'is-scrolled' : ''}`}>
         <div className="nav-container">
-          <Link to="/" className="logo-text"> {/* ✅ ĐỔI: từ <a> thành <Link> */}
-            <div className="logo">AMIRI</div>
+          <Link 
+            to="/" 
+            className="logo-text"
+            onClick={() => {
+              if (location.pathname === '/' || location.pathname === '/campaign') {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          >
+            <div className="logo">KD-XX</div>
             <div className="logo-subtitle">MADE TRẦN ĐỨC MINH</div>
           </Link>
           
@@ -66,9 +85,9 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
               {/* Home */}
               <li className="nav-item">
                 <Link
-                  to="/"
+                  to="/home"
                   onClick={(e) => {
-                    if (location.pathname === '/') {
+                    if (location.pathname === '/home') {
                       e.preventDefault();
                       handleNavClick(e, '#home');
                       onCategoryChange('home');
@@ -76,7 +95,7 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
                       onCategoryChange('home');
                     }
                   }}
-                  className={selectedCategory === 'home' && location.pathname === '/' ? 'active' : ''}
+                  className={selectedCategory === 'home' && location.pathname === '/home' ? 'active' : ''}
                 >
                   Home
                 </Link>
@@ -85,16 +104,16 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
               {/* New Arrivals */}
               <li className="nav-item">
                 <Link
-                  to="/"
+                  to="/home"
                   onClick={(e) => {
-                    if (location.pathname === '/') {
+                    if (location.pathname === '/home') {
                       e.preventDefault();
                       handleNavClick(e, null, 'all');
                     } else {
                       onCategoryChange('all');
                     }
                   }}
-                  className={selectedCategory === 'all' && location.pathname === '/' ? 'active' : ''}
+                  className={selectedCategory === 'all' && location.pathname === '/home' ? 'active' : ''}
                 >
                   New Arrivals
                 </Link>
@@ -103,16 +122,16 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
               {/* Men */}
               <li className="nav-item">
                 <Link
-                  to="/"
+                  to="/home"
                   onClick={(e) => {
-                    if (location.pathname === '/') {
+                    if (location.pathname === '/home') {
                       e.preventDefault();
                       handleNavClick(e, null, 'men');
                     } else {
                       onCategoryChange('men');
                     }
                   }}
-                  className={selectedCategory === 'men' && location.pathname === '/' ? 'active' : ''}
+                  className={selectedCategory === 'men' && location.pathname === '/home' ? 'active' : ''}
                 >
                   Men
                 </Link>
@@ -121,16 +140,16 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
               {/* Women */}
               <li className="nav-item">
                 <Link
-                  to="/"
+                  to="/home"
                   onClick={(e) => {
-                    if (location.pathname === '/') {
+                    if (location.pathname === '/home') {
                       e.preventDefault();
                       handleNavClick(e, null, 'women');
                     } else {
                       onCategoryChange('women');
                     }
                   }}
-                  className={selectedCategory === 'women' && location.pathname === '/' ? 'active' : ''}
+                  className={selectedCategory === 'women' && location.pathname === '/home' ? 'active' : ''}
                 >
                   Women
                 </Link>
@@ -139,28 +158,46 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
               {/* Accessories */}
               <li className="nav-item">
                 <Link
-                  to="/"
+                  to="/home"
                   onClick={(e) => {
-                    if (location.pathname === '/') {
+                    if (location.pathname === '/home') {
                       e.preventDefault();
                       handleNavClick(e, null, 'accessories');
                     } else {
                       onCategoryChange('accessories');
                     }
                   }}
-                  className={selectedCategory === 'accessories' && location.pathname === '/' ? 'active' : ''}
+                  className={selectedCategory === 'accessories' && location.pathname === '/home' ? 'active' : ''}
                 >
                   Accessories
                 </Link>
               </li>
               
-              {/* ✅ About - Link đến trang About */}
+              {/* FIT LAB: 2D Mix & Match Studio */}
               <li className="nav-item">
                 <Link 
-                  to="/about"
-                  className={location.pathname === '/about' ? 'active' : ''}
+                  to="/fit-lab"
+                  className={location.pathname === '/fit-lab' ? 'active' : ''}
                 >
-                  About
+                  Fit Lab
+                </Link>
+              </li>
+
+              {/* Shoes - Lọc các sản phẩm có tag / category Shoes */}
+              <li className="nav-item">
+                <Link 
+                  to="/home"
+                  onClick={(e) => {
+                    if (location.pathname === '/home') {
+                      e.preventDefault();
+                      handleNavClick(e, null, 'shoes');
+                    } else {
+                      onCategoryChange('shoes');
+                    }
+                  }}
+                  className={selectedCategory === 'shoes' && location.pathname === '/home' ? 'active' : ''}
+                >
+                  Shoes
                 </Link>
               </li>
             </ul>
@@ -185,7 +222,6 @@ const Header = ({ onSearch, products, onCategoryChange, selectedCategory }) => {
             ) : (
               <SearchBox 
                 onSearch={onSearch}
-                products={products}
                 isSearchActive={isSearchActive}
                 setIsSearchActive={setIsSearchActive}
               />

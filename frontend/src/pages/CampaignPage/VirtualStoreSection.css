@@ -1,0 +1,487 @@
+/* ============================================
+   CAMPAIGN PAGE — 3D VIRTUAL BOUTIQUE SECTION
+   ============================================ */
+
+.campaign-virtual-store {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 700px;
+  background-color: #07050c;
+  overflow: hidden;
+  user-select: none;
+  border-top: 1px solid rgba(168, 85, 247, 0.18);
+}
+
+/* Seamless top transition from Campaign Hero */
+.campaign-virtual-store__top-blend {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 110px;
+  background: linear-gradient(
+    to bottom,
+    #07050c 0%,
+    rgba(7, 5, 12, 0.72) 45%,
+    transparent 100%
+  );
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* WebGL Canvas Container */
+.campaign-virtual-store__canvas-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.campaign-virtual-store__canvas-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Subtle Vignette for Cinematic Depth */
+.campaign-virtual-store__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 55%,
+      rgba(4, 2, 10, 0.65) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(5, 3, 12, 0.85) 0%,
+      transparent 22%
+    );
+}
+
+/* ── Top Editorial Header Overlay ── */
+.campaign-virtual-store__header {
+  position: absolute;
+  top: 2.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  text-align: center;
+  pointer-events: none;
+  width: 90%;
+  max-width: 680px;
+}
+
+.campaign-virtual-store__eyebrow {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.36em;
+  text-transform: uppercase;
+  color: rgba(192, 132, 252, 0.95);
+  margin-bottom: 0.45rem;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9);
+}
+
+.campaign-virtual-store__title {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: clamp(1.35rem, 2.5vw, 2rem);
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin: 0 0 0.4rem;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.95);
+}
+
+.campaign-virtual-store__subtitle {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+}
+
+/* ── 3D Projected Hotspot Pins ── */
+.campaign-virtual-store__hotspots {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.campaign-store-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  background: rgba(10, 7, 20, 0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 10px 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    opacity 0.35s ease;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65);
+}
+
+.campaign-store-hotspot--men {
+  border-color: rgba(56, 189, 248, 0.55);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(56, 189, 248, 0.22);
+}
+
+.campaign-store-hotspot--center {
+  border-color: rgba(192, 132, 252, 0.65);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.65),
+    0 0 22px rgba(168, 85, 247, 0.28);
+}
+
+.campaign-store-hotspot--women {
+  border-color: rgba(244, 114, 182, 0.55);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.65),
+    0 0 20px rgba(244, 114, 182, 0.22);
+}
+
+.campaign-store-hotspot:hover,
+.campaign-store-hotspot.is-hovered {
+  transform: translate(-50%, -56%) scale(1.06);
+  background: rgba(18, 12, 34, 0.9);
+  border-color: #ffffff;
+}
+
+.campaign-store-hotspot--men:hover,
+.campaign-store-hotspot--men.is-hovered {
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.8),
+    0 0 28px rgba(56, 189, 248, 0.55);
+}
+
+.campaign-store-hotspot--center:hover,
+.campaign-store-hotspot--center.is-hovered {
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(168, 85, 247, 0.6);
+}
+
+.campaign-store-hotspot--women:hover,
+.campaign-store-hotspot--women.is-hovered {
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.8),
+    0 0 28px rgba(244, 114, 182, 0.55);
+}
+
+.campaign-store-hotspot.is-disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.campaign-store-hotspot__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.campaign-store-hotspot--men .campaign-store-hotspot__dot {
+  background: #38bdf8;
+  box-shadow: 0 0 10px #38bdf8;
+}
+
+.campaign-store-hotspot--center .campaign-store-hotspot__dot {
+  background: #c084fc;
+  box-shadow: 0 0 10px #c084fc;
+}
+
+.campaign-store-hotspot--women .campaign-store-hotspot__dot {
+  background: #f472b6;
+  box-shadow: 0 0 10px #f472b6;
+}
+
+.campaign-store-hotspot__dot::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  opacity: 0.5;
+  animation: storePulseRing 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.campaign-store-hotspot__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.campaign-store-hotspot__label {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.campaign-store-hotspot__action {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.58rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.68);
+  margin-top: 2px;
+}
+
+/* ── Bottom Zone Navigation Bar ── */
+.campaign-virtual-store__dock {
+  position: absolute;
+  bottom: 2.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(8, 5, 16, 0.76);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 8px 10px;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7);
+  transition: opacity 0.35s ease;
+}
+
+.campaign-virtual-store__dock.is-disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.campaign-store-dock-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.78);
+  padding: 11px 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+.campaign-store-dock-btn__index {
+  font-size: 0.6rem;
+  color: rgba(192, 132, 252, 0.85);
+  letter-spacing: 0.1em;
+}
+
+.campaign-store-dock-btn:hover,
+.campaign-store-dock-btn.is-active {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ── Mix & Match Ready Overlay (when camera zooms to center table & no separate route exists yet) ── */
+.campaign-virtual-store__mix-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(6, 4, 12, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  padding: 1.5rem;
+  animation: storeFadeIn 0.4s ease forwards;
+}
+
+.campaign-virtual-store__mix-card {
+  max-width: 500px;
+  width: 100%;
+  background: rgba(12, 8, 24, 0.92);
+  border: 1px solid rgba(192, 132, 252, 0.5);
+  padding: 2.6rem 2.4rem;
+  text-align: center;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.85),
+    0 0 40px rgba(168, 85, 247, 0.22);
+}
+
+.campaign-virtual-store__mix-tag {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: #c084fc;
+  margin-bottom: 0.9rem;
+}
+
+.campaign-virtual-store__mix-heading {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 1.65rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin: 0 0 1rem;
+}
+
+.campaign-virtual-store__mix-desc {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 1.8rem;
+}
+
+.campaign-virtual-store__mix-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.campaign-virtual-store__mix-btn {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  padding: 13px 28px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.campaign-virtual-store__mix-btn--primary {
+  background: #ffffff;
+  color: #090612;
+  border: 1px solid #ffffff;
+}
+
+.campaign-virtual-store__mix-btn--primary:hover {
+  background: transparent;
+  color: #ffffff;
+}
+
+.campaign-virtual-store__mix-btn--secondary {
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+.campaign-virtual-store__mix-btn--secondary:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Smooth Transition Fade Overlay ── */
+.campaign-virtual-store__fade {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  background: #07050c;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.42s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.campaign-virtual-store__fade.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@keyframes storePulseRing {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+@keyframes storeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .campaign-store-hotspot {
+    padding: 8px 12px;
+  }
+
+  .campaign-store-hotspot__label {
+    font-size: 0.62rem;
+  }
+
+  .campaign-store-hotspot__action {
+    display: none;
+  }
+
+  .campaign-virtual-store__dock {
+    bottom: 1.4rem;
+    gap: 6px;
+    padding: 6px 8px;
+    width: 94%;
+    justify-content: center;
+  }
+
+  .campaign-store-dock-btn {
+    padding: 9px 12px;
+    font-size: 0.6rem;
+    letter-spacing: 0.14em;
+  }
+}
+
+@media (max-width: 540px) {
+  .campaign-virtual-store {
+    min-height: 600px;
+  }
+
+  .campaign-virtual-store__header {
+    top: 1.4rem;
+  }
+
+  .campaign-store-dock-btn__index {
+    display: none;
+  }
+}
+

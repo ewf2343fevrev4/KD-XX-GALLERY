@@ -8,15 +8,15 @@ const productSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: false, // ✅ ĐỔI THÀNH false
-    default: 'Sản phẩm chất lượng cao từ AMIRI' // ✅ THÊM default
+    required: false,
+    default: 'Sản phẩm chất lượng cao từ AMIRI'
   },
   price: {
     type: Number,
     required: [true, 'Product price is required'],
     min: 0
   },
-  // ✅ Cho phép lưu nhiều ảnh (images), hoặc 1 ảnh image/imageUrl
+  // Cho phép lưu nhiều ảnh (images), hoặc 1 ảnh image/imageUrl
   images: {
     type: [String],
     validate: {
@@ -29,7 +29,7 @@ const productSchema = new mongoose.Schema({
   },
   image: {
     type: String,
-    default: '' // ✅ Cho phép có 1 ảnh duy nhất (tương thích code cũ)
+    default: ''
   },
   category: {
     type: String,
@@ -38,12 +38,12 @@ const productSchema = new mongoose.Schema({
   },
   sizes: [{
     type: String,
-    enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+    trim: true
   }],
   colors: [String],
   brand: {
     type: String,
-    default: 'AMIRI' // ✅ THÊM default
+    default: 'AMIRI'
   },
   inStock: {
     type: Boolean,
@@ -57,25 +57,36 @@ const productSchema = new mongoose.Schema({
   featured: {
     type: Boolean,
     default: false
+  },
+  rating: {
+    type: Number,
+    default: 5.0,
+    min: 0,
+    max: 5
+  },
+  numReviews: {
+    type: Number,
+    default: 0,
+    min: 0
   }
 }, {
   timestamps: true
 });
 
-// ✅ Virtual property để luôn trả về ảnh đầu tiên
+// Virtual property để luôn trả về ảnh đầu tiên
 productSchema.virtual('mainImage').get(function () {
   return this.images?.[0] || this.image || null;
 });
 
-// ✅ Đảm bảo khi tạo/update, images và image luôn sync
+// Đảm bảo khi tạo/update, images và image luôn sync
 productSchema.pre('save', function(next) {
-  // Nếu có images array nhưng chưa có image, lấy phần tử đầu
-  if (this.images?.length && !this.image) {
+  if (this.images && this.images.length > 0) {
     this.image = this.images[0];
-  }
-  // Nếu có image nhưng images rỗng, đưa image vào images
-  if (this.image && !this.images?.length) {
+  } else if (this.image) {
     this.images = [this.image];
+  }
+  if (this.stock !== undefined) {
+    this.inStock = this.stock > 0;
   }
   next();
 });

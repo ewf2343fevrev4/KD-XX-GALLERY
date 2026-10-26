@@ -7,22 +7,23 @@ const cartReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_TO_CART': {
       const existingItem = state.items.find(item => item.id === action.payload.id);
+      const addQuantity = Number(action.payload.quantity) || 1;
 
       if (existingItem) {
-        // Nếu sản phẩm đã có, tăng quantity
+        // Nếu sản phẩm đã có, tăng quantity theo payload
         return {
           ...state,
           items: state.items.map(item =>
             item.id === action.payload.id
-              ? { ...item, quantity: item.quantity + 1 }
+              ? { ...item, quantity: item.quantity + addQuantity }
               : item
           )
         };
       } else {
-        // Nếu sản phẩm chưa có, thêm mới
+        // Nếu sản phẩm chưa có, thêm mới với quantity
         return {
           ...state,
-          items: [...state.items, { ...action.payload, quantity: 1 }]
+          items: [...state.items, { ...action.payload, quantity: addQuantity }]
         };
       }
     }
@@ -101,12 +102,16 @@ export const CartProvider = ({ children }) => {
 
   // Cart actions
   const addToCart = (product) => {
-    // Nếu sản phẩm không có id thì tạo id tạm từ name + category + price
-    const safeId = product.id || `${product.name || "unknown"}-${product.category || "misc"}-${product.price || 0}`;
+    // Tạo ID duy nhất phân biệt theo kích cỡ và màu sắc nếu có
+    const baseId = product._id || product.id || `${product.name || "unknown"}-${product.category || "misc"}`;
+    const variantSuffix = [product.size, product.color].filter(Boolean).join('-');
+    const safeId = variantSuffix ? `${baseId}-${variantSuffix}` : (product.id || baseId);
 
     const productWithId = {
       ...product,
-      id: safeId
+      id: safeId,
+      productId: product._id || product.id || baseId,
+      quantity: Number(product.quantity) || 1
     };
 
     dispatch({ type: 'ADD_TO_CART', payload: productWithId });

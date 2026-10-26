@@ -3,13 +3,20 @@ import ProductCard from '../ProductCard';
 import { getAllProducts } from '../../services/api';
 import './ProductGrid.css';
 
-const ProductGrid = ({ searchQuery, selectedCategory = 'home', onProductsLoad }) => {
+const ProductGrid = ({ 
+  searchQuery, 
+  selectedCategory = 'home', 
+  selectedBrand = null, 
+  onClearBrand, 
+  onProductsLoad 
+}) => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch products từ MongoDB khi component mount
+  // Fetch products từ MongoDB một lần khi component mount
   useEffect(() => {
+    let isMounted = true;
     const fetchProducts = async () => {
       try {
         setLoading(true);
@@ -17,50 +24,115 @@ const ProductGrid = ({ searchQuery, selectedCategory = 'home', onProductsLoad })
         
         const response = await getAllProducts();
 
-        if (response.success && Array.isArray(response.data)) {
-          setProducts(response.data);
-          if (onProductsLoad) {
-            onProductsLoad(response.data);
+        if (isMounted) {
+          if (response.success && Array.isArray(response.data)) {
+            setProducts(response.data);
+            if (onProductsLoad) {
+              onProductsLoad(response.data);
+            }
+          } else {
+            setProducts([]);
+            setError(response.error || 'No products found in database.');
           }
-        } else {
-          setProducts([]);
-          setError(response.error || 'No products found in database.');
         }
       } catch (error) {
         console.error('Error fetching products:', error);
-        setProducts([]);
-        setError('Failed to load products. Please check your connection.');
+        if (isMounted) {
+          setProducts([]);
+          setError('Failed to load products. Please check your connection.');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchProducts();
-  }, []);
 
-  // ✅ Filter products dựa trên search query VÀ category
+    return () => {
+      isMounted = false;
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ✅ Filter products dựa trên brand, category VÀ search query
   const filteredProducts = useMemo(() => {
     let result = products;
-    
-    // Lọc theo category (trừ 'home' và 'all' thì hiển thị tất cả)
-    if (selectedCategory && selectedCategory !== 'all' && selectedCategory !== 'home') {
-      result = result.filter(product => 
-        product.category?.toLowerCase() === selectedCategory.toLowerCase()
-      );
+
+    // 1. Lọc theo thương hiệu (nếu có chọn logo hãng)
+    if (selectedBrand) {
+      const brandName = (typeof selectedBrand === 'string' ? selectedBrand : selectedBrand.name || '').toLowerCase().trim();
+      const brandId = (typeof selectedBrand === 'object' ? selectedBrand.id || '' : '').toLowerCase().trim();
+      const aliases = (
+        typeof selectedBrand === 'object' && Array.isArray(selectedBrand.aliases)
+          ? selectedBrand.aliases
+          : []
+      ).map(a => a.toLowerCase().trim());
+
+      result = result.filter(product => {
+        const pBrand = (product.brand || '').toLowerCase().trim();
+        const pName = (product.name || '').toLowerCase().trim();
+
+        // So khớp trực tiếp theo product.brand
+        if (pBrand) {
+          if (pBrand === brandName) return true;
+          if (brandName && (pBrand.includes(brandName) || brandName.includes(pBrand))) return true;
+          if (brandId && pBrand.replace(/\s+/g, '-').includes(brandId)) return true;
+          for (const alias of aliases) {
+            if (pBrand.includes(alias) || alias.includes(pBrand)) return true;
+          }
+        }
+
+        // Dự phòng nếu brand nằm trong tên sản phẩm
+        if (brandName && pName.includes(brandName)) return true;
+        for (const alias of aliases) {
+          if (pName.includes(alias)) return true;
+        }
+
+        return false;
+      });
     }
     
-    // Lọc theo search query
+    // 2. Lọc theo category (trừ 'home' và 'all' thì hiển thị tất cả)
+    if (selectedCategory && selectedCategory !== 'all' && selectedCategory !== 'home') {
+      const targetCat = selectedCategory.toLowerCase().trim();
+      result = result.filter(product => {
+        const prodCat = (product.category || '').toLowerCase().trim();
+        if (prodCat === targetCat) return true;
+
+        // Hỗ trợ đặc biệt cho tag/category 'shoes'
+        if (targetCat === 'shoes') {
+          if (prodCat === 'shoe' || prodCat.includes('shoe') || prodCat.includes('sneaker') || prodCat.includes('boot')) {
+            return true;
+          }
+          if (Array.isArray(product.tags) && product.tags.some(t => {
+            const tagLower = (t || '').toLowerCase().trim();
+            return tagLower === 'shoes' || tagLower === 'shoe' || tagLower.includes('shoe') || tagLower.includes('sneaker') || tagLower.includes('boot');
+          })) {
+            return true;
+          }
+          if (typeof product.tags === 'string') {
+            const tagsLower = product.tags.toLowerCase();
+            return tagsLower.includes('shoe') || tagsLower.includes('sneaker') || tagsLower.includes('boot');
+          }
+        }
+        return false;
+      });
+    }
+    
+    // 3. Lọc theo search query
     if (searchQuery?.trim()) {
+      const q = searchQuery.toLowerCase().trim();
       result = result.filter(product =>
-        (product.name?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (product.category?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (product.description?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-        (product.brand?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+        (product.name?.toLowerCase() || '').includes(q) ||
+        (product.category?.toLowerCase() || '').includes(q) ||
+        (product.description?.toLowerCase() || '').includes(q) ||
+        (product.brand?.toLowerCase() || '').includes(q)
       );
     }
     
     return result;
-  }, [searchQuery, selectedCategory, products]);
+  }, [searchQuery, selectedCategory, selectedBrand, products]);
 
   // Loading UI
   if (loading) {
@@ -88,12 +160,40 @@ const ProductGrid = ({ searchQuery, selectedCategory = 'home', onProductsLoad })
 
   return (
     <div id="products-section" className="product-container">
-      {/* ✅ Category title động */}
-      {selectedCategory === 'men' && <h2 className="section-title">MEN</h2>}
-      {selectedCategory === 'women' && <h2 className="section-title">WOMEN</h2>}
-      {selectedCategory === 'accessories' && <h2 className="section-title">ACCESSORIES</h2>}
-      {(selectedCategory === 'all' || selectedCategory === 'home') && !searchQuery && (
-        <h2 className="section-title">NEW ARRIVALS</h2>
+      {/* ✅ Hiển thị Brand Filter Banner nếu đang chọn hãng */}
+      {selectedBrand ? (
+        <div className="brand-active-filter-banner fade-in">
+          <div className="brand-active-filter-badge">
+            <span className="brand-active-label">BỘ SƯU TẬP THƯƠNG HIỆU</span>
+            <h2 className="section-title brand-active-title">
+              {typeof selectedBrand === 'string' ? selectedBrand : selectedBrand.name}
+            </h2>
+            <div className="brand-active-meta">
+              <span className="brand-count-tag">
+                {filteredProducts.length} SẢN PHẨM
+              </span>
+              <button 
+                type="button"
+                className="brand-clear-filter-btn"
+                onClick={onClearBrand}
+                title="Xóa bộ lọc để xem tất cả sản phẩm"
+              >
+                <span className="clear-icon">✕</span> XÓA LỌC / HIỂN THỊ TẤT CẢ
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* ✅ Category title động */}
+          {selectedCategory === 'men' && <h2 className="section-title">MEN</h2>}
+          {selectedCategory === 'women' && <h2 className="section-title">WOMEN</h2>}
+          {selectedCategory === 'accessories' && <h2 className="section-title">ACCESSORIES</h2>}
+          {selectedCategory === 'shoes' && <h2 className="section-title">SHOES</h2>}
+          {(selectedCategory === 'all' || selectedCategory === 'home') && !searchQuery && (
+            <h2 className="section-title">NEW ARRIVALS</h2>
+          )}
+        </>
       )}
 
       {/* Search results info */}
@@ -120,6 +220,22 @@ const ProductGrid = ({ searchQuery, selectedCategory = 'home', onProductsLoad })
               <ProductCard product={product} />
             </div>
           ))}
+        </div>
+      ) : selectedBrand ? (
+        <div className="no-products fade-in brand-empty-state">
+          <div className="brand-empty-icon">✧</div>
+          <h3>CHƯA CÓ SẢN PHẨM</h3>
+          <p>
+            Hiện chưa có sản phẩm nào thuộc thương hiệu{' '}
+            <strong>{typeof selectedBrand === 'string' ? selectedBrand : selectedBrand.name}</strong>.
+          </p>
+          <button 
+            type="button" 
+            className="retry-button brand-reset-btn"
+            onClick={onClearBrand}
+          >
+            XEM TẤT CẢ SẢN PHẨM
+          </button>
         </div>
       ) : !searchQuery ? (
         <div className="no-products fade-in">

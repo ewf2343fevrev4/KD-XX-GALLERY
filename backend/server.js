@@ -1,4 +1,6 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
@@ -9,6 +11,41 @@ require('dotenv').config();
 console.log('Starting server...');
 
 const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE']
+  }
+});
+
+app.set('io', io);
+
+// Socket.io connection handlers
+io.on('connection', (socket) => {
+  socket.on('join_conversation', (conversationId) => {
+    if (conversationId) {
+      socket.join(`conversation_${conversationId}`);
+    }
+  });
+
+  socket.on('leave_conversation', (conversationId) => {
+    if (conversationId) {
+      socket.leave(`conversation_${conversationId}`);
+    }
+  });
+
+  socket.on('admin_join', () => {
+    socket.join('admin_inbox');
+  });
+
+  socket.on('typing', ({ conversationId, role, isTyping }) => {
+    if (conversationId) {
+      socket.to(`conversation_${conversationId}`).emit('user_typing', { role, isTyping });
+    }
+  });
+});
 
 app.use(cors());
 app.use(express.json());
@@ -38,14 +75,34 @@ const userSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    required: true,
+    required: false,
     unique: true,
+    sparse: true,
     lowercase: true
   },
   password: {
     type: String,
-    required: true,
+    required: function() {
+      return !this.googleId && !this.facebookId;
+    },
     minlength: 6
+  },
+  authProvider: {
+    type: String,
+    enum: ['local', 'google', 'facebook'],
+    default: 'local'
+  },
+  googleId: {
+    type: String,
+    sparse: true
+  },
+  facebookId: {
+    type: String,
+    sparse: true
+  },
+  avatar: {
+    type: String,
+    default: ''
   },
   role: {
     type: String,
@@ -92,7 +149,7 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
+  if (!this.password || !this.isModified('password')) {
     return next();
   }
   const salt = await bcrypt.genSalt(10);
@@ -178,9 +235,259 @@ app.use('/api/products', productRoutes);
 const orderRoutes = require('./routes/orderRoutes');
 app.use('/api/orders', orderRoutes);
 
+// ✅ SEPAY PAYMENT & WEBHOOK ROUTES
+const sepayRoutes = require('./routes/sepayRoutes');
+app.use('/api/sepay', sepayRoutes);
+
 // ✅ ADMIN ROUTES
 const adminRoutes = require('./routes/admin');
 app.use('/api/admin', adminRoutes);
+
+// ✅ KD-XX INTELLIGENCE / AI ADMIN OPERATIONS ROUTES
+const aiAdminRoutes = require('./routes/aiAdminRoutes');
+app.use('/api/admin/ai', aiAdminRoutes);
+
+// ✅ CAMPAIGN MEDIA / ADS ROUTES
+const campaignMediaRoutes = require('./routes/campaignMediaRoutes');
+app.use('/api/campaign-media', campaignMediaRoutes);
+
+// ✅ CUSTOMER REVIEWS & RATINGS ROUTES
+const reviewRoutes = require('./routes/reviewRoutes');
+app.use('/api/reviews', reviewRoutes);
+
+// ✅ CUSTOMER SUPPORT CHAT ROUTES
+const chatRoutes = require('./routes/chatRoutes');
+app.use('/api/chat', chatRoutes);
+
+// ✅ NEWSLETTER & EMAIL MARKETING ROUTES (Brevo)
+const newsletterRoutes = require('./routes/newsletterRoutes');
+app.use('/api/newsletter', newsletterRoutes);
+
+// ✅ OAUTH ROUTES (Google & Facebook)
+const createAuthRouter = require('./routes/authRoutes');
+app.use('/api/auth', createAuthRouter(User, generateToken));
+
+// ✅ IMAGE PROXY FOR FIT LAB & EXTERNAL CDNs (Protected against SSRF & Resource Exhaustion)
+const dns = require('dns');
+const https = require('https');
+const net = require('net');
+
+// Verified luxury fashion and media CDN hostnames for KD-XX
+const DEFAULT_ALLOWED_HOSTS = new Set([
+  'res.cloudinary.com',
+  'image-raw.reversible.com',
+  'cdn.clothbase.com',
+  'amiri.com',
+  'cdn-images.farfetch-contents.com',
+  'img.ssensemedia.com',
+  'hrd-live.cdn.scayle.cloud',
+  'holtrenfrew.scene7.com',
+  'media.neimanmarcus.com',
+  'club21.com',
+  'product.hstatic.net',
+  'images.unsplash.com'
+]);
+
+function getAllowedHosts() {
+  const hosts = new Set(DEFAULT_ALLOWED_HOSTS);
+  if (process.env.ALLOWED_IMAGE_HOSTS) {
+    process.env.ALLOWED_IMAGE_HOSTS.split(',')
+      .map(h => h.trim().toLowerCase())
+      .filter(Boolean)
+      .forEach(h => hosts.add(h));
+  }
+  return hosts;
+}
+
+function isForbiddenIP(ip) {
+  if (typeof ip !== 'string') return true;
+  const cleanIp = ip.toLowerCase().trim();
+  // IPv4 Loopback
+  if (cleanIp.startsWith('127.')) return true;
+  // Private IPv4 (RFC 1918)
+  if (cleanIp.startsWith('10.') || cleanIp.startsWith('192.168.')) return true;
+  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(cleanIp)) return true;
+  // Link-local / Cloud Metadata (169.254.0.0/16)
+  if (cleanIp.startsWith('169.254.')) return true;
+  // Current network / Broadcast
+  if (cleanIp.startsWith('0.') || cleanIp === '255.255.255.255') return true;
+  // IPv6 Loopback, Unspecified, Unique local, Link-local, IPv4-mapped IPv6
+  if (cleanIp === '::1' || cleanIp === '::' || cleanIp.startsWith('fc') || cleanIp.startsWith('fd') || cleanIp.startsWith('fe80:') || cleanIp.startsWith('::ffff:')) return true;
+  return false;
+}
+
+// Custom HTTPS Agent with socket-level DNS verification against DNS Rebinding & Private IPs
+const ssrfProtectedAgent = new https.Agent({
+  keepAlive: true,
+  timeout: 6000,
+  lookup: (hostname, options, callback) => {
+    dns.lookup(hostname, options, (err, address, family) => {
+      if (err) return callback(err);
+      if (Array.isArray(address)) {
+        for (const item of address) {
+          if (isForbiddenIP(item.address)) {
+            return callback(new Error('SSRF_FORBIDDEN_IP: Target resolves to forbidden IP'));
+          }
+        }
+      } else if (isForbiddenIP(address)) {
+        return callback(new Error('SSRF_FORBIDDEN_IP: Target resolves to forbidden IP'));
+      }
+      callback(null, address, family);
+    });
+  }
+});
+
+const ALLOWED_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/avif',
+  'image/gif'
+]);
+const MAX_PROXY_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MiB
+
+app.get('/api/proxy-image', (req, res) => {
+  try {
+    const { url } = req.query;
+    if (!url || typeof url !== 'string' || !url.trim()) {
+      return res.status(400).json({ message: 'URL hình ảnh không hợp lệ' });
+    }
+
+    let parsedUrl;
+    try {
+      parsedUrl = new URL(url.trim());
+    } catch (e) {
+      return res.status(400).json({ message: 'Định dạng URL không hợp lệ' });
+    }
+
+    // 1. Strict HTTPS protocol check
+    if (parsedUrl.protocol !== 'https:') {
+      return res.status(400).json({ message: 'Chỉ chấp nhận giao thức HTTPS an toàn' });
+    }
+
+    // 2. Reject credentials in URL
+    if (parsedUrl.username || parsedUrl.password) {
+      return res.status(400).json({ message: 'URL không được chứa thông tin xác thực' });
+    }
+
+    // 3. Reject non-standard ports
+    if (parsedUrl.port && parsedUrl.port !== '443') {
+      return res.status(400).json({ message: 'Cổng kết nối không được phép' });
+    }
+
+    const hostname = parsedUrl.hostname.toLowerCase();
+
+    // 4. Reject direct IP addresses
+    if (net.isIP(hostname)) {
+      return res.status(403).json({ message: 'Không cho phép truy cập qua địa chỉ IP trực tiếp' });
+    }
+
+    // 5. Hostname whitelist check (exact match or approved subdomain)
+    const allowedHosts = getAllowedHosts();
+    let isAllowed = allowedHosts.has(hostname);
+    if (!isAllowed) {
+      for (const domain of allowedHosts) {
+        if (hostname.endsWith('.' + domain)) {
+          isAllowed = true;
+          break;
+        }
+      }
+    }
+
+    if (!isAllowed) {
+      return res.status(403).json({ message: 'Tên miền hình ảnh không nằm trong danh mục được phép' });
+    }
+
+    // 6. Connect using ssrfProtectedAgent (socket-level DNS verification against DNS Rebinding)
+    const options = {
+      protocol: parsedUrl.protocol,
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: 'GET',
+      agent: ssrfProtectedAgent,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'
+      }
+    };
+
+    const proxyReq = https.request(options, (remoteRes) => {
+      // 7. Reject redirects
+      if (remoteRes.statusCode >= 300 && remoteRes.statusCode < 400) {
+        remoteRes.resume();
+        return res.status(403).json({ message: 'Chuyển hướng không được phép' });
+      }
+
+      if (remoteRes.statusCode !== 200) {
+        remoteRes.resume();
+        return res.status(remoteRes.statusCode).json({ message: 'Không thể tải ảnh từ máy chủ gốc' });
+      }
+
+      // 8. Validate Content-Type
+      const rawContentType = (remoteRes.headers['content-type'] || '').toLowerCase().split(';')[0].trim();
+      if (!ALLOWED_MIME_TYPES.has(rawContentType)) {
+        remoteRes.resume();
+        return res.status(415).json({ message: 'Định dạng tệp không được hỗ trợ hoặc có rủi ro bảo mật' });
+      }
+
+      // 9. Read stream with strict byte counting (up to 10 MiB)
+      let totalBytes = 0;
+      const chunks = [];
+      let exceededLimit = false;
+
+      remoteRes.on('data', (chunk) => {
+        totalBytes += chunk.length;
+        if (totalBytes > MAX_PROXY_IMAGE_BYTES) {
+          exceededLimit = true;
+          remoteRes.destroy();
+          return res.status(413).json({ message: 'Kích thước tệp vượt quá giới hạn 10MB' });
+        }
+        chunks.push(chunk);
+      });
+
+      remoteRes.on('end', () => {
+        if (exceededLimit) return;
+        const imageBuffer = Buffer.concat(chunks);
+        res.setHeader('Content-Type', rawContentType);
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        res.send(imageBuffer);
+      });
+
+      remoteRes.on('error', (err) => {
+        console.error('Remote image stream error:', err.message);
+        if (!res.headersSent) {
+          res.status(502).json({ message: 'Lỗi đường truyền khi tải ảnh' });
+        }
+      });
+    });
+
+    proxyReq.setTimeout(6000, () => {
+      proxyReq.destroy(new Error('TIMEOUT'));
+    });
+
+    proxyReq.on('error', (err) => {
+      console.error('Proxy image request error:', err.message);
+      if (res.headersSent) return;
+      if (err.message && err.message.includes('SSRF_FORBIDDEN_IP')) {
+        return res.status(403).json({ message: 'Địa chỉ IP đích không được phép' });
+      }
+      if (err.message === 'TIMEOUT') {
+        return res.status(504).json({ message: 'Thời gian chờ tải ảnh quá hạn' });
+      }
+      res.status(502).json({ message: 'Không thể kết nối đến máy chủ chứa ảnh' });
+    });
+
+    proxyReq.end();
+  } catch (error) {
+    console.error('Image proxy general error:', error.message);
+    if (!res.headersSent) {
+      res.status(500).json({ message: 'Lỗi xử lý yêu cầu tải ảnh' });
+    }
+  }
+});
 
 // Register user
 app.post('/api/users/register', async (req, res) => {
@@ -252,7 +559,7 @@ app.post('/api/users/login', async (req, res) => {
     }
     
     console.log('Finding user...');
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password');
     
     if (user && (await user.matchPassword(password))) {
       const token = generateToken(user._id);
@@ -264,11 +571,17 @@ app.post('/api/users/login', async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
-          phone: user.phone,
-          address: user.address,
-          city: user.city,
-          postalCode: user.postalCode,
-          country: user.country
+          avatar: user.avatar || '',
+          authProvider: user.authProvider || 'local',
+          phone: user.phone || '',
+          address: user.address || '',
+          city: user.city || '',
+          postalCode: user.postalCode || '',
+          country: user.country || 'Vietnam',
+          birthDate: user.birthDate || '',
+          gender: user.gender || '',
+          createdAt: user.createdAt,
+          wishlistCount: user.wishlist?.length || 0
         }
       });
       
@@ -300,11 +613,18 @@ app.get('/api/users/verify', async (req, res) => {
           _id: user._id,
           name: user.name,
           email: user.email,
-          phone: user.phone,
-          address: user.address,
-          city: user.city,
-          postalCode: user.postalCode,
-          country: user.country
+          role: user.role,
+          avatar: user.avatar || '',
+          authProvider: user.authProvider || 'local',
+          phone: user.phone || '',
+          address: user.address || '',
+          city: user.city || '',
+          postalCode: user.postalCode || '',
+          country: user.country || 'Vietnam',
+          birthDate: user.birthDate || '',
+          gender: user.gender || '',
+          createdAt: user.createdAt,
+          wishlistCount: user.wishlist?.length || 0
         }
       });
     } else {
@@ -406,14 +726,18 @@ app.get('/api/users/profile', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
-        address: user.address,
-        city: user.city,
-        postalCode: user.postalCode,
-        country: user.country,
-        birthDate: user.birthDate,
-        gender: user.gender,
-        role: user.role
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        postalCode: user.postalCode || '',
+        country: user.country || 'Vietnam',
+        birthDate: user.birthDate || '',
+        gender: user.gender || '',
+        role: user.role || 'user',
+        avatar: user.avatar || '',
+        authProvider: user.authProvider || 'local',
+        createdAt: user.createdAt,
+        wishlistCount: user.wishlist?.length || 0
       }
     });
     
@@ -448,13 +772,13 @@ app.put('/api/users/profile', async (req, res) => {
     
     user.name = name || user.name;
     user.email = email || user.email;
-    user.phone = phone || user.phone;
-    user.address = address || user.address;
-    user.city = city || user.city;
-    user.postalCode = postalCode || user.postalCode;
-    user.country = country || user.country;
-    user.birthDate = birthDate || user.birthDate;
-    user.gender = gender || user.gender;
+    user.phone = phone !== undefined ? phone : user.phone;
+    user.address = address !== undefined ? address : user.address;
+    user.city = city !== undefined ? city : user.city;
+    user.postalCode = postalCode !== undefined ? postalCode : user.postalCode;
+    user.country = country !== undefined ? country : user.country;
+    user.birthDate = birthDate !== undefined ? birthDate : user.birthDate;
+    user.gender = gender !== undefined ? gender : user.gender;
     
     await user.save();
     
@@ -464,14 +788,18 @@ app.put('/api/users/profile', async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
-        address: user.address,
-        city: user.city,
-        postalCode: user.postalCode,
-        country: user.country,
-        birthDate: user.birthDate,
-        gender: user.gender,
-        role: user.role
+        phone: user.phone || '',
+        address: user.address || '',
+        city: user.city || '',
+        postalCode: user.postalCode || '',
+        country: user.country || 'Vietnam',
+        birthDate: user.birthDate || '',
+        gender: user.gender || '',
+        role: user.role || 'user',
+        avatar: user.avatar || '',
+        authProvider: user.authProvider || 'local',
+        createdAt: user.createdAt,
+        wishlistCount: user.wishlist?.length || 0
       }
     });
     
@@ -495,7 +823,7 @@ process.on('SIGINT', async () => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`API endpoints:`);
@@ -509,8 +837,13 @@ app.listen(PORT, () => {
   console.log(`- GET /api/users/wishlist - Get user wishlist`);
   console.log(`- POST /api/users/wishlist/add - Add to wishlist`);
   console.log(`- POST /api/users/wishlist/remove - Remove from wishlist`);
+  console.log(`- GET /api/auth/google - Google OAuth 2.0 Login`);
+  console.log(`- GET /api/auth/facebook - Facebook OAuth Login`);
   console.log(`- POST /api/orders - Create new order`);
   console.log(`- GET /api/orders/myorders - Get user orders`);
   console.log(`- GET /api/orders/:id - Get order by ID`);
+  console.log(`- SePay Webhook: POST /api/sepay/webhook`);
+  console.log(`- Customer Support Chat: /api/chat/* & Socket.IO real-time`);
+  console.log(`- Newsletter & Email Marketing: /api/newsletter/*`);
   console.log(`- Admin routes: /api/admin/*`);
 });

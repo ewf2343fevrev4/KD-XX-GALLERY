@@ -44,26 +44,36 @@ export const WishlistProvider = ({ children }) => {
   const [state, dispatch] = useReducer(wishlistReducer, initialState);
   const { isAuthenticated, token } = useAuth();
 
+  // Load initial items from localStorage immediately on mount
+  useEffect(() => {
+    const savedWishlist = localStorage.getItem('amiri-wishlist');
+    if (savedWishlist) {
+      try {
+        const parsed = JSON.parse(savedWishlist);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          dispatch({ type: 'SET_WISHLIST', payload: parsed });
+        }
+      } catch (error) {
+        console.error('Error parsing wishlist from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Fetch from server when authenticated, while preserving existing items if server is empty
   useEffect(() => {
     if (isAuthenticated && token) {
       loadWishlist();
-    } else {
-      const savedWishlist = localStorage.getItem('amiri-wishlist');
-      if (savedWishlist) {
-        try {
-          dispatch({ type: 'SET_WISHLIST', payload: JSON.parse(savedWishlist) });
-        } catch (error) {
-          console.error('Error parsing wishlist from localStorage:', error);
-        }
-      }
     }
   }, [isAuthenticated, token]);
 
+  // Always keep localStorage synchronized with state.items
   useEffect(() => {
-    if (!isAuthenticated) {
+    try {
       localStorage.setItem('amiri-wishlist', JSON.stringify(state.items));
+    } catch (err) {
+      console.error('Error saving wishlist to localStorage:', err);
     }
-  }, [state.items, isAuthenticated]);
+  }, [state.items]);
 
   const loadWishlist = useCallback(async () => {
     try {
@@ -73,7 +83,21 @@ export const WishlistProvider = ({ children }) => {
 
       if (response.ok) {
         const data = await response.json();
-        dispatch({ type: 'SET_WISHLIST', payload: data.wishlist || [] });
+        const serverItems = data.wishlist || [];
+        if (serverItems.length > 0) {
+          dispatch({ type: 'SET_WISHLIST', payload: serverItems });
+        } else {
+          // If server wishlist is empty, preserve localStorage items if present
+          const savedWishlist = localStorage.getItem('amiri-wishlist');
+          if (savedWishlist) {
+            try {
+              const parsed = JSON.parse(savedWishlist);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                dispatch({ type: 'SET_WISHLIST', payload: parsed });
+              }
+            } catch (e) {}
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading wishlist:', error);

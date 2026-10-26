@@ -6,7 +6,7 @@
 }
 
 .search-box.active {
-  width: 350px;
+  width: clamp(220px, 22vw, 320px);
 }
 
 .search-form {
@@ -79,19 +79,7 @@
 }
 
 .suggestions-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-top: none;
-  border-radius: 0 0 15px 15px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-  max-height: 400px;
-  overflow-y: auto;
-  z-index: 1000;
-  animation: slideDown 0.2s ease-out;
+  display: none !important;
 }
 
 @keyframes slideDown {

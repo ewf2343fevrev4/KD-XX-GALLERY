@@ -52,24 +52,87 @@
   border-bottom: 8px solid white;
 }
 
+.user-icon.has-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-icon-avatar-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #a855f7;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+}
+
+.user-icon-kd-avatar {
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(124, 58, 237, 0.2);
+  display: block;
+}
+
 .user-info {
-  padding: 18px 20px 16px;
+  padding: 16px 20px 14px;
   border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info-avatar-wrap {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-dropdown-avatar-img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #a855f7;
+}
+
+.user-info-details {
+  flex: 1;
+  min-width: 0;
 }
 
 .user-info h4 {
-  margin: 0 0 4px 0;
-  font-size: 1.1rem;
+  margin: 0 0 2px 0;
+  font-size: 1rem;
   font-weight: 600;
   color: #000;
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .user-info p {
-  margin: 0;
-  font-size: 0.9rem;
+  margin: 0 0 4px 0;
+  font-size: 0.82rem;
   color: #666;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-info-provider-tag {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #7c3aed;
+  text-transform: uppercase;
 }
 
 .user-menu-items {

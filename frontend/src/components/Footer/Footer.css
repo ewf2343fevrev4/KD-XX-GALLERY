@@ -20,8 +20,8 @@
     max-width: 1600px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 50px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 40px;
     padding: 0 60px;
 }
 
@@ -49,6 +49,160 @@
     transform: translateX(5px);
 }
 
+/* =========================================================================
+   NEWSLETTER SUBSCRIPTION (AMIRI EDITORIAL LUXURY STYLE)
+   ========================================================================= */
+
+.footer-newsletter-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-newsletter-intro {
+    color: #b3b3b3 !important;
+    font-size: 0.88rem !important;
+    line-height: 1.5 !important;
+    margin-bottom: 18px !important;
+    letter-spacing: 0.3px;
+}
+
+.footer-newsletter-form {
+    width: 100%;
+}
+
+.footer-input-group {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.02);
+    transition: all 0.25s ease;
+    border-radius: 0;
+}
+
+.footer-input-group:focus-within {
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+}
+
+.footer-email-input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 13px 16px;
+    color: #ffffff;
+    font-size: 0.86rem;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+}
+
+.footer-email-input::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+    font-style: normal;
+    text-transform: none;
+}
+
+.footer-subscribe-btn {
+    border: none;
+    outline: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.28);
+    background: transparent;
+    color: #ffffff;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0 20px;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.footer-subscribe-btn:hover:not(:disabled) {
+    background: #ffffff;
+    color: #000000;
+}
+
+.footer-subscribe-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.footer-newsletter-feedback {
+    margin-top: 10px !important;
+    font-size: 0.8rem !important;
+    line-height: 1.4 !important;
+    display: block !important;
+    animation: footerFeedbackFadeIn 0.3s ease;
+}
+
+.footer-newsletter-feedback.success {
+    color: #34d399 !important; /* Emerald green */
+}
+
+.footer-newsletter-feedback.error {
+    color: #f87171 !important; /* Soft red */
+}
+
+@keyframes footerFeedbackFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==================== FOOTER ABOUT BUTTON (MOVED FROM HEADER) ==================== */
+.footer-newsletter-about {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+}
+
+.footer-about-pill-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 22px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffffff !important;
+    font-size: 0.78rem !important;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.footer-about-pill-btn:hover {
+    background: #ffffff;
+    color: #000000 !important;
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.18);
+}
+
+.footer-about-pill-btn svg {
+    transition: transform 0.25s ease;
+}
+
+.footer-about-pill-btn:hover svg {
+    transform: translateX(4px);
+}
+
 .footer-bottom {
     text-align: center;
     padding-top: 50px;
@@ -61,5 +215,21 @@
 @media (max-width: 768px) {
     .footer-content {
         padding: 0 30px;
+        gap: 35px;
+    }
+
+    .footer-input-group {
+        flex-direction: row;
+    }
+
+    .footer-subscribe-btn {
+        padding: 0 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .footer {
+        padding: 70px 0 40px;
+        margin-top: 80px;
     }
 }

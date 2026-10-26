@@ -1,34 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './SearchBox.css';
 
-const SearchBox = ({ onSearch, products, isSearchActive, setIsSearchActive }) => {
+const SearchBox = ({ onSearch, isSearchActive, setIsSearchActive }) => {
   const [query, setQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef(null);
   const inputRef = useRef(null);
-
-  // Filter suggestions based on query
-  useEffect(() => {
-    if (query.length > 0) {
-      const filtered = products
-        .filter(product => {
-          const name = product?.name || "";
-          const category = product?.category || "";
-          return (
-            name.toLowerCase().includes(query.toLowerCase()) ||
-            category.toLowerCase().includes(query.toLowerCase())
-          );
-        })
-        .slice(0, 5); // Limit to 5 suggestions
-
-      setSuggestions(filtered);
-      setShowSuggestions(true);
-    } else {
-      setSuggestions([]);
-      setShowSuggestions(false);
-    }
-  }, [query, products]);
 
   // Handle search input change
   const handleInputChange = (e) => {
@@ -37,19 +13,10 @@ const SearchBox = ({ onSearch, products, isSearchActive, setIsSearchActive }) =>
     onSearch(value);
   };
 
-  // Handle suggestion click
-  const handleSuggestionClick = (product) => {
-    setQuery(product?.name || "");
-    onSearch(product?.name || "");
-    setShowSuggestions(false);
-    setIsSearchActive(false);
-  };
-
   // Handle search submit
   const handleSubmit = (e) => {
     e.preventDefault();
     onSearch(query);
-    setShowSuggestions(false);
     if (query.trim()) {
       setIsSearchActive(false);
     }
@@ -59,7 +26,6 @@ const SearchBox = ({ onSearch, products, isSearchActive, setIsSearchActive }) =>
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
-        setShowSuggestions(false);
         if (!query.trim()) {
           setIsSearchActive(false);
         }
@@ -83,7 +49,6 @@ const SearchBox = ({ onSearch, products, isSearchActive, setIsSearchActive }) =>
   const clearSearch = () => {
     setQuery('');
     onSearch('');
-    setShowSuggestions(false);
     setIsSearchActive(false);
   };
 
@@ -109,37 +74,6 @@ const SearchBox = ({ onSearch, products, isSearchActive, setIsSearchActive }) =>
           </svg>
         </button>
       </form>
-
-      {/* Suggestions dropdown */}
-      {showSuggestions && suggestions.length > 0 && (
-        <div className="suggestions-dropdown">
-          {suggestions.map((product, index) => (
-            <div
-              key={product?.id || index}
-              className="suggestion-item"
-              onClick={() => handleSuggestionClick(product)}
-            >
-              <div className="suggestion-image">
-                {product?.image && <img src={product.image} alt={product?.name || "Product"} />}
-              </div>
-              <div className="suggestion-details">
-                <h4>{product?.name || "Unnamed product"}</h4>
-                <p>${product?.price ?? "N/A"}</p>
-                <span className="suggestion-category">{product?.category || "Unknown"}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* No results message */}
-      {showSuggestions && query && suggestions.length === 0 && (
-        <div className="suggestions-dropdown">
-          <div className="no-results">
-            <p>No products found for "{query}"</p>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

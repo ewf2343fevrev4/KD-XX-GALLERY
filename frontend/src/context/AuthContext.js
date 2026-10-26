@@ -243,10 +243,22 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'UPDATE_USER', payload: userData });
   };
 
+  const loginWithSocial = (token, userData) => {
+    console.log('🌐 Social login success:', userData);
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    dispatch({
+      type: 'LOGIN_SUCCESS',
+      payload: { user: userData, token }
+    });
+    return { success: true, user: userData };
+  };
+
   const value = {
     ...state,
     login,
     register,
+    loginWithSocial,
     logout,
     clearError,
     updateUserProfile,

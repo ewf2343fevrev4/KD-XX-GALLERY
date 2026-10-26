@@ -1,0 +1,461 @@
+/* ============================================
+   CAMPAIGN PAGE — CLEAN EDITORIAL SHOWCASE
+   AMIRI-Inspired Full-Bleed 2-Column Layout
+   Couple Outfit & Outfit with Homie
+   Independent Diagonal Transition (Bottom-Right to Top-Left)
+   ============================================ */
+
+.campaign-editorial-showcase {
+  position: relative;
+  width: 100%;
+  background-color: #06040a;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  border-top: 1px solid rgba(168, 85, 247, 0.16);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.16);
+  user-select: none;
+  contain: layout paint;
+}
+
+/* ── Full-Bleed 2-Column Grid (Direct AMIRI Split Screen) ── */
+.campaign-editorial-showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px; /* Clean luxury minimal hairline divider */
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #06040a;
+}
+
+/* ── Clean Billboard Card (No Outer Borders or Rounding) ── */
+.editorial-card {
+  position: relative;
+  width: 100%;
+  height: 94vh;
+  min-height: 680px;
+  max-height: 1020px;
+  overflow: hidden;
+  background-color: #08060e;
+  cursor: default;
+}
+
+/* ── Slider Viewport & Slides ── */
+.editorial-card__slider-viewport {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.editorial-card__slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  will-change: transform, opacity;
+}
+
+.editorial-card__slide.is-active {
+  z-index: 1;
+}
+
+/* ── Image Wrap & Zoom Effect ── */
+.editorial-card__image-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.editorial-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 25%;
+  display: block;
+  transform: scale(1.001) translate3d(0, 0, 0);
+  will-change: transform;
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Specific framing alignment for each photo */
+.editorial-card--left .editorial-card__image {
+  object-position: center 20%;
+}
+
+.editorial-card--right .editorial-card__image {
+  object-position: center 25%;
+}
+
+/* Hover Zoom Effect */
+.editorial-card:hover .editorial-card__image {
+  transform: scale(1.04) translate3d(0, 0, 0);
+}
+
+/* ── Dark Vignette for Text Contrast ── */
+.editorial-card__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    /* Top vignette for subtle mood */
+    linear-gradient(
+      to bottom,
+      rgba(6, 4, 10, 0.45) 0%,
+      transparent 24%
+    ),
+    /* Deep bottom gradient behind typography (AMIRI styling) */
+    linear-gradient(
+      to top,
+      rgba(4, 2, 8, 0.95) 0%,
+      rgba(4, 2, 8, 0.7) 28%,
+      rgba(6, 4, 10, 0.25) 50%,
+      transparent 74%
+    );
+  transition: opacity 0.5s ease;
+}
+
+.editorial-card:hover .editorial-card__overlay {
+  opacity: 0.95;
+}
+
+/* ==============================================================
+   DIAGONAL TRANSITION EFFECT: Bottom-Right to Top-Left
+   "hiệu ứng chuyển chéo từ dưới lên phải dưới qua trái trên"
+   ============================================================== */
+
+/* Incoming slide enters from bottom-right (X: +35%, Y: +85%) to center */
+.editorial-card__slide.is-entering.direction-next {
+  animation: slideInDiagonalNext 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 3;
+}
+
+/* Outgoing slide exits towards top-left (X: -35%, Y: -85%) */
+.editorial-card__slide.is-exiting.direction-next {
+  animation: slideOutDiagonalNext 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 2;
+}
+
+/* Reverse when clicking Previous: enters from top-left to center */
+.editorial-card__slide.is-entering.direction-prev {
+  animation: slideInDiagonalPrev 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 3;
+}
+
+.editorial-card__slide.is-exiting.direction-prev {
+  animation: slideOutDiagonalPrev 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: 2;
+}
+
+@keyframes slideInDiagonalNext {
+  0% {
+    transform: translate3d(38%, 90%, 0) scale(1.06);
+    opacity: 0;
+    filter: blur(6px);
+  }
+  30% {
+    opacity: 0.6;
+    filter: blur(2px);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.001);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes slideOutDiagonalNext {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.001);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: translate3d(-38%, -90%, 0) scale(0.94);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+@keyframes slideInDiagonalPrev {
+  0% {
+    transform: translate3d(-38%, -90%, 0) scale(1.06);
+    opacity: 0;
+    filter: blur(6px);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.001);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes slideOutDiagonalPrev {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.001);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(38%, 90%, 0) scale(0.94);
+    opacity: 0;
+    filter: blur(4px);
+  }
+}
+
+/* ── Editorial Content Block (AMIRI Video Typography Style) ── */
+.editorial-card__content {
+  position: absolute;
+  bottom: 50px;
+  left: 55px;
+  right: 55px;
+  z-index: 5;
+  color: #ffffff;
+  max-width: 620px;
+  transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.editorial-card__content.text-transition {
+  animation: editorialTextFadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes editorialTextFadeUp {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.editorial-card:hover .editorial-card__content {
+  transform: translateY(-4px);
+}
+
+.editorial-card__eyebrow {
+  display: block;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #d8b4fe;
+  margin-bottom: 10px;
+  text-shadow: 0 0 14px rgba(168, 85, 247, 0.5);
+}
+
+.editorial-card__title {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: clamp(2.2rem, 3.8vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin: 0 0 14px 0;
+  line-height: 1.05;
+  text-shadow:
+    0 3px 18px rgba(0, 0, 0, 0.95),
+    0 1px 4px rgba(0, 0, 0, 0.95);
+}
+
+.editorial-card__description {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: clamp(0.85rem, 1.1vw, 1rem);
+  font-weight: 400;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.95);
+  max-width: 560px;
+}
+
+/* ==============================================================
+   INDEPENDENT SLIDE CONTROLS (Top Right of each card)
+   ============================================================== */
+.editorial-card__controls {
+  position: absolute;
+  top: 35px;
+  right: 35px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(6, 4, 10, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 50px;
+  padding: 6px 14px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.editorial-card__controls:hover {
+  background: rgba(6, 4, 10, 0.9);
+  border-color: rgba(168, 85, 247, 0.4);
+}
+
+.editorial-card__counter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  font-weight: 700;
+}
+
+.editorial-card__counter .current-num {
+  color: #ffffff;
+}
+
+.editorial-card__counter .slash {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.editorial-card__counter .total-num {
+  color: #a855f7;
+}
+
+/* ── Clickable Indicator Dots ── */
+.editorial-card__dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 4px;
+}
+
+.editorial-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.editorial-dot:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: scale(1.3);
+}
+
+.editorial-dot.active {
+  width: 18px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #a855f7, #c084fc);
+  box-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+}
+
+.editorial-card__nav-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.editorial-nav-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  outline: none;
+}
+
+.editorial-nav-btn:hover {
+  background: #a855f7;
+  border-color: #a855f7;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+.editorial-nav-btn:active {
+  transform: scale(0.94);
+}
+
+/* ── Progress bar for auto-slide ── */
+.editorial-card__progress-wrap {
+  width: 32px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-left: 2px;
+}
+
+.editorial-card__progress-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #a855f7, #c084fc);
+  transform-origin: left;
+  animation: editorialProgress linear forwards;
+}
+
+.editorial-card__progress-bar.is-paused {
+  animation-play-state: paused;
+}
+
+@keyframes editorialProgress {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+@media (max-width: 1024px) {
+  .campaign-editorial-showcase__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .editorial-card {
+    height: 75vh;
+    min-height: 540px;
+  }
+
+  .editorial-card__content {
+    left: 35px;
+    right: 35px;
+    bottom: 35px;
+  }
+
+  .editorial-card__controls {
+    top: 25px;
+    right: 25px;
+  }
+}
+
+@media (max-width: 640px) {
+  .editorial-card {
+    height: 65vh;
+    min-height: 480px;
+  }
+
+  .editorial-card__content {
+    left: 20px;
+    right: 20px;
+    bottom: 25px;
+  }
+
+  .editorial-card__controls {
+    top: 18px;
+    right: 18px;
+    padding: 5px 10px;
+    gap: 8px;
+  }
+}

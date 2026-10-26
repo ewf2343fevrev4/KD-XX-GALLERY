@@ -1,0 +1,319 @@
+/* ===================================================
+   CAMPAIGN PAGE — 3D ACCESSORIES VAULT SECTION
+   =================================================== */
+
+.campaign-accessories-vault {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 720px;
+  background-color: #06040a;
+  overflow: hidden;
+  user-select: none;
+  border-top: 1px solid rgba(168, 85, 247, 0.16);
+  cursor: grab;
+}
+
+.campaign-accessories-vault.is-hovering {
+  cursor: pointer;
+}
+
+.campaign-accessories-vault.is-opening {
+  cursor: wait;
+}
+
+/* ── Seamless Top Transition from Virtual Store ── */
+.campaign-accessories-vault__top-blend {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(
+    to bottom,
+    #07050c 0%,
+    rgba(6, 4, 10, 0.75) 45%,
+    transparent 100%
+  );
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* ── WebGL Canvas Container ── */
+.campaign-accessories-vault__canvas-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.campaign-accessories-vault__canvas-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ── Atmospheric Radial Vignette ── */
+.campaign-accessories-vault__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse at center,
+      transparent 50%,
+      rgba(3, 2, 8, 0.7) 100%
+    ),
+    linear-gradient(
+      to top,
+      rgba(4, 2, 10, 0.88) 0%,
+      transparent 20%
+    );
+}
+
+/* ── Top Editorial Header ── */
+.campaign-accessories-vault__header {
+  position: absolute;
+  top: 2.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  text-align: center;
+  pointer-events: none;
+  width: 92%;
+  max-width: 860px;
+}
+
+.campaign-accessories-vault__eyebrow {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: rgba(192, 132, 252, 0.95);
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.9);
+}
+
+.campaign-accessories-vault__title {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: clamp(1.2rem, 2.2vw, 1.85rem);
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
+  line-height: 1.35;
+  margin: 0 0 0.5rem;
+  text-shadow: 0 4px 22px rgba(0, 0, 0, 0.95);
+}
+
+.campaign-accessories-vault__subtext {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+/* ── Floating Interactive Unlock Prompt ── */
+.campaign-accessories-vault__prompt {
+  position: absolute;
+  top: 68%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 7;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(15, 12, 24, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(192, 132, 252, 0.3);
+  padding: 0.85rem 1.6rem;
+  border-radius: 9999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), 0 0 25px rgba(168, 85, 247, 0.15);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.campaign-accessories-vault__prompt:hover {
+  background: rgba(28, 20, 48, 0.88);
+  border-color: rgba(216, 180, 254, 0.7);
+  transform: translate(-50%, -52%) scale(1.03);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.85), 0 0 35px rgba(168, 85, 247, 0.35);
+}
+
+.campaign-accessories-vault__prompt-text {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #ffffff;
+}
+
+.campaign-accessories-vault__prompt-icon {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #c084fc;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #c084fc;
+  animation: vaultPulse 2s infinite ease-in-out;
+}
+
+@keyframes vaultPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+    box-shadow: 0 0 16px #d8b4fe;
+  }
+}
+
+.campaign-accessories-vault__prompt-hint {
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(216, 180, 254, 0.75);
+}
+
+/* ── Bottom Interactive Control Dock ── */
+.campaign-accessories-vault__dock {
+  position: absolute;
+  bottom: 2.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: rgba(12, 10, 18, 0.78);
+  border: 1px solid rgba(168, 85, 247, 0.22);
+  padding: 0.5rem 0.7rem;
+  border-radius: 9999px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.75);
+  max-width: 92%;
+  overflow-x: auto;
+}
+
+.campaign-accessories-vault__dock.is-disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.campaign-vault-dock-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.15rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.campaign-vault-dock-btn:hover,
+.campaign-vault-dock-btn.is-active {
+  color: #ffffff;
+  background: rgba(168, 85, 247, 0.22);
+  box-shadow: 0 0 12px rgba(168, 85, 247, 0.2);
+}
+
+.campaign-vault-dock-btn.is-cta {
+  background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 18px rgba(168, 85, 247, 0.35);
+  font-weight: 600;
+}
+
+.campaign-vault-dock-btn.is-cta:hover {
+  background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);
+  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.5);
+  transform: translateY(-1px);
+}
+
+.campaign-vault-dock-btn__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(192, 132, 252, 0.8);
+}
+
+/* ── Fullscreen Smooth Fade Transition Overlay ── */
+.campaign-accessories-vault__fade {
+  position: absolute;
+  inset: 0;
+  background-color: #05040a;
+  z-index: 50;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.campaign-accessories-vault__fade.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Responsive adjustments ── */
+@media (max-width: 900px) {
+  .campaign-accessories-vault {
+    height: 90vh;
+    min-height: 620px;
+  }
+
+  .campaign-accessories-vault__header {
+    top: 1.8rem;
+  }
+
+  .campaign-accessories-vault__dock {
+    bottom: 1.6rem;
+    gap: 0.35rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .campaign-vault-dock-btn {
+    font-size: 0.62rem;
+    padding: 0.5rem 0.85rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .campaign-accessories-vault__dock {
+    width: 92%;
+    justify-content: center;
+  }
+
+  .campaign-vault-dock-btn:not(.is-cta) {
+    display: none;
+  }
+
+  .campaign-vault-dock-btn.is-cta {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
