@@ -19,10 +19,20 @@ export function resolveApiConfig(overrideUrl) {
 
   const trimmed = String(rawEnv || '').trim().replace(/\/+$/, '');
   if (!trimmed) {
+    const isProductionBrowser =
+      typeof window !== 'undefined' &&
+      window.location &&
+      window.location.hostname &&
+      !['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+    const defaultOrigin = isProductionBrowser
+      ? 'https://kdxx-backend-431378225102.us-central1.run.app'
+      : DEFAULT_DEV_ORIGIN;
+
     return {
-      origin: DEFAULT_DEV_ORIGIN,
-      apiBaseUrl: `${DEFAULT_DEV_ORIGIN}/api`,
-      isCustomEnv: false
+      origin: defaultOrigin,
+      apiBaseUrl: `${defaultOrigin}/api`,
+      isCustomEnv: isProductionBrowser
     };
   }
 
