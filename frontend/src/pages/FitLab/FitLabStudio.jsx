@@ -40,6 +40,7 @@ import {
   getCachedCutout 
 } from '../../utils/backgroundRemovalService';
 import { getAllProducts } from '../../services/api';
+import { API_BASE_URL } from '../../config/apiConfig';
 import './FitLab.css';
 
 const DEFAULT_CANVAS_WIDTH = 700;
@@ -100,7 +101,7 @@ const createSafeImageElement = (url, onLoad, onError) => {
         };
         rawImg.src = url;
       };
-      proxyImg.src = `http://localhost:5000/api/proxy-image?url=${encodeURIComponent(url)}`;
+      proxyImg.src = `${API_BASE_URL}/proxy-image?url=${encodeURIComponent(url)}`;
     } else {
       const rawImg = new window.Image();
       rawImg.onload = () => {

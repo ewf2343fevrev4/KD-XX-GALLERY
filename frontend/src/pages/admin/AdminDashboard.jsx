@@ -7,6 +7,7 @@ import AdminReviewsManager from './AdminReviewsManager';
 import AdminAnalyticsDashboard from './AdminAnalyticsDashboard';
 import AdminAIOperations from './AdminAIOperations';
 import AdminVirtualTryOn from './AdminVirtualTryOn';
+import { API_ORIGIN } from '../../config/apiConfig';
 
 const AVAILABLE_CATEGORIES = [
   { value: 'men', label: 'Men' },
@@ -439,7 +440,7 @@ export default function AdminDashboard({ initialTab }) {
   const [showOrderDetailModal, setShowOrderDetailModal] = useState(false);
   const [supportUnreadCount, setSupportUnreadCount] = useState(0);
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = API_ORIGIN;
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');

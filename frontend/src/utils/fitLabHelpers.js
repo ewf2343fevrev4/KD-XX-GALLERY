@@ -3,6 +3,7 @@
  * Categorization, Random Fit outfit generator, and Image/Export handlers
  */
 import { getCachedCutout } from './backgroundRemovalService';
+import { API_BASE_URL } from '../config/apiConfig';
 
 // Categorize any product or uploaded item into standard Fit Lab slots
 export const categorizeItem = (item) => {
@@ -478,7 +479,7 @@ export const exportFitToPng = async (stage, items = [], canvasWidth = 700, canva
               imgFallback.onerror = () => resolve(null);
               imgFallback.src = src;
             };
-            proxyImg.src = `http://localhost:5000/api/proxy-image?url=${encodeURIComponent(src)}`;
+            proxyImg.src = `${API_BASE_URL}/proxy-image?url=${encodeURIComponent(src)}`;
           } else {
             const imgFallback = new Image();
             imgFallback.onload = () => resolve(imgFallback);

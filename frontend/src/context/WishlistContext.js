@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from './AuthContext';
+import { API_BASE_URL } from '../config/apiConfig';
 
 const WishlistContext = createContext();
 
@@ -77,7 +78,7 @@ export const WishlistProvider = ({ children }) => {
 
   const loadWishlist = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/users/wishlist', {
+      const response = await fetch(`${API_BASE_URL}/users/wishlist`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -113,7 +114,7 @@ export const WishlistProvider = ({ children }) => {
 
     if (isAuthenticated && token) {
       try {
-        const response = await fetch('http://localhost:5000/api/users/wishlist/add', {
+        const response = await fetch(`${API_BASE_URL}/users/wishlist/add`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -140,7 +141,7 @@ export const WishlistProvider = ({ children }) => {
     if (isAuthenticated && token) {
       try {
         const productId = product._id || product.id;
-        const response = await fetch('http://localhost:5000/api/users/wishlist/remove', {
+        const response = await fetch(`${API_BASE_URL}/users/wishlist/remove`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -175,7 +176,7 @@ export const WishlistProvider = ({ children }) => {
       localStorage.removeItem('amiri-wishlist');
     } else if (token) {
       try {
-        const response = await fetch('http://localhost:5000/api/users/wishlist/clear', {
+        const response = await fetch(`${API_BASE_URL}/users/wishlist/clear`, {
           method: 'DELETE',
           headers: { 'Authorization': `Bearer ${token}` }
         });

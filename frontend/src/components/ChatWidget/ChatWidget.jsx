@@ -18,8 +18,9 @@ import {
   Loader2
 } from 'lucide-react';
 import './ChatWidget.css';
+import { API_ORIGIN } from '../../config/apiConfig';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = API_ORIGIN;
 
 const SUGGESTED_QUESTIONS = [
   {

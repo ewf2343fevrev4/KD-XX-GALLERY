@@ -25,8 +25,9 @@ import {
   getCachedCutout
 } from '../../utils/backgroundRemovalService';
 import './StylingStudio.css';
+import { API_BASE_URL } from '../../config/apiConfig';
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = API_BASE_URL;
 
 /**
  * Load image safely with proxy fallback for CORS

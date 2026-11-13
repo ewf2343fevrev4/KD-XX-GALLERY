@@ -3,6 +3,7 @@
  * Powered by @bg0/browser (Local WebGPU / WASM AI BiRefNet)
  * With client-side transparency detection, session caching, and fallback protection
  */
+import { API_BASE_URL } from '../config/apiConfig';
 
 // In-memory cache for processed cutouts during the session
 // Maps: sourceUrl -> { cutoutUrl: string, blob: Blob, isTransparent: boolean }
@@ -114,7 +115,7 @@ export const checkImageTransparency = async (imageInput) => {
   });
 };
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = API_BASE_URL;
 
 /**
  * Convert any image source (URL, Blob, File) into a valid Blob for the AI model

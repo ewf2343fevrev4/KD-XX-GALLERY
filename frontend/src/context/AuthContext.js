@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import { API_BASE_URL } from '../config/apiConfig';
 
 const AuthContext = createContext();
 
@@ -79,7 +80,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async (token) => {
     try {
-      const response = await fetch('http://localhost:5000/api/users/verify', {
+      const response = await fetch(`${API_BASE_URL}/users/verify`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -108,7 +109,7 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
-      const response = await fetch('http://localhost:5000/api/users/login', {
+      const response = await fetch(`${API_BASE_URL}/users/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -158,7 +159,7 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
-      const response = await fetch('http://localhost:5000/api/users/register', {
+      const response = await fetch(`${API_BASE_URL}/users/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -212,7 +213,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateUserProfile = async (updatedData) => {
     try {
-      const response = await fetch('http://localhost:5000/api/users/update', {
+      const response = await fetch(`${API_BASE_URL}/users/update`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { API_BASE_URL } from '../../config/apiConfig';
 import './AuthModal.css';
 
 const AuthModal = ({ isOpen, onClose }) => {
@@ -123,7 +124,7 @@ const AuthModal = ({ isOpen, onClose }) => {
     const height = 640;
     const left = window.screenX + (window.outerWidth - width) / 2;
     const top = window.screenY + (window.outerHeight - height) / 2;
-    const authUrl = `http://localhost:5000/api/auth/${provider}`;
+    const authUrl = `${API_BASE_URL}/auth/${provider}`;
 
     const popup = window.open(
       authUrl,

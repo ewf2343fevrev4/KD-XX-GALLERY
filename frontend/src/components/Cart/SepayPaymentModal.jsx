@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { io } from 'socket.io-client';
 import { getSepayQrInfo, getOrderPaymentStatus } from '../../services/api';
+import { API_ORIGIN } from '../../config/apiConfig';
 import './SepayPaymentModal.css';
 
-const SOCKET_SERVER_URL = process.env.REACT_APP_SOCKET_URL || 'http://localhost:5000';
+const SOCKET_SERVER_URL = process.env.REACT_APP_SOCKET_URL || API_ORIGIN;
 
 const SepayPaymentModal = ({ isOpen, onClose, order, onPaymentSuccess }) => {
   const [qrData, setQrData] = useState(null);

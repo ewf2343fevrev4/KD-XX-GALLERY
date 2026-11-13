@@ -13,8 +13,9 @@ import {
   Sparkles,
   Inbox
 } from 'lucide-react';
+import { API_ORIGIN } from '../../config/apiConfig';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = API_ORIGIN;
 
 const QUICK_REPLIES = [
   'Dạ chào bạn, KD-XX Concierge có thể hỗ trợ gì cho bạn hôm nay ạ?',

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import './Footer.css';
+import { API_ORIGIN } from '../../config/apiConfig';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = API_ORIGIN;
 
 const Footer = () => {
   const [email, setEmail] = useState('');
