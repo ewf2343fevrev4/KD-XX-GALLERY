@@ -382,6 +382,7 @@ function ProductTagManager({ tags = [], onChangeTags, suggestedTags = [] }) {
 }
 
 export default function AdminDashboard({ initialTab }) {
+  // eslint-disable-next-line no-unused-vars
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalProducts: 0,

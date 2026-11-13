@@ -114,9 +114,9 @@ const About = () => {
             <div className="contact-item">
               <h3>Follow Us</h3>
               <div className="social-links">
-                <a href="#" className="social-link">Instagram</a>
-                <a href="#" className="social-link">Facebook</a>
-                <a href="#" className="social-link">Twitter</a>
+                <a href="#instagram" className="social-link">Instagram</a>
+                <a href="#facebook" className="social-link">Facebook</a>
+                <a href="#twitter" className="social-link">Twitter</a>
               </div>
             </div>
           </div>

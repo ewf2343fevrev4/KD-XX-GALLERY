@@ -822,7 +822,7 @@ export const getAITaskLogById = async (token, logId) => {
 };
 
 // ==================== EXPORT DEFAULT ====================
-export default {
+const apiService = {
   // Products
   getAllProducts,
   getProductById,
@@ -899,3 +899,5 @@ export default {
   getTryOnAdminJobs: (token, status) => apiCall(`/tryon/admin/jobs${status ? `?status=${status}` : ''}`, token),
   getTryOnAdminLedgers: (token) => apiCall('/tryon/admin/ledgers', token)
 };
+
+export default apiService;

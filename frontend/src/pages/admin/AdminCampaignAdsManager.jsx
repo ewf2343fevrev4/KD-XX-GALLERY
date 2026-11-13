@@ -6,7 +6,6 @@ import {
   Edit2, 
   Trash2, 
   Upload, 
-  Play, 
   CheckCircle2, 
   AlertCircle, 
   Loader2, 
@@ -14,8 +13,7 @@ import {
   Eye, 
   Save, 
   X,
-  Layers,
-  Sparkles
+  Layers
 } from 'lucide-react';
 import { getAdminCampaignMedia, updateAdminCampaignMedia, uploadCampaignMediaFile } from '../../services/api';
 

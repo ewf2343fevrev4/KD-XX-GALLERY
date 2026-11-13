@@ -143,7 +143,7 @@ export default function TryOnResultView({
           >
             <img
               src={originalPhotoUrl}
-              alt="Original Photo"
+              alt="Original"
               className="absolute inset-0 w-full h-full object-contain pointer-events-none"
               style={{ width: '100%', maxWidth: 'none' }}
             />
