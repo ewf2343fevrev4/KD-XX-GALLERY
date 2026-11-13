@@ -48,6 +48,8 @@ const CampaignPage = ({
   products = [],
   selectedCategory = 'home',
   onCategoryChange,
+  selectedTag = null,
+  onSelectTag,
 }) => {
   const navigate = useNavigate();
   const [localProducts, setLocalProducts] = useState(products);
@@ -147,6 +149,8 @@ const CampaignPage = ({
         products={localProducts}
         onCategoryChange={handleCategoryChange}
         selectedCategory={selectedCategory}
+        selectedTag={selectedTag}
+        onSelectTag={onSelectTag}
       />
 
       {/* ── 1. Campaign Hero (Kept Intact) ── */}

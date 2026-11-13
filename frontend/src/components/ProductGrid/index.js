@@ -6,6 +6,8 @@ import './ProductGrid.css';
 const ProductGrid = ({ 
   searchQuery, 
   selectedCategory = 'home', 
+  selectedTag = null,
+  onClearTag,
   selectedBrand = null, 
   onClearBrand, 
   onProductsLoad 
@@ -93,10 +95,11 @@ const ProductGrid = ({
       });
     }
     
-    // 2. Lọc theo category (trừ 'home' và 'all' thì hiển thị tất cả)
+    // 2. Lọc theo category và tag
+    let catFiltered = result;
     if (selectedCategory && selectedCategory !== 'all' && selectedCategory !== 'home') {
       const targetCat = selectedCategory.toLowerCase().trim();
-      result = result.filter(product => {
+      catFiltered = result.filter(product => {
         const prodCat = (product.category || '').toLowerCase().trim();
         if (prodCat === targetCat) return true;
 
@@ -120,6 +123,36 @@ const ProductGrid = ({
       });
     }
     
+    // 2.5 Lọc theo Tag (từ Mega Menu hoặc Tag link)
+    if (selectedTag) {
+      const targetTag = selectedTag.toLowerCase().trim();
+      const matchTag = (product) => {
+        if (Array.isArray(product.tags) && product.tags.some(t => {
+          const tLower = (t || '').toLowerCase().trim();
+          return tLower === targetTag || tLower.includes(targetTag) || targetTag.includes(tLower);
+        })) {
+          return true;
+        }
+        if (typeof product.tags === 'string' && product.tags.toLowerCase().includes(targetTag)) {
+          return true;
+        }
+        const pName = (product.name || '').toLowerCase();
+        const pDesc = (product.description || '').toLowerCase();
+        const pCat = (product.category || '').toLowerCase();
+        return pName.includes(targetTag) || pDesc.includes(targetTag) || pCat.includes(targetTag);
+      };
+
+      const tagInCat = catFiltered.filter(matchTag);
+      if (tagInCat.length > 0) {
+        result = tagInCat;
+      } else {
+        const globalTagMatches = result.filter(matchTag);
+        result = globalTagMatches.length > 0 ? globalTagMatches : [];
+      }
+    } else {
+      result = catFiltered;
+    }
+
     // 3. Lọc theo search query
     if (searchQuery?.trim()) {
       const q = searchQuery.toLowerCase().trim();
@@ -132,7 +165,7 @@ const ProductGrid = ({
     }
     
     return result;
-  }, [searchQuery, selectedCategory, selectedBrand, products]);
+  }, [searchQuery, selectedCategory, selectedTag, selectedBrand, products]);
 
   // Loading UI
   if (loading) {
@@ -185,12 +218,12 @@ const ProductGrid = ({
         </div>
       ) : (
         <>
-          {/* ✅ Category title động */}
-          {selectedCategory === 'men' && <h2 className="section-title">MEN</h2>}
-          {selectedCategory === 'women' && <h2 className="section-title">WOMEN</h2>}
-          {selectedCategory === 'accessories' && <h2 className="section-title">ACCESSORIES</h2>}
-          {selectedCategory === 'shoes' && <h2 className="section-title">SHOES</h2>}
-          {(selectedCategory === 'all' || selectedCategory === 'home') && !searchQuery && (
+          {/* ✅ Category title động (ẩn khi đang lọc theo Tag để không bị trùng lặp tiêu đề) */}
+          {!selectedTag && selectedCategory === 'men' && <h2 className="section-title">MEN</h2>}
+          {!selectedTag && selectedCategory === 'women' && <h2 className="section-title">WOMEN</h2>}
+          {!selectedTag && selectedCategory === 'accessories' && <h2 className="section-title">ACCESSORIES</h2>}
+          {!selectedTag && selectedCategory === 'shoes' && <h2 className="section-title">SHOES</h2>}
+          {!selectedTag && (selectedCategory === 'all' || selectedCategory === 'home') && !searchQuery && (
             <h2 className="section-title">NEW ARRIVALS</h2>
           )}
         </>
@@ -208,6 +241,27 @@ const ProductGrid = ({
         </div>
       )}
 
+      {/* Tag active filter banner */}
+      {selectedTag && !selectedBrand && (
+        <div className="tag-active-filter-banner fade-in">
+          <div className="tag-active-filter-badge">
+            <span className="tag-filter-pill-label">BỘ LỌC PHÂN LOẠI</span>
+            <h3 className="tag-filter-heading">#{selectedTag}</h3>
+            <p className="tag-filter-count">
+              Tìm thấy {filteredProducts.length} sản phẩm phù hợp
+            </p>
+            <button
+              onClick={onClearTag}
+              className="tag-clear-filter-button"
+              type="button"
+              title="Xóa bộ lọc tag"
+            >
+              ✕ XÓA LỌC NHÃN (HIỂN THỊ TẤT CẢ)
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Product grid */}
       {filteredProducts.length > 0 ? (
         <div className="product-grid">
@@ -220,6 +274,21 @@ const ProductGrid = ({
               <ProductCard product={product} />
             </div>
           ))}
+        </div>
+      ) : selectedTag ? (
+        <div className="no-products fade-in tag-empty-state">
+          <div className="tag-empty-icon">🏷️</div>
+          <h3>CHƯA CÓ SẢN PHẨM VỚI NHÃN NÀY</h3>
+          <p>
+            Hiện chưa có sản phẩm nào được gắn tag <strong>#{selectedTag}</strong>.
+          </p>
+          <button 
+            type="button" 
+            className="retry-button tag-reset-btn"
+            onClick={onClearTag}
+          >
+            XEM TẤT CẢ SẢN PHẨM
+          </button>
         </div>
       ) : selectedBrand ? (
         <div className="no-products fade-in brand-empty-state">

@@ -53,9 +53,18 @@ app.use(express.json());
 // Kết nối database
 connectDB();
 
+const { ensureTryOnIndexes } = require('./utils/ensureLedgerIndexes');
+const { getJwtSecret } = require('./utils/jwtConfig');
+const { fetchSafeRemoteImage, PROXY_ALLOWED_MIME_TYPES } = require('./utils/ssrfImageFetcher');
+
 // Handle MongoDB connection events
-mongoose.connection.on('connected', () => {
+mongoose.connection.on('connected', async () => {
   console.log('Mongoose connected to MongoDB');
+  try {
+    await ensureTryOnIndexes(mongoose);
+  } catch (err) {
+    console.error('⚠️ [Index Audit] ensureTryOnIndexes warning:', err.message);
+  }
 });
 
 mongoose.connection.on('error', (err) => {
@@ -166,7 +175,7 @@ const User = mongoose.model('User', userSchema);
 
 // JWT token generation
 const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_SECRET || 'fallback_secret', {
+  return jwt.sign({ id: userId }, getJwtSecret(), {
     expiresIn: process.env.JWT_EXPIRE || '7d'
   });
 };
@@ -174,7 +183,7 @@ const generateToken = (userId) => {
 const verifyToken = async (token) => {
   try {
     if (!token) return null;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    const decoded = jwt.verify(token, getJwtSecret());
     return await User.findById(decoded.id);
   } catch (error) {
     return null;
@@ -263,228 +272,43 @@ app.use('/api/chat', chatRoutes);
 const newsletterRoutes = require('./routes/newsletterRoutes');
 app.use('/api/newsletter', newsletterRoutes);
 
+// ✅ KD-XX VIRTUAL TRY-ON AI MODULE ROUTES (Google Cloud Vertex AI)
+const tryOnRoutes = require('./routes/tryOnRoutes');
+app.use('/api/tryon', tryOnRoutes);
+
+// ✅ KD-XX VIRTUAL TRY-ON RETENTION SCHEDULER (Singleton distributed lock purge)
+const tryOnCleanupScheduler = require('./services/tryOnCleanupScheduler');
+tryOnCleanupScheduler.start();
+
 // ✅ OAUTH ROUTES (Google & Facebook)
 const createAuthRouter = require('./routes/authRoutes');
 app.use('/api/auth', createAuthRouter(User, generateToken));
 
-// ✅ IMAGE PROXY FOR FIT LAB & EXTERNAL CDNs (Protected against SSRF & Resource Exhaustion)
-const dns = require('dns');
-const https = require('https');
-const net = require('net');
-
-// Verified luxury fashion and media CDN hostnames for KD-XX
-const DEFAULT_ALLOWED_HOSTS = new Set([
-  'res.cloudinary.com',
-  'image-raw.reversible.com',
-  'cdn.clothbase.com',
-  'amiri.com',
-  'cdn-images.farfetch-contents.com',
-  'img.ssensemedia.com',
-  'hrd-live.cdn.scayle.cloud',
-  'holtrenfrew.scene7.com',
-  'media.neimanmarcus.com',
-  'club21.com',
-  'product.hstatic.net',
-  'images.unsplash.com'
-]);
-
-function getAllowedHosts() {
-  const hosts = new Set(DEFAULT_ALLOWED_HOSTS);
-  if (process.env.ALLOWED_IMAGE_HOSTS) {
-    process.env.ALLOWED_IMAGE_HOSTS.split(',')
-      .map(h => h.trim().toLowerCase())
-      .filter(Boolean)
-      .forEach(h => hosts.add(h));
-  }
-  return hosts;
-}
-
-function isForbiddenIP(ip) {
-  if (typeof ip !== 'string') return true;
-  const cleanIp = ip.toLowerCase().trim();
-  // IPv4 Loopback
-  if (cleanIp.startsWith('127.')) return true;
-  // Private IPv4 (RFC 1918)
-  if (cleanIp.startsWith('10.') || cleanIp.startsWith('192.168.')) return true;
-  if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(cleanIp)) return true;
-  // Link-local / Cloud Metadata (169.254.0.0/16)
-  if (cleanIp.startsWith('169.254.')) return true;
-  // Current network / Broadcast
-  if (cleanIp.startsWith('0.') || cleanIp === '255.255.255.255') return true;
-  // IPv6 Loopback, Unspecified, Unique local, Link-local, IPv4-mapped IPv6
-  if (cleanIp === '::1' || cleanIp === '::' || cleanIp.startsWith('fc') || cleanIp.startsWith('fd') || cleanIp.startsWith('fe80:') || cleanIp.startsWith('::ffff:')) return true;
-  return false;
-}
-
-// Custom HTTPS Agent with socket-level DNS verification against DNS Rebinding & Private IPs
-const ssrfProtectedAgent = new https.Agent({
-  keepAlive: true,
-  timeout: 6000,
-  lookup: (hostname, options, callback) => {
-    dns.lookup(hostname, options, (err, address, family) => {
-      if (err) return callback(err);
-      if (Array.isArray(address)) {
-        for (const item of address) {
-          if (isForbiddenIP(item.address)) {
-            return callback(new Error('SSRF_FORBIDDEN_IP: Target resolves to forbidden IP'));
-          }
-        }
-      } else if (isForbiddenIP(address)) {
-        return callback(new Error('SSRF_FORBIDDEN_IP: Target resolves to forbidden IP'));
-      }
-      callback(null, address, family);
-    });
-  }
-});
-
-const ALLOWED_MIME_TYPES = new Set([
-  'image/jpeg',
-  'image/jpg',
-  'image/png',
-  'image/webp',
-  'image/avif',
-  'image/gif'
-]);
+// ✅ IMAGE PROXY FOR FIT LAB & EXTERNAL CDNs (Shared SSRF, DNS-rebinding & Magic Bytes Guard)
 const MAX_PROXY_IMAGE_BYTES = 10 * 1024 * 1024; // 10 MiB
 
-app.get('/api/proxy-image', (req, res) => {
+app.get('/api/proxy-image', async (req, res) => {
   try {
     const { url } = req.query;
-    if (!url || typeof url !== 'string' || !url.trim()) {
-      return res.status(400).json({ message: 'URL hình ảnh không hợp lệ' });
-    }
-
-    let parsedUrl;
-    try {
-      parsedUrl = new URL(url.trim());
-    } catch (e) {
-      return res.status(400).json({ message: 'Định dạng URL không hợp lệ' });
-    }
-
-    // 1. Strict HTTPS protocol check
-    if (parsedUrl.protocol !== 'https:') {
-      return res.status(400).json({ message: 'Chỉ chấp nhận giao thức HTTPS an toàn' });
-    }
-
-    // 2. Reject credentials in URL
-    if (parsedUrl.username || parsedUrl.password) {
-      return res.status(400).json({ message: 'URL không được chứa thông tin xác thực' });
-    }
-
-    // 3. Reject non-standard ports
-    if (parsedUrl.port && parsedUrl.port !== '443') {
-      return res.status(400).json({ message: 'Cổng kết nối không được phép' });
-    }
-
-    const hostname = parsedUrl.hostname.toLowerCase();
-
-    // 4. Reject direct IP addresses
-    if (net.isIP(hostname)) {
-      return res.status(403).json({ message: 'Không cho phép truy cập qua địa chỉ IP trực tiếp' });
-    }
-
-    // 5. Hostname whitelist check (exact match or approved subdomain)
-    const allowedHosts = getAllowedHosts();
-    let isAllowed = allowedHosts.has(hostname);
-    if (!isAllowed) {
-      for (const domain of allowedHosts) {
-        if (hostname.endsWith('.' + domain)) {
-          isAllowed = true;
-          break;
-        }
-      }
-    }
-
-    if (!isAllowed) {
-      return res.status(403).json({ message: 'Tên miền hình ảnh không nằm trong danh mục được phép' });
-    }
-
-    // 6. Connect using ssrfProtectedAgent (socket-level DNS verification against DNS Rebinding)
-    const options = {
-      protocol: parsedUrl.protocol,
-      hostname: parsedUrl.hostname,
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: 'GET',
-      agent: ssrfProtectedAgent,
+    const result = await fetchSafeRemoteImage(url, {
+      maxBytes: MAX_PROXY_IMAGE_BYTES,
+      timeoutMs: 6000,
+      allowedMimeTypes: PROXY_ALLOWED_MIME_TYPES,
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8'
       }
-    };
-
-    const proxyReq = https.request(options, (remoteRes) => {
-      // 7. Reject redirects
-      if (remoteRes.statusCode >= 300 && remoteRes.statusCode < 400) {
-        remoteRes.resume();
-        return res.status(403).json({ message: 'Chuyển hướng không được phép' });
-      }
-
-      if (remoteRes.statusCode !== 200) {
-        remoteRes.resume();
-        return res.status(remoteRes.statusCode).json({ message: 'Không thể tải ảnh từ máy chủ gốc' });
-      }
-
-      // 8. Validate Content-Type
-      const rawContentType = (remoteRes.headers['content-type'] || '').toLowerCase().split(';')[0].trim();
-      if (!ALLOWED_MIME_TYPES.has(rawContentType)) {
-        remoteRes.resume();
-        return res.status(415).json({ message: 'Định dạng tệp không được hỗ trợ hoặc có rủi ro bảo mật' });
-      }
-
-      // 9. Read stream with strict byte counting (up to 10 MiB)
-      let totalBytes = 0;
-      const chunks = [];
-      let exceededLimit = false;
-
-      remoteRes.on('data', (chunk) => {
-        totalBytes += chunk.length;
-        if (totalBytes > MAX_PROXY_IMAGE_BYTES) {
-          exceededLimit = true;
-          remoteRes.destroy();
-          return res.status(413).json({ message: 'Kích thước tệp vượt quá giới hạn 10MB' });
-        }
-        chunks.push(chunk);
-      });
-
-      remoteRes.on('end', () => {
-        if (exceededLimit) return;
-        const imageBuffer = Buffer.concat(chunks);
-        res.setHeader('Content-Type', rawContentType);
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Cache-Control', 'public, max-age=86400');
-        res.send(imageBuffer);
-      });
-
-      remoteRes.on('error', (err) => {
-        console.error('Remote image stream error:', err.message);
-        if (!res.headersSent) {
-          res.status(502).json({ message: 'Lỗi đường truyền khi tải ảnh' });
-        }
-      });
     });
 
-    proxyReq.setTimeout(6000, () => {
-      proxyReq.destroy(new Error('TIMEOUT'));
-    });
-
-    proxyReq.on('error', (err) => {
-      console.error('Proxy image request error:', err.message);
-      if (res.headersSent) return;
-      if (err.message && err.message.includes('SSRF_FORBIDDEN_IP')) {
-        return res.status(403).json({ message: 'Địa chỉ IP đích không được phép' });
-      }
-      if (err.message === 'TIMEOUT') {
-        return res.status(504).json({ message: 'Thời gian chờ tải ảnh quá hạn' });
-      }
-      res.status(502).json({ message: 'Không thể kết nối đến máy chủ chứa ảnh' });
-    });
-
-    proxyReq.end();
+    res.setHeader('Content-Type', result.headerMimeType || result.mimeType);
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(result.buffer);
   } catch (error) {
-    console.error('Image proxy general error:', error.message);
+    console.error('Image proxy error:', error.code || '', error.message);
     if (!res.headersSent) {
-      res.status(500).json({ message: 'Lỗi xử lý yêu cầu tải ảnh' });
+      return res.status(error.statusCode || 500).json({ message: error.message });
     }
   }
 });
@@ -814,12 +638,36 @@ app.put('/api/users/profile', async (req, res) => {
   }
 });
 
+// Serve static frontend in production if build exists
+if (process.env.NODE_ENV === 'production') {
+  const path = require('path');
+  const fs = require('fs');
+  const buildPath = path.resolve(__dirname, '../frontend/build');
+  if (fs.existsSync(buildPath)) {
+    app.use(express.static(buildPath));
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/socket.io')) {
+        return next();
+      }
+      res.sendFile(path.join(buildPath, 'index.html'));
+    });
+  }
+}
+
 // Graceful shutdown
-process.on('SIGINT', async () => {
+const shutdown = async () => {
   console.log('Shutting down gracefully...');
+  try {
+    tryOnCleanupScheduler.stop();
+  } catch (e) {}
+  try {
+    require('./services/tryOnQueueService').stopWorkerLoop();
+  } catch (e) {}
   await mongoose.connection.close();
   process.exit(0);
-});
+};
+process.on('SIGINT', shutdown);
+process.on('SIGTERM', shutdown);
 
 const PORT = process.env.PORT || 5000;
 

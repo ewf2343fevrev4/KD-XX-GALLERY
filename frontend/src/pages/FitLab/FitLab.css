@@ -1,13 +1,17 @@
 /* =========================================================================
    KD-XX FIT LAB — LUXURY STREETWEAR STUDIO STYLING
    ========================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 
 .fit-lab-page {
   min-height: 100vh;
   background-color: #08070b;
   color: #f4f4f5;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   display: flex;
   flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .fit-lab-container {
@@ -29,17 +33,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
+  margin-bottom: 26px;
 }
 
 .fit-lab-mode-switch {
   display: inline-flex;
   align-items: center;
-  background: #12101b;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0f0d17;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 4px;
   border-radius: 9999px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   gap: 4px;
 }
 
@@ -47,13 +51,14 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 22px;
+  padding: 8px 20px;
   border-radius: 9999px;
   background: transparent;
   border: none;
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 700;
+  color: #a1a1aa;
+  font-family: 'Manrope', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.8px;
   text-transform: uppercase;
   cursor: pointer;
@@ -65,20 +70,26 @@
 }
 
 .fit-lab-mode-btn.active {
-  background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 14px rgba(126, 34, 206, 0.45);
+  background: #ffffff;
+  color: #09090b;
+  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.15);
 }
 
 .fit-lab-mode-pill {
+  font-family: 'Inter', sans-serif;
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.5px;
-  background: #ffffff;
-  color: #6b21a8;
+  background: rgba(255, 255, 255, 0.12);
+  color: #d4d4d8;
   padding: 1px 6px;
   border-radius: 9999px;
   text-transform: uppercase;
+}
+
+.fit-lab-mode-btn.active .fit-lab-mode-pill {
+  background: #09090b;
+  color: #ffffff;
 }
 
 .fit-lab-view-wrapper.hidden {
@@ -114,34 +125,35 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(168, 85, 247, 0.12);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
   letter-spacing: 1.5px;
-  color: #c084fc;
+  color: #d4d4d8;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .fit-lab-title {
-  font-family: 'Cinzel', 'Montserrat', serif, sans-serif;
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: 3px;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
   color: #ffffff;
   margin: 0 0 4px 0;
   text-transform: uppercase;
 }
 
 .fit-lab-tagline {
-  font-size: 13px;
-  letter-spacing: 1px;
-  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #71717a;
   margin: 0;
-  text-transform: uppercase;
   font-weight: 500;
 }
 
@@ -224,11 +236,12 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  padding: 9px 18px;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -239,19 +252,20 @@
 .fit-lab-btn-purple {
   background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
   color: #ffffff;
-  box-shadow: 0 4px 16px rgba(126, 34, 206, 0.35);
-  border: 1px solid rgba(192, 132, 252, 0.3);
+  box-shadow: 0 4px 14px rgba(126, 34, 206, 0.25);
+  border: 1px solid rgba(192, 132, 252, 0.25);
 }
 
 .fit-lab-btn-purple:hover {
   background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
-  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.5);
+  box-shadow: 0 6px 18px rgba(147, 51, 234, 0.35);
   transform: translateY(-1px);
 }
 
 .fit-lab-btn-primary {
   background: #ffffff;
   color: #000000;
+  border: 1px solid #ffffff;
 }
 
 .fit-lab-btn-primary:hover {
@@ -261,14 +275,15 @@
 }
 
 .fit-lab-btn-outline {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.04);
   color: #e4e4e7;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .fit-lab-btn-outline:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 .fit-lab-btn-danger {
@@ -801,18 +816,19 @@
 }
 
 .fit-lab-canvas-watermark .brand {
-  font-family: 'Cinzel', serif;
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 4px;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 3px;
   color: #18181b;
 }
 
 .fit-lab-canvas-watermark .sub {
+  font-family: 'Inter', sans-serif;
   font-size: 8px;
-  letter-spacing: 2px;
+  letter-spacing: 1.5px;
   color: #7e22ce;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .fit-lab-konva-container {
@@ -841,22 +857,18 @@
 }
 
 .fit-lab-empty-icon-wrap {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: rgba(168, 85, 247, 0.1);
-  border: 1px solid rgba(168, 85, 247, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
+  color: #71717a;
 }
 
 .fit-lab-empty-title {
-  font-family: 'Cinzel', serif;
-  font-size: 16px;
-  letter-spacing: 3px;
-  font-weight: 800;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  letter-spacing: 2px;
+  font-weight: 700;
   color: #18181b;
   margin: 0 0 8px 0;
 }

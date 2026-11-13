@@ -540,7 +540,7 @@ export default function StylingStudio() {
       // 4. Header Watermark Branding
       ctx.save();
       ctx.fillStyle = '#18181b';
-      ctx.font = 'bold 18px "Cinzel", "Montserrat", sans-serif';
+      ctx.font = 'bold 18px "Manrope", sans-serif';
       ctx.textAlign = 'center';
       ctx.letterSpacing = '3px';
       ctx.fillText('KD-XX FIT LAB • STYLING STUDIO', canvasWidth / 2, 45);

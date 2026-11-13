@@ -1465,7 +1465,7 @@ export default function FitLabStudio() {
               {items.length === 0 && (
                 <div className="fit-lab-canvas-empty-guide">
                   <div className="fit-lab-empty-icon-wrap">
-                    <Sparkles size={36} className="text-purple-400 animate-pulse" />
+                    <Shirt size={32} strokeWidth={1.4} className="text-zinc-400" />
                   </div>
                   <h3 className="fit-lab-empty-title">BÀN PHỐI ĐANG TRỐNG</h3>
                   <p className="fit-lab-empty-desc">
@@ -1479,7 +1479,7 @@ export default function FitLabStudio() {
                     className="fit-lab-btn fit-lab-btn-purple mt-4"
                   >
                     <Sparkles size={16} />
-                    <span>🎲 Phối Ngẫu Nhiên Ngay</span>
+                    <span>Phối Ngẫu Nhiên Ngay</span>
                   </button>
                 </div>
               )}

@@ -36,6 +36,33 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Product category is required'],
     enum: ['men', 'women', 'accessories', 'shoes', 'clothing']
   },
+  // Optional Phase 2 backward-compatible catalog metadata (never required on legacy products)
+  sku: {
+    type: String,
+    trim: true,
+    default: '',
+    index: true
+  },
+  subCategory: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  variants: {
+    type: [{
+      _id: false,
+      sku: { type: String, trim: true, default: '' },
+      color: { type: String, trim: true, default: '' },
+      sizes: [{ type: String, trim: true }],
+      imageUrl: { type: String, trim: true, default: '' },
+      images: [String]
+    }],
+    default: []
+  },
+  tags: [{
+    type: String,
+    trim: true
+  }],
   sizes: [{
     type: String,
     trim: true

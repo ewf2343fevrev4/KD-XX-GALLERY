@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
+import { X, LogOut, Edit3 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { updateUserProfile } from "../../services/api";
 import KDAvatar from "./KDAvatar";
@@ -136,7 +137,7 @@ const ProfileModal = ({ isOpen, onClose }) => {
             <span>KD-XX VIP CLIENT IDENTITY</span>
           </div>
           <button className="profile-close-btn" onClick={onClose} aria-label="Close profile">
-            ✕
+            <X size={16} />
           </button>
         </div>
 
@@ -454,10 +455,8 @@ const ProfileModal = ({ isOpen, onClose }) => {
               onClick={handleLogoutClick}
               title="Đăng xuất khỏi thiết bị này"
             >
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.59L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-              </svg>
-              Đăng xuất
+              <LogOut size={15} />
+              <span>Đăng xuất</span>
             </button>
           </div>
 
@@ -468,10 +467,8 @@ const ProfileModal = ({ isOpen, onClose }) => {
                 className="profile-edit-btn"
                 onClick={() => setIsEditing(true)}
               >
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-                </svg>
-                Chỉnh sửa hồ sơ
+                <Edit3 size={15} />
+                <span>Chỉnh sửa hồ sơ</span>
               </button>
             ) : (
               <div className="editing-button-group">

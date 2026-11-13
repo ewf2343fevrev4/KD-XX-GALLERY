@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:5000/api';
+import { API_BASE_URL } from '../config/apiConfig';
 
 // ==================== GENERIC CALL ====================
 const apiCall = async (endpoint, token) => {
@@ -29,8 +29,10 @@ const apiCall = async (endpoint, token) => {
 
 // ==================== PRODUCT API ====================
 export const getAllProducts = () => apiCall('/products');
+export const getTryOnCatalog = () => apiCall('/tryon/catalog');
 export const getProductById = (id) => apiCall(`/products/${id}`);
 export const getProductsByCategory = (category) => apiCall(`/products/category/${category}`);
+export const getProductTags = () => apiCall('/products/tags');
 
 // ==================== USER API ====================
 export const getUserProfile = (token) => apiCall('/users/profile', token);
@@ -888,5 +890,12 @@ export default {
   getAITasks,
   runAITask,
   getAITaskHistory,
-  getAITaskLogById
+  getAITaskLogById,
+
+  // KD-XX Virtual Try-On AI Module
+  getTryOnAccount: (token) => apiCall('/tryon/account', token),
+  getTryOnJob: (token, id) => apiCall(`/tryon/jobs/${id}`, token),
+  getTryOnAdminStats: (token) => apiCall('/tryon/admin/stats', token),
+  getTryOnAdminJobs: (token, status) => apiCall(`/tryon/admin/jobs${status ? `?status=${status}` : ''}`, token),
+  getTryOnAdminLedgers: (token) => apiCall('/tryon/admin/ledgers', token)
 };

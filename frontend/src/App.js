@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { WishlistProvider } from './context/WishlistContext';
@@ -26,6 +26,9 @@ function HomePage({
   onProductsLoad, 
   selectedCategory, 
   onCategoryChange,
+  selectedTag,
+  onSelectTag,
+  onClearTag,
   selectedBrand,
   onSelectBrand,
   onClearBrand
@@ -35,7 +38,7 @@ function HomePage({
       let attempts = 0;
       const timer = setInterval(() => {
         attempts += 1;
-        const productsSection = document.getElementById('products-section');
+        const productsSection = document.getElementById('products-section') || document.getElementById('new-arrivals');
         if (productsSection) {
           clearInterval(timer);
           setTimeout(() => {
@@ -54,6 +57,45 @@ function HomePage({
     }
   }, [selectedCategory]);
 
+  // Cuộn mượt mà khi lọc theo Tag
+  useEffect(() => {
+    if (selectedTag) {
+      let attempts = 0;
+      const timer = setInterval(() => {
+        attempts += 1;
+        const productsSection = document.getElementById('products-section') || document.getElementById('new-arrivals');
+        if (productsSection) {
+          clearInterval(timer);
+          setTimeout(() => {
+            const elementPosition = productsSection.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - 150;
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: 'smooth',
+            });
+          }, 60);
+        } else if (attempts >= 50) {
+          clearInterval(timer);
+        }
+      }, 50);
+      return () => clearInterval(timer);
+    }
+  }, [selectedTag]);
+
+  const location = useLocation();
+
+  // Đọc tag và category từ URL query parameters nếu có
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(location.search);
+      const tagParam = params.get('tag');
+      const catParam = params.get('category');
+      if (tagParam && onSelectTag) {
+        onSelectTag(tagParam, catParam || undefined);
+      }
+    }
+  }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="home-page">
       <Header 
@@ -61,6 +103,8 @@ function HomePage({
         products={products}
         onCategoryChange={onCategoryChange}
         selectedCategory={selectedCategory}
+        selectedTag={selectedTag}
+        onSelectTag={onSelectTag}
       />
       <Hero 
         selectedBrand={selectedBrand}
@@ -71,6 +115,8 @@ function HomePage({
           <ProductGrid 
             searchQuery={searchQuery}
             selectedCategory={selectedCategory}
+            selectedTag={selectedTag}
+            onClearTag={onClearTag}
             selectedBrand={selectedBrand}
             onClearBrand={onClearBrand}
             onProductsLoad={onProductsLoad}
@@ -86,6 +132,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('home');
+  const [selectedTag, setSelectedTag] = useState(null);
   const [selectedBrand, setSelectedBrand] = useState(null);
 
   const handleSearch = (query) => {
@@ -98,10 +145,26 @@ function App() {
 
   const handleCategoryChange = (category) => {
     setSelectedCategory(category);
+    setSelectedTag(null);
     setSearchQuery('');
     if (category === 'home') {
       setSelectedBrand(null);
     }
+  };
+
+  const handleSelectTag = (tag, category = null) => {
+    setSelectedTag(tag);
+    setSearchQuery('');
+    if (category && category !== 'all' && category !== 'home') {
+      setSelectedCategory(category);
+    } else {
+      setSelectedCategory('all');
+    }
+    setSelectedBrand(null);
+  };
+
+  const handleClearTag = () => {
+    setSelectedTag(null);
   };
 
   const handleSelectBrand = (brandLogo) => {
@@ -154,6 +217,8 @@ function App() {
                       products={products}
                       selectedCategory={selectedCategory}
                       onCategoryChange={handleCategoryChange}
+                      selectedTag={selectedTag}
+                      onSelectTag={handleSelectTag}
                     />
                   } 
                 />
@@ -167,6 +232,8 @@ function App() {
                       products={products}
                       selectedCategory={selectedCategory}
                       onCategoryChange={handleCategoryChange}
+                      selectedTag={selectedTag}
+                      onSelectTag={handleSelectTag}
                     />
                   } 
                 />
@@ -182,6 +249,9 @@ function App() {
                       onProductsLoad={handleProductsLoad}
                       selectedCategory={selectedCategory}
                       onCategoryChange={handleCategoryChange}
+                      selectedTag={selectedTag}
+                      onSelectTag={handleSelectTag}
+                      onClearTag={handleClearTag}
                       selectedBrand={selectedBrand}
                       onSelectBrand={handleSelectBrand}
                       onClearBrand={handleClearBrand}
@@ -198,6 +268,9 @@ function App() {
                       onProductsLoad={handleProductsLoad}
                       selectedCategory={selectedCategory}
                       onCategoryChange={handleCategoryChange}
+                      selectedTag={selectedTag}
+                      onSelectTag={handleSelectTag}
+                      onClearTag={handleClearTag}
                       selectedBrand={selectedBrand}
                       onSelectBrand={handleSelectBrand}
                       onClearBrand={handleClearBrand}

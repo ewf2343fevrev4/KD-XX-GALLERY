@@ -324,8 +324,8 @@ export default function ProductReviewsSection({
           }}
           className="btn-open-review-form"
         >
-          <Camera size={16} />
-          <span>{isFormOpen ? 'ĐÓNG FORM' : 'VIẾT ĐÁNH GIÁ CỦA BẠN'}</span>
+          <Camera size={15} strokeWidth={1.75} />
+          <span>{isFormOpen ? 'ĐÓNG BIỂU MẪU' : 'VIẾT ĐÁNH GIÁ CỦA BẠN'}</span>
         </button>
       </div>
 
@@ -356,7 +356,7 @@ export default function ProductReviewsSection({
               : 'Chưa có đánh giá nào. Hãy là người đầu tiên trải nghiệm!'}
           </p>
           <div className="score-guarantee-pill">
-            <ShieldCheck size={14} className="text-purple-400" />
+            <ShieldCheck size={14} className="text-zinc-500" />
             <span>100% Đánh giá từ khách đã mua hàng</span>
           </div>
         </div>

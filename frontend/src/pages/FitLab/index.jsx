@@ -4,12 +4,14 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import FitLabStudio from './FitLabStudio';
 import StylingStudio from './StylingStudio';
-import { Layers, LayoutGrid } from 'lucide-react';
+import VirtualTryOnStudio from './VirtualTryOn/VirtualTryOnStudio';
+import { Layers, LayoutGrid, Sparkles } from 'lucide-react';
 import './FitLab.css';
 
 export default function FitLabPage({ onSearch, selectedCategory, onCategoryChange }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const initialMode = searchParams.get('mode') === 'styling' ? 'styling' : 'canvas';
+  const modeParam = searchParams.get('mode');
+  const initialMode = modeParam === 'styling' ? 'styling' : modeParam === 'tryon' ? 'tryon' : 'canvas';
   const [activeMode, setActiveMode] = useState(initialMode);
 
   useEffect(() => {
@@ -17,9 +19,13 @@ export default function FitLabPage({ onSearch, selectedCategory, onCategoryChang
   }, []);
 
   useEffect(() => {
-    document.title = activeMode === 'canvas'
-      ? 'KD-XX FIT LAB — Mix & Match Canvas Studio'
-      : 'KD-XX FIT LAB — 3-Row Styling Studio';
+    if (activeMode === 'canvas') {
+      document.title = 'KD-XX FIT LAB — Mix & Match Canvas Studio';
+    } else if (activeMode === 'styling') {
+      document.title = 'KD-XX FIT LAB — 3-Row Styling Studio';
+    } else if (activeMode === 'tryon') {
+      document.title = 'KD-XX FIT LAB — Virtual Try-On AI (Google Cloud)';
+    }
   }, [activeMode]);
 
   const handleModeSwitch = (mode) => {
@@ -56,16 +62,29 @@ export default function FitLabPage({ onSearch, selectedCategory, onCategoryChang
               <span>Styling Studio</span>
               <span className="fit-lab-mode-pill">New</span>
             </button>
+            <button
+              type="button"
+              className={`fit-lab-mode-btn ${activeMode === 'tryon' ? 'active' : ''}`}
+              onClick={() => handleModeSwitch('tryon')}
+            >
+              <Sparkles size={15} />
+              <span>Virtual Try-On AI</span>
+              <span className="fit-lab-mode-pill">AI</span>
+            </button>
           </div>
         </div>
 
-        {/* Both studios maintain 100% independent state */}
+        {/* All studios maintain 100% independent state */}
         <div className={`fit-lab-view-wrapper ${activeMode === 'canvas' ? 'active' : 'hidden'}`}>
           <FitLabStudio />
         </div>
 
         <div className={`fit-lab-view-wrapper ${activeMode === 'styling' ? 'active' : 'hidden'}`}>
           <StylingStudio />
+        </div>
+
+        <div className={`fit-lab-view-wrapper ${activeMode === 'tryon' ? 'active' : 'hidden'}`}>
+          <VirtualTryOnStudio />
         </div>
       </div>
 

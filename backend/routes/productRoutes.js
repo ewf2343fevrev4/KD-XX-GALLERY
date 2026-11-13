@@ -2,6 +2,7 @@ const express = require('express');
 const {
   getProducts,
   getProductById,
+  getProductTags,
   createProduct,
   updateProduct,
   deleteProduct
@@ -13,6 +14,8 @@ const router = express.Router();
 router.route('/')
   .get(getProducts)
   .post(protect, admin, createProduct);
+
+router.get('/tags', getProductTags);
 
 router.route('/:id')
   .get(getProductById)

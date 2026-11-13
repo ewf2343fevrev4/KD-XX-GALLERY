@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, X, Edit2, Trash2, Image as ImageIcon, Check, Loader2, MessageSquare, Mail, Film, Star, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Plus, X, Edit2, Trash2, Image as ImageIcon, Check, Loader2, MessageSquare, Mail, Film, Star, Sparkles, Tag } from 'lucide-react';
 import AdminChatInbox from './AdminChatInbox';
 import AdminNewsletter from './AdminNewsletter';
 import AdminCampaignAdsManager from './AdminCampaignAdsManager';
 import AdminReviewsManager from './AdminReviewsManager';
 import AdminAnalyticsDashboard from './AdminAnalyticsDashboard';
 import AdminAIOperations from './AdminAIOperations';
+import AdminVirtualTryOn from './AdminVirtualTryOn';
 
 const AVAILABLE_CATEGORIES = [
   { value: 'men', label: 'Men' },
@@ -258,6 +259,128 @@ function ProductSizeSelector({ category, selectedSizes = [], onChangeSizes }) {
   );
 }
 
+const DEFAULT_SUGGESTED_TAGS = [
+  'Denim', 'Tees', 'Hoodies', 'Outerwear', 'Jackets',
+  'Sweatshirts', 'Dresses', 'Skirts', 'Sunglasses',
+  'Belts', 'Sneakers', 'Card Holders', 'Keychains',
+  'Socks', 'Caps', 'Pre-Fall 2026', 'Winter Capsule', 'Limited Edition'
+];
+
+function ProductTagManager({ tags = [], onChangeTags, suggestedTags = [] }) {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleAdd = (tagToAdd) => {
+    const trimmed = (tagToAdd || inputValue).trim();
+    if (!trimmed) return;
+    if (tags.some(t => t.toLowerCase() === trimmed.toLowerCase())) {
+      setInputValue('');
+      return;
+    }
+    onChangeTags([...tags, trimmed]);
+    setInputValue('');
+  };
+
+  const handleRemove = (tagToRemove) => {
+    onChangeTags(tags.filter(t => t !== tagToRemove));
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAdd();
+    }
+  };
+
+  const combinedSuggestions = Array.from(new Set([...suggestedTags, ...DEFAULT_SUGGESTED_TAGS]));
+  const availableSuggestions = combinedSuggestions.filter(
+    s => !tags.some(t => t.toLowerCase() === s.toLowerCase())
+  );
+
+  return (
+    <div className="bg-purple-50/40 border border-purple-200/80 rounded-xl p-3.5 space-y-3">
+      <div className="flex items-center justify-between border-b border-purple-100 pb-2">
+        <label className="block text-sm font-bold text-gray-900 flex items-center gap-1.5">
+          <Tag size={16} className="text-purple-600" />
+          Tags phân loại (Mega Menu Tags)
+        </label>
+        <span className="text-[11px] text-purple-700 font-medium bg-purple-100/80 px-2 py-0.5 rounded-full">
+          Tự động đồng bộ lên Header
+        </span>
+      </div>
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Nhập tag (VD: Denim, Hoodies, Tees, Winter Drop...) rồi nhấn Enter"
+          className="flex-1 px-3.5 py-2 text-xs bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+        />
+        <button
+          type="button"
+          onClick={() => handleAdd()}
+          className="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1 active:scale-95 shadow-2xs shrink-0"
+        >
+          <Plus size={15} /> Thêm Tag
+        </button>
+      </div>
+
+      {/* Selected tags */}
+      {tags.length > 0 ? (
+        <div>
+          <span className="text-[11px] font-semibold text-gray-700 block mb-1.5">
+            Tag đang gán cho sản phẩm ({tags.length}):
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white text-purple-700 border border-purple-300 rounded-md text-xs font-bold shadow-2xs"
+              >
+                <span>#{tag}</span>
+                <button
+                  type="button"
+                  onClick={() => handleRemove(tag)}
+                  className="w-4 h-4 rounded-full flex items-center justify-center hover:bg-purple-100 text-purple-600 hover:text-red-600 transition-colors cursor-pointer"
+                  title="Xóa tag này"
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-gray-500 italic">
+          Chưa có tag nào. Hãy thêm tag để sản phẩm xuất hiện trong các mục phân loại của Header.
+        </p>
+      )}
+
+      {/* Quick suggestions */}
+      {availableSuggestions.length > 0 && (
+        <div className="pt-2 border-t border-purple-100/80">
+          <span className="text-[11px] text-gray-500 font-medium block mb-1">
+            Gợi ý nhanh (bấm để thêm):
+          </span>
+          <div className="flex flex-wrap gap-1">
+            {availableSuggestions.slice(0, 10).map((sug) => (
+              <button
+                key={sug}
+                type="button"
+                onClick={() => handleAdd(sug)}
+                className="px-2 py-0.5 bg-white hover:bg-purple-100 text-gray-600 hover:text-purple-700 rounded text-[11px] font-medium border border-gray-200 transition-colors cursor-pointer"
+              >
+                + {sug}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminDashboard({ initialTab }) {
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -269,6 +392,13 @@ export default function AdminDashboard({ initialTab }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const allAvailableTags = useMemo(() => {
+    return Array.from(new Set(
+      products.flatMap(p => Array.isArray(p.tags) ? p.tags : []).filter(Boolean)
+    ));
+  }, [products]);
+
   const [activeTab, setActiveTab] = useState(() => {
     try {
       const searchParams = new URLSearchParams(window.location.search);
@@ -289,6 +419,7 @@ export default function AdminDashboard({ initialTab }) {
     images: [],
     sizes: [],
     colors: '',
+    tags: [],
     featured: false
   });
   const [selectedAddFiles, setSelectedAddFiles] = useState([]);
@@ -506,6 +637,7 @@ useEffect(() => {
       images: [],
       sizes: [],
       colors: '',
+      tags: [],
       featured: false
     });
     setSelectedAddFiles([]);
@@ -651,6 +783,7 @@ useEffect(() => {
         colorsArray = newProduct.colors;
       }
       formData.append('colors', JSON.stringify(colorsArray));
+      formData.append('tags', JSON.stringify(newProduct.tags || []));
       formData.append('images', JSON.stringify(allUrlImages));
 
       selectedAddFiles.forEach(file => {
@@ -743,6 +876,7 @@ useEffect(() => {
       newImageUrl: '',
       sizes: Array.isArray(product.sizes) ? [...product.sizes] : [],
       colors: Array.isArray(product.colors) ? product.colors.join(', ') : (product.colors || ''),
+      tags: Array.isArray(product.tags) ? [...product.tags] : (typeof product.tags === 'string' ? product.tags.split(',').map(t => t.trim()).filter(Boolean) : []),
       featured: Boolean(product.featured)
     });
     setSelectedEditFiles([]);
@@ -840,6 +974,7 @@ useEffect(() => {
         colorsArray = editingProduct.colors;
       }
       formData.append('colors', JSON.stringify(colorsArray));
+      formData.append('tags', JSON.stringify(editingProduct.tags || []));
 
       let keptImages = [...(editingProduct.existingImages || [])];
       if (editingProduct.newImageUrl && editingProduct.newImageUrl.trim()) {
@@ -992,7 +1127,7 @@ useEffect(() => {
         )}
 
         <div className="flex gap-4 mb-8 border-b overflow-x-auto">
-          {['stats', 'intelligence', 'users', 'products', 'orders', 'reviews', 'support', 'newsletter', 'campaign-ads'].map(tab => (
+          {['stats', 'intelligence', 'virtual-tryon', 'users', 'products', 'orders', 'reviews', 'support', 'newsletter', 'campaign-ads'].map(tab => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -1007,6 +1142,12 @@ useEffect(() => {
                 <span className="flex items-center gap-1.5 font-bold text-indigo-600">
                   <Sparkles size={16} className="text-indigo-500 animate-pulse" />
                   <span>KD-XX Intelligence</span>
+                </span>
+              )}
+              {tab === 'virtual-tryon' && (
+                <span className="flex items-center gap-1.5 font-bold text-purple-600">
+                  <Sparkles size={16} className="text-purple-500" />
+                  <span>Virtual Try-On AI</span>
                 </span>
               )}
               {tab === 'users' && 'Quản Lý Users'}
@@ -1051,6 +1192,10 @@ useEffect(() => {
 
         {activeTab === 'intelligence' && (
           <AdminAIOperations />
+        )}
+
+        {activeTab === 'virtual-tryon' && (
+          <AdminVirtualTryOn />
         )}
 
         {activeTab === 'users' && (
@@ -1180,6 +1325,15 @@ useEffect(() => {
                                 {product.sizes.map(size => (
                                   <span key={size} className="text-[10px] px-1.5 py-0.2 bg-gray-100 text-gray-600 rounded">
                                     {size}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {Array.isArray(product.tags) && product.tags.length > 0 && (
+                              <div className="mt-1 flex gap-1 flex-wrap">
+                                {product.tags.map(tag => (
+                                  <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-200 rounded font-medium">
+                                    #{tag}
                                   </span>
                                 ))}
                               </div>
@@ -1500,6 +1654,15 @@ useEffect(() => {
                 />
               </div>
 
+              {/* Tags phân loại (Mega Menu Tags) */}
+              <div>
+                <ProductTagManager
+                  tags={newProduct.tags || []}
+                  onChangeTags={(tags) => setNewProduct(prev => ({ ...prev, tags }))}
+                  suggestedTags={allAvailableTags}
+                />
+              </div>
+
               {/* IMAGE MANAGEMENT SECTION */}
               <div className="border border-gray-200 rounded-xl p-4 bg-gray-50/50 space-y-4">
                 <div className="flex items-center justify-between border-b pb-2">
@@ -1814,6 +1977,15 @@ useEffect(() => {
                   onChange={(e) => setEditingProduct({ ...editingProduct, colors: e.target.value })}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   placeholder="VD: Black, White, Indigo, Vintage Grey (phân cách bằng dấu phẩy)"
+                />
+              </div>
+
+              {/* Tags phân loại (Mega Menu Tags) */}
+              <div>
+                <ProductTagManager
+                  tags={editingProduct.tags || []}
+                  onChangeTags={(tags) => setEditingProduct(prev => ({ ...prev, tags }))}
+                  suggestedTags={allAvailableTags}
                 />
               </div>
 

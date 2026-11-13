@@ -3,6 +3,9 @@ const router = express.Router();
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const Order = require('../models/Order');
+const User = require('../models/User');
+const TryOnSubscriptionPayment = require('../models/TryOnSubscriptionPayment');
+const tryOnCreditService = require('../services/tryOnCreditService');
 
 // ==========================================
 // SePay Webhook & Payment Routes
@@ -155,9 +158,20 @@ router.post('/webhook', async (req, res) => {
 
     // 3. IDEMPOTENCY CHECK (Prevent duplicate processing of same transaction ID)
     if (id) {
-      const alreadyProcessed = await Order.findOne({ 'sepayTransaction.id': Number(id) });
-      if (alreadyProcessed) {
-        console.log(`🔁 [SePay Webhook] Transaction #${id} already processed for Order #${alreadyProcessed._id}. Skipping duplicate.`);
+      // 3A. Check clothing order processing
+      const alreadyProcessedOrder = await Order.findOne({ 'sepayTransaction.id': Number(id) });
+      if (alreadyProcessedOrder) {
+        console.log(`🔁 [SePay Webhook] Transaction #${id} already processed for Order #${alreadyProcessedOrder._id}. Skipping duplicate.`);
+        return res.status(200).json({
+          success: true,
+          message: 'Transaction already processed (Idempotent)'
+        });
+      }
+
+      // 3B. Check HOMIE subscription processing
+      const alreadyProcessedHomie = await TryOnSubscriptionPayment.findOne({ sepayTransactionId: Number(id) });
+      if (alreadyProcessedHomie && alreadyProcessedHomie.membershipGranted === true) {
+        console.log(`🔁 [SePay Webhook] Transaction #${id} already completed for HOMIE membership (status: ${alreadyProcessedHomie.status}). Skipping duplicate.`);
         return res.status(200).json({
           success: true,
           message: 'Transaction already processed (Idempotent)'
@@ -165,7 +179,7 @@ router.post('/webhook', async (req, res) => {
       }
     }
 
-    // 4. LOCATE THE TARGET ORDER
+    // 4. EXTRACT PAYMENT CODE
     // Match order by paymentCode (from payload.code, or regex in content / description)
     const prefix = process.env.SEPAY_PAYMENT_PREFIX || 'KDX';
     const fullText = `${code || ''} ${content || ''} ${description || ''}`;
@@ -173,7 +187,232 @@ router.post('/webhook', async (req, res) => {
     const match = fullText.match(codeRegex);
     let targetCode = match ? match[0].toUpperCase() : (code || '').replace(/^SEVQR\s*/i, '').trim().toUpperCase();
 
-    console.log(`🔍 [SePay Webhook] Searching order with paymentCode: "${targetCode}" (From text: "${content || code}")`);
+    // ========================================================
+    // 4A. VIRTUAL TRY-ON HOMIE SUBSCRIPTION MEMBERSHIP BRANCH
+    // ========================================================
+    const isHomiePayment = targetCode.startsWith('KDXHOMIE') || fullText.toUpperCase().includes('KDXHOMIE');
+
+    if (isHomiePayment) {
+      console.log(`👑 [SePay Webhook] Detected Virtual Try-On HOMIE Membership payment: "${targetCode}"`);
+
+      // Extract candidate identifier: KDXHOMIE followed by 6 to 24 hexadecimal characters
+      const homieMatch = fullText.toUpperCase().match(/KDXHOMIE([0-9A-F]{6,24})/i) || targetCode.match(/KDXHOMIE([0-9A-F]{6,24})/i);
+
+      if (!homieMatch) {
+        console.warn(`⚠️ [SePay Webhook] Invalid HOMIE payment code format in content: "${content}"`);
+        return res.status(200).json({
+          success: false,
+          message: `Invalid HOMIE payment code format: ${targetCode}`
+        });
+      }
+
+      const identifier = homieMatch[1];
+      let targetUser = null;
+
+      // Identify user unambiguously (Fail-closed)
+      if (identifier.length === 24 && mongoose.Types.ObjectId.isValid(identifier)) {
+        targetUser = await User.findById(identifier).select('_id name email role');
+      } else if (identifier.length >= 6) {
+        const hexSuffix = identifier.slice(-6);
+        const candidates = await User.find({
+          $expr: {
+            $regexMatch: {
+              input: { $toString: '$_id' },
+              regex: `${hexSuffix}$`,
+              options: 'i'
+            }
+          }
+        }).select('_id name email role');
+
+        if (candidates.length === 1) {
+          targetUser = candidates[0];
+        } else if (candidates.length > 1) {
+          console.error(`⛔ [SePay Webhook] Suffix collision: ${candidates.length} users share suffix "${hexSuffix}". Rejecting automated grant to prevent misallocation.`);
+          await TryOnSubscriptionPayment.create({
+            sepayTransactionId: Number(id),
+            paymentCode: targetCode,
+            amountVND: Number(transferAmount || 0),
+            status: 'ambiguous_user',
+            gateway,
+            transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
+            content,
+            transferType,
+            failureReason: `Multiple users (${candidates.length}) matched suffix ${hexSuffix}`,
+            rawPayload: payload
+          }).catch(e => console.error('Failed to log ambiguous payment:', e.message));
+
+          return res.status(200).json({
+            success: false,
+            message: `Ambiguous user account matching suffix ${hexSuffix}`
+          });
+        }
+      }
+
+      if (!targetUser) {
+        console.warn(`⚠️ [SePay Webhook] No user found matching HOMIE identifier: "${identifier}"`);
+        await TryOnSubscriptionPayment.create({
+          sepayTransactionId: Number(id),
+          paymentCode: targetCode,
+          amountVND: Number(transferAmount || 0),
+          status: 'user_not_found',
+          gateway,
+          transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
+          content,
+          transferType,
+          failureReason: `User not found for identifier ${identifier}`,
+          rawPayload: payload
+        }).catch(e => console.error('Failed to log user_not_found payment:', e.message));
+
+        return res.status(200).json({
+          success: false,
+          message: `User not found for HOMIE payment code: ${targetCode}`
+        });
+      }
+
+      // Validate amount (199,000 VND)
+      const expectedVND = Number(process.env.HOMIE_MEMBERSHIP_PRICE_VND) || 199000;
+      const actualAmount = Number(transferAmount || 0);
+
+      if (actualAmount < expectedVND) {
+        console.warn(`⚠️ [SePay Webhook] Underpaid HOMIE membership! Expected: ${expectedVND} VND, Received: ${actualAmount} VND for User #${targetUser._id}`);
+        await TryOnSubscriptionPayment.create({
+          sepayTransactionId: Number(id),
+          user: targetUser._id,
+          paymentCode: targetCode,
+          amountVND: actualAmount,
+          status: 'underpaid',
+          gateway,
+          transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
+          content,
+          transferType,
+          failureReason: `Underpaid: received ${actualAmount} VND but expected ${expectedVND} VND`,
+          rawPayload: payload
+        }).catch(e => console.error('Failed to log underpaid payment:', e.message));
+
+        return res.status(200).json({
+          success: false,
+          message: `Underpaid: Received ${actualAmount} VND but expected ${expectedVND} VND`
+        });
+      }
+
+      // Find or create payment record (Idempotent initial barrier)
+      let paymentRecord = await TryOnSubscriptionPayment.findOne({ sepayTransactionId: Number(id) });
+
+      if (!paymentRecord) {
+        try {
+          paymentRecord = await TryOnSubscriptionPayment.create({
+            sepayTransactionId: Number(id),
+            user: targetUser._id,
+            paymentCode: targetCode,
+            amountVND: actualAmount,
+            gateway,
+            transactionDate: transactionDate ? new Date(transactionDate) : new Date(),
+            accountNumber,
+            subAccount,
+            referenceCode,
+            content,
+            transferType,
+            status: 'pending',
+            membershipGranted: false,
+            rawPayload: payload
+          });
+        } catch (dupErr) {
+          if (dupErr.code === 11000) {
+            paymentRecord = await TryOnSubscriptionPayment.findOne({ sepayTransactionId: Number(id) });
+          } else {
+            throw dupErr;
+          }
+        }
+      }
+
+      // If already granted, return 200 Idempotent
+      if (paymentRecord && paymentRecord.membershipGranted === true) {
+        console.log(`🔁 [SePay Webhook] Transaction #${id} already granted HOMIE membership. Skipping duplicate.`);
+        return res.status(200).json({
+          success: true,
+          message: 'Transaction already processed (Idempotent)'
+        });
+      }
+
+      // Concurrency lock: atomically set status to 'processing'
+      // Allow lock if status != 'processing' OR stale processing (> 30s)
+      const staleThreshold = new Date(Date.now() - 30 * 1000);
+      const lockedRecord = await TryOnSubscriptionPayment.findOneAndUpdate(
+        {
+          _id: paymentRecord._id,
+          membershipGranted: false,
+          $or: [
+            { status: { $ne: 'processing' } },
+            { updatedAt: { $lt: staleThreshold } }
+          ]
+        },
+        {
+          $set: { status: 'processing', failureReason: '' }
+        },
+        { new: true }
+      );
+
+      if (!lockedRecord) {
+        console.log(`⏳ [SePay Webhook] Transaction #${id} is currently being processed by another worker.`);
+        return res.status(200).json({
+          success: true,
+          message: 'Transaction is currently processing'
+        });
+      }
+
+      paymentRecord = lockedRecord;
+
+      // Atomic Grant: Call tryOnCreditService to grant 120 credits & activate HOMIE
+      try {
+        await tryOnCreditService.grantHomieSubscription(targetUser._id, `SEPAY_${id}`);
+
+        paymentRecord.status = 'completed';
+        paymentRecord.membershipGranted = true;
+        paymentRecord.grantedAt = new Date();
+        paymentRecord.failureReason = '';
+        await paymentRecord.save();
+
+        console.log(`🎉 [SePay Webhook] Successfully activated HOMIE Membership for User #${targetUser._id} (${targetUser.email})!`);
+
+        // Real-time notification via Socket.IO
+        const io = req.app.get('io');
+        if (io) {
+          io.emit('homie_activated', {
+            userId: targetUser._id,
+            transactionId: id,
+            paymentCode: targetCode,
+            amountVND: actualAmount,
+            membershipType: 'homie',
+            activatedAt: paymentRecord.grantedAt
+          });
+          console.log(`📡 [SePay Webhook] Broadcasted socket event 'homie_activated' for User #${targetUser._id}`);
+        }
+
+        return res.status(200).json({
+          success: true,
+          message: 'HOMIE membership successfully activated',
+          userId: targetUser._id,
+          transactionId: id
+        });
+      } catch (grantErr) {
+        console.error(`❌ [SePay Webhook] Failed to grant HOMIE membership credits for User #${targetUser._id}:`, grantErr);
+        paymentRecord.status = 'failed';
+        paymentRecord.failureReason = grantErr.message;
+        await paymentRecord.save().catch(() => {});
+
+        // Return 500 so SePay will retry in case of transient database error
+        return res.status(500).json({
+          success: false,
+          message: 'Failed to grant HOMIE membership credits. SePay will retry.',
+          error: grantErr.message
+        });
+      }
+    }
+
+    // ========================================================
+    // 4B. LOCATE THE TARGET CLOTHING ORDER (Standard Shopping)
+    // ========================================================
+    console.log(`🔍 [SePay Webhook] Searching clothing order with paymentCode: "${targetCode}" (From text: "${content || code}")`);
 
     let order = null;
     if (targetCode) {

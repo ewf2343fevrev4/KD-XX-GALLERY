@@ -235,7 +235,7 @@ router.get('/products/:id', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.post('/products', protect, admin, upload.array('images', 5), async (req, res) => {
   try {
-    const { name, description, price, category, stock, brand, sizes, colors, featured } = req.body;
+    const { name, description, price, category, stock, brand, sizes, colors, tags, featured } = req.body;
 
     if (!name || price === undefined || !category) {
       return res.status(400).json({
@@ -315,6 +315,19 @@ router.post('/products', protect, admin, upload.array('images', 5), async (req, 
       }
     }
 
+    let parsedTags = [];
+    if (tags) {
+      if (typeof tags === 'string') {
+        try {
+          parsedTags = JSON.parse(tags);
+        } catch (e) {
+          parsedTags = tags.split(',').map(t => t.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(tags)) {
+        parsedTags = tags.map(t => typeof t === 'string' ? t.trim() : '').filter(Boolean);
+      }
+    }
+
     const numStock = parseInt(stock) || 0;
     const isFeatured = featured === true || featured === 'true';
 
@@ -330,6 +343,7 @@ router.post('/products', protect, admin, upload.array('images', 5), async (req, 
       brand: brand?.trim() || 'AMIRI',
       sizes: parsedSizes,
       colors: parsedColors,
+      tags: parsedTags,
       featured: isFeatured
     });
 
@@ -355,7 +369,7 @@ router.post('/products', protect, admin, upload.array('images', 5), async (req, 
 // @access  Private/Admin
 router.put('/products/:id', protect, admin, upload.array('images', 5), async (req, res) => {
   try {
-    const { name, description, price, category, stock, brand, sizes, colors, featured, inStock } = req.body;
+    const { name, description, price, category, stock, brand, sizes, colors, tags, featured, inStock } = req.body;
 
     const product = await Product.findById(req.params.id);
 
@@ -466,6 +480,21 @@ router.put('/products/:id', protect, admin, upload.array('images', 5), async (re
       }
       if (Array.isArray(parsedColors)) {
         product.colors = parsedColors;
+      }
+    }
+
+    // tags
+    if (tags !== undefined) {
+      let parsedTags = tags;
+      if (typeof parsedTags === 'string') {
+        try {
+          parsedTags = JSON.parse(parsedTags);
+        } catch (e) {
+          parsedTags = parsedTags.split(',').map(t => t.trim()).filter(Boolean);
+        }
+      }
+      if (Array.isArray(parsedTags)) {
+        product.tags = parsedTags.map(t => typeof t === 'string' ? t.trim() : '').filter(Boolean);
       }
     }
 

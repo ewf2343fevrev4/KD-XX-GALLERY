@@ -27,6 +27,51 @@ const getProductById = async (req, res) => {
   }
 };
 
+// 📌 Lấy tất cả tags và tags phân theo danh mục
+const getProductTags = async (req, res) => {
+  try {
+    const products = await Product.find({}, 'category tags');
+    const allTagsSet = new Set();
+    const byCategory = {
+      all: new Set(),
+      men: new Set(),
+      women: new Set(),
+      accessories: new Set(),
+      shoes: new Set()
+    };
+
+    products.forEach(p => {
+      const cat = (p.category || '').toLowerCase().trim();
+      if (Array.isArray(p.tags)) {
+        p.tags.forEach(rawTag => {
+          const t = rawTag ? rawTag.trim() : '';
+          if (t) {
+            allTagsSet.add(t);
+            byCategory.all.add(t);
+            if (byCategory[cat]) {
+              byCategory[cat].add(t);
+            }
+          }
+        });
+      }
+    });
+
+    res.json({
+      success: true,
+      tags: Array.from(allTagsSet),
+      byCategory: {
+        all: Array.from(byCategory.all),
+        men: Array.from(byCategory.men),
+        women: Array.from(byCategory.women),
+        accessories: Array.from(byCategory.accessories),
+        shoes: Array.from(byCategory.shoes)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 // 📌 Tạo sản phẩm (chấp nhận image, imageUrl hoặc images[])
 const createProduct = async (req, res) => {
   try {
@@ -37,12 +82,26 @@ const createProduct = async (req, res) => {
       category,
       sizes,
       colors,
+      tags,
       quantity,
       featured,
       image,
       imageUrl,
       images
     } = req.body;
+
+    let parsedTags = [];
+    if (tags) {
+      if (typeof tags === 'string') {
+        try {
+          parsedTags = JSON.parse(tags);
+        } catch (e) {
+          parsedTags = tags.split(',').map(t => t.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(tags)) {
+        parsedTags = tags.map(t => typeof t === 'string' ? t.trim() : '').filter(Boolean);
+      }
+    }
 
     const product = new Product({
       name,
@@ -51,6 +110,7 @@ const createProduct = async (req, res) => {
       category,
       sizes,
       colors,
+      tags: parsedTags,
       quantity,
       featured,
       inStock: quantity > 0,
@@ -76,6 +136,7 @@ const updateProduct = async (req, res) => {
       category,
       sizes,
       colors,
+      tags,
       quantity,
       featured,
       image,
@@ -95,6 +156,19 @@ const updateProduct = async (req, res) => {
     product.category = category || product.category;
     product.sizes = sizes || product.sizes;
     product.colors = colors || product.colors;
+    if (tags !== undefined) {
+      let parsedTags = [];
+      if (typeof tags === 'string') {
+        try {
+          parsedTags = JSON.parse(tags);
+        } catch (e) {
+          parsedTags = tags.split(',').map(t => t.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(tags)) {
+        parsedTags = tags.map(t => typeof t === 'string' ? t.trim() : '').filter(Boolean);
+      }
+      product.tags = parsedTags;
+    }
     product.quantity = quantity ?? product.quantity;
     product.featured = featured ?? product.featured;
     product.inStock = (quantity ?? product.quantity) > 0;
@@ -130,6 +204,7 @@ const deleteProduct = async (req, res) => {
 module.exports = {
   getProducts,
   getProductById,
+  getProductTags,
   createProduct,
   updateProduct,
   deleteProduct

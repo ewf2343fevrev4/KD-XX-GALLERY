@@ -9,7 +9,6 @@ import {
   Check, 
   AlertCircle, 
   Share2, 
-  ZoomIn, 
   X, 
   ShieldCheck, 
   Truck, 
@@ -18,7 +17,12 @@ import {
   Ruler,
   ChevronDown,
   ChevronUp,
-  Star
+  Star,
+  Footprints,
+  Shirt,
+  Scissors,
+  Info,
+  Maximize2
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
@@ -525,8 +529,8 @@ export default function ProductDetailPage({
                     onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                   />
                   <div className="gallery-zoom-hint">
-                    <ZoomIn size={18} />
-                    <span>Phóng to</span>
+                    <Maximize2 size={13} strokeWidth={1.75} />
+                    <span>Xem ảnh lớn</span>
                   </div>
                 </div>
 
@@ -826,22 +830,28 @@ export default function ProductDetailPage({
             {/* Luxury Service Highlights */}
             <div className="luxury-perks-box">
               <div className="perk-item">
-                <Truck size={18} className="perk-icon" />
-                <div>
+                <div className="perk-icon-wrapper">
+                  <Truck size={17} strokeWidth={1.5} />
+                </div>
+                <div className="perk-text-content">
                   <span className="perk-title">GIAO HÀNG MIỄN PHÍ TOÀN CẦU</span>
                   <p className="perk-desc">Áp dụng cho mọi đơn hàng giá trị trên $100</p>
                 </div>
               </div>
               <div className="perk-item">
-                <ShieldCheck size={18} className="perk-icon" />
-                <div>
+                <div className="perk-icon-wrapper">
+                  <ShieldCheck size={17} strokeWidth={1.5} />
+                </div>
+                <div className="perk-text-content">
                   <span className="perk-title">100% CHÍNH HÃNG AUTHENTIC</span>
                   <p className="perk-desc">Sản phẩm thuộc thương hiệu {product.brand || 'AMIRI'} cao cấp</p>
                 </div>
               </div>
               <div className="perk-item">
-                <RotateCcw size={18} className="perk-icon" />
-                <div>
+                <div className="perk-icon-wrapper">
+                  <RotateCcw size={17} strokeWidth={1.5} />
+                </div>
+                <div className="perk-text-content">
                   <span className="perk-title">ĐỔI TRẢ TRONG 14 NGÀY</span>
                   <p className="perk-desc">Hỗ trợ đổi trả miễn phí khi còn nguyên tem mác</p>
                 </div>
@@ -858,24 +868,39 @@ export default function ProductDetailPage({
                   onClick={() => toggleAccordion('details')}
                 >
                   <span>MÔ TẢ & CHI TIẾT SẢN PHẨM</span>
-                  {accordion.details ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  {accordion.details ? <ChevronUp size={16} strokeWidth={1.75} /> : <ChevronDown size={16} strokeWidth={1.75} />}
                 </button>
                 {accordion.details && (
                   <div className="accordion-content">
                     <p className="product-description-text">
                       {product.description || 'Sản phẩm cao cấp được thiết kế và sản xuất tỉ mỉ theo tiêu chuẩn xa xỉ, phong cách streetwear thời thượng của thương hiệu AMIRI.'}
                     </p>
-                    <ul className="product-specs-list">
-                      <li><strong>Thương hiệu:</strong> {product.brand || 'AMIRI'}</li>
-                      <li><strong>Danh mục:</strong> {product.category ? product.category.toUpperCase() : 'FASHION'}</li>
+                    <div className="product-specs-grid">
+                      <div className="spec-row">
+                        <span className="spec-label">THƯƠNG HIỆU</span>
+                        <span className="spec-value">{product.brand || 'AMIRI'}</span>
+                      </div>
+                      <div className="spec-row">
+                        <span className="spec-label">DANH MỤC</span>
+                        <span className="spec-value">{product.category ? product.category.toUpperCase() : 'FASHION'}</span>
+                      </div>
                       {availableSizes.length > 0 && (
-                        <li><strong>Kích cỡ khả dụng:</strong> {availableSizes.join(', ')}</li>
+                        <div className="spec-row">
+                          <span className="spec-label">KÍCH CỠ KHẢ DỤNG</span>
+                          <span className="spec-value">{availableSizes.join(' · ')}</span>
+                        </div>
                       )}
                       {availableColors.length > 0 && (
-                        <li><strong>Màu sắc khả dụng:</strong> {availableColors.join(', ')}</li>
+                        <div className="spec-row">
+                          <span className="spec-label">MÀU SẮC</span>
+                          <span className="spec-value">{availableColors.join(' · ')}</span>
+                        </div>
                       )}
-                      <li><strong>Tình trạng kho:</strong> {currentStock > 0 ? `Sẵn sàng giao (${currentStock} cái)` : 'Hết hàng'}</li>
-                    </ul>
+                      <div className="spec-row">
+                        <span className="spec-label">TÌNH TRẠNG KHO</span>
+                        <span className="spec-value">{currentStock > 0 ? `Sẵn sàng giao (${currentStock} sản phẩm)` : 'Tạm hết hàng'}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -888,7 +913,7 @@ export default function ProductDetailPage({
                   onClick={() => toggleAccordion('care')}
                 >
                   <span>HƯỚNG DẪN BẢO QUẢN & GIẶT LÀ</span>
-                  {accordion.care ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  {accordion.care ? <ChevronUp size={16} strokeWidth={1.75} /> : <ChevronDown size={16} strokeWidth={1.75} />}
                 </button>
                 {accordion.care && (
                   <div className="accordion-content">
@@ -910,7 +935,7 @@ export default function ProductDetailPage({
                   onClick={() => toggleAccordion('shipping')}
                 >
                   <span>CHÍNH SÁCH VẬN CHUYỂN & ĐỔI TRẢ</span>
-                  {accordion.shipping ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                  {accordion.shipping ? <ChevronUp size={16} strokeWidth={1.75} /> : <ChevronDown size={16} strokeWidth={1.75} />}
                 </button>
                 {accordion.shipping && (
                   <div className="accordion-content">
@@ -1043,7 +1068,7 @@ export default function ProductDetailPage({
                 className={`size-guide-tab-btn ${sizeGuideTab === 'shoes' ? 'active' : ''}`}
                 onClick={() => setSizeGuideTab('shoes')}
               >
-                <span>👟</span>
+                <Footprints size={15} strokeWidth={1.75} />
                 <span>GIÀY DÉP (FOOTWEAR - EU / US)</span>
               </button>
               <button
@@ -1051,7 +1076,7 @@ export default function ProductDetailPage({
                 className={`size-guide-tab-btn ${sizeGuideTab === 'clothing' ? 'active' : ''}`}
                 onClick={() => setSizeGuideTab('clothing')}
               >
-                <span>👔</span>
+                <Shirt size={15} strokeWidth={1.75} />
                 <span>QUẦN ÁO (CLOTHING - XS-XXL)</span>
               </button>
               <button
@@ -1059,7 +1084,7 @@ export default function ProductDetailPage({
                 className={`size-guide-tab-btn ${sizeGuideTab === 'pants' ? 'active' : ''}`}
                 onClick={() => setSizeGuideTab('pants')}
               >
-                <span>👖</span>
+                <Scissors size={15} strokeWidth={1.75} />
                 <span>QUẦN JEANS / SỐ (PANTS)</span>
               </button>
             </div>
@@ -1091,7 +1116,10 @@ export default function ProductDetailPage({
                     </tbody>
                   </table>
                   <div className="size-guide-tips">
-                    <p><strong>💡 Hướng dẫn đo kích cỡ bàn chân chuẩn xác:</strong></p>
+                    <p className="size-guide-tip-title">
+                      <Info size={14} strokeWidth={1.75} />
+                      <strong>Hướng dẫn đo kích cỡ bàn chân chuẩn xác:</strong>
+                    </p>
                     <ul style={{ paddingLeft: '20px', marginTop: '6px', listStyleType: 'disc' }}>
                       <li>Đặt bàn chân lên một tờ giấy trắng, gót chân tì nhẹ vào mép tường phẳng.</li>
                       <li>Dùng bút vạch dấu ở đầu ngón chân dài nhất và đo khoảng cách từ mép gót đến vạch (đơn vị: cm).</li>
@@ -1123,7 +1151,10 @@ export default function ProductDetailPage({
                     </tbody>
                   </table>
                   <div className="size-guide-tips">
-                    <p>💡 <em>Lưu ý: Nếu phân vân giữa 2 kích cỡ, chúng tôi khuyên bạn nên chọn kích cỡ lớn hơn để có form dáng streetwear thoải mái chuẩn phong cách AMIRI.</em></p>
+                    <p className="size-guide-tip-title">
+                      <Info size={14} strokeWidth={1.75} />
+                      <em>Lưu ý: Nếu phân vân giữa 2 kích cỡ, chúng tôi khuyên bạn nên chọn kích cỡ lớn hơn để có form dáng streetwear thoải mái chuẩn phong cách AMIRI.</em>
+                    </p>
                   </div>
                 </>
               )}
@@ -1152,7 +1183,10 @@ export default function ProductDetailPage({
                     </tbody>
                   </table>
                   <div className="size-guide-tips">
-                    <p>💡 <em>Quần jeans AMIRI thường may bằng chất liệu denim cao cấp pha sợi co giãn (stretch). Chọn đúng size vòng eo (waist inch) theo thắt lưng của bạn để có form ôm chân skinny hoặc slim chuẩn.</em></p>
+                    <p className="size-guide-tip-title">
+                      <Info size={14} strokeWidth={1.75} />
+                      <em>Quần jeans AMIRI thường may bằng chất liệu denim cao cấp pha sợi co giãn (stretch). Chọn đúng size vòng eo (waist inch) theo thắt lưng của bạn để có form ôm chân skinny hoặc slim chuẩn.</em>
+                    </p>
                   </div>
                 </>
               )}

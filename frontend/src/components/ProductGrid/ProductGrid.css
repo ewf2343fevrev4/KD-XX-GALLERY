@@ -113,6 +113,101 @@
   border: 1px solid #e5e7eb;
 }
 
+/* ===== TAG ACTIVE FILTER BANNER ===== */
+.tag-active-filter-banner {
+  text-align: center;
+  margin-top: -30px;
+  margin-bottom: 60px;
+  position: relative;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.tag-active-filter-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(250, 248, 255, 0.96) 100%
+  );
+  padding: 24px 44px;
+  border-radius: 20px;
+  box-shadow: 
+    0 12px 35px rgba(0, 0, 0, 0.08),
+    0 0 30px rgba(147, 51, 234, 0.15);
+  border: 1px solid rgba(147, 51, 234, 0.3);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  max-width: 580px;
+  width: 100%;
+}
+
+.tag-filter-pill-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #9333ea;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.tag-filter-heading {
+  font-size: 2.2rem;
+  font-weight: 300;
+  letter-spacing: 4px;
+  color: #111;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+}
+
+.tag-filter-count {
+  font-size: 0.82rem;
+  color: #6b7280;
+  letter-spacing: 1px;
+  margin: 0 0 16px 0;
+}
+
+.tag-clear-filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 22px;
+  background: #111827;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tag-clear-filter-button:hover {
+  background: #9333ea;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(147, 51, 234, 0.35);
+}
+
+.tag-empty-state .tag-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.tag-reset-btn {
+  margin-top: 18px;
+  background: #9333ea !important;
+  border-color: #9333ea !important;
+  color: #fff !important;
+}
+
 .brand-clear-filter-btn {
   display: inline-flex;
   align-items: center;
