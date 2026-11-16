@@ -527,13 +527,13 @@ export default function VirtualTryOnStudio() {
             }`}
           >
             <Layers size={14} />
-            <span>Full Outfit: Áo + Quần (2 Credits)</span>
+            <span>Full Outfit: Áo + Quần {hasFootwearSelected ? '+ Giày (3 Credits)' : '(2 Credits)'}</span>
           </button>
         </div>
 
         <span className="text-[11px] text-slate-400">
           {tryOnMode === 'full_outfit'
-            ? 'Xử lý tuần tự 2 bước • Yêu cầu ảnh toàn thân rõ áo, quần & hông'
+            ? `Xử lý tuần tự ${hasFootwearSelected ? '3 bước (Full Look)' : '2 bước'} • Yêu cầu ảnh toàn thân rõ áo, quần & dáng đứng`
             : 'Thử nhanh 1 sản phẩm trang phục (Áo / Quần / Đầm)'}
         </span>
       </div>

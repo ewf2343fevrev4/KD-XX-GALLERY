@@ -416,8 +416,11 @@ export default function ProductSelector({
         <div className="vto-product-grid">
           {filteredProducts.map((prod) => {
             const isSelected = isFullOutfitMode
-              ? (fullOutfitSlots?.top?.product?._id === prod._id || fullOutfitSlots?.bottom?.product?._id === prod._id)
+              ? (fullOutfitSlots?.top?.product?._id === prod._id ||
+                 fullOutfitSlots?.bottom?.product?._id === prod._id ||
+                 fullOutfitSlots?.footwear?.product?._id === prod._id)
               : selectedProduct?._id === prod._id;
+            const itemSlot = classifyFrontendOutfitSlot(prod);
             const imgSrc =
               prod.intelligence?.bestTryOnImageUrl ||
               prod.image ||
@@ -426,11 +429,12 @@ export default function ProductSelector({
             const verif = prod.intelligence?.verificationStatus;
             const cardSupport = evaluateFrontendCategorySupport(prod, categoryMatrix);
             const cardMeta = SUPPORT_STATUS_META[cardSupport.displayStatus] || SUPPORT_STATUS_META.UNSUPPORTED;
+            const isFootwearInFullOutfit = isFullOutfitMode && itemSlot === 'FOOTWEAR';
 
             return (
               <div
                 key={prod._id}
-                className={`vto-product-card ${isSelected ? 'selected' : ''} ${!cardSupport.allowSubmit ? 'opacity-80' : ''}`}
+                className={`vto-product-card ${isSelected ? 'selected' : ''} ${!cardSupport.allowSubmit && !isFootwearInFullOutfit ? 'opacity-80' : ''}`}
                 onClick={() => handleCardClick(prod, cardSupport)}
               >
                 <div className="vto-product-img-wrap">
@@ -461,9 +465,13 @@ export default function ProductSelector({
                     </span>
                     <span
                       data-testid="vto-card-capability-badge"
-                      className={`px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider ${cardMeta.badgeClass}`}
+                      className={`px-1.5 py-0.5 rounded border text-[9px] font-bold uppercase tracking-wider ${
+                        isFootwearInFullOutfit
+                          ? 'border-purple-400/60 bg-purple-500/25 text-purple-200'
+                          : cardMeta.badgeClass
+                      }`}
                     >
-                      {cardSupport.displayStatus}
+                      {isFootwearInFullOutfit ? 'SLOT 3 • FULL LOOK' : cardSupport.displayStatus}
                     </span>
                   </div>
                 </div>
@@ -563,9 +571,21 @@ export default function ProductSelector({
           )}
 
           {selectedSupport && !selectedSupport.allowSubmit ? (
-            <div className="flex items-start gap-2 text-[11px] text-amber-200 pt-1">
-              <AlertCircle size={13} className="shrink-0 text-amber-400 mt-0.5" />
-              <span>{selectedSupport.reason}</span>
+            <div className={`flex items-start gap-2 text-[11px] pt-1 ${
+              isFullOutfitMode && classifyFrontendOutfitSlot(selectedProduct) === 'FOOTWEAR'
+                ? 'text-purple-300'
+                : 'text-amber-200'
+            }`}>
+              <AlertCircle size={13} className={`shrink-0 mt-0.5 ${
+                isFullOutfitMode && classifyFrontendOutfitSlot(selectedProduct) === 'FOOTWEAR'
+                  ? 'text-purple-400'
+                  : 'text-amber-400'
+              }`} />
+              <span>
+                {isFullOutfitMode && classifyFrontendOutfitSlot(selectedProduct) === 'FOOTWEAR'
+                  ? '👟 Cấp độ 3 (Full Look): Đôi giày này đã được mở khóa cho Slot 3 để kết hợp may đo tuần tự cùng Áo và Quần.'
+                  : selectedSupport.reason}
+              </span>
             </div>
           ) : selectedSupport?.modelId ? (
             <div className="text-[11px] text-slate-400 pt-0.5">
