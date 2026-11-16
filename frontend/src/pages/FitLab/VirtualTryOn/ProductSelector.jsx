@@ -203,8 +203,20 @@ export default function ProductSelector({
       setSlotNotice(`"${prod.name}" thuộc nhóm Đầm liền thân (DRESS), chỉ dùng ở chế độ Single Item.`);
       return;
     }
-    if (slot === 'FOOTWEAR' || slot === 'ACCESSORIES') {
-      setSlotNotice(`"${prod.name}" thuộc nhóm ${slot === 'FOOTWEAR' ? 'Giày' : 'Phụ kiện'} đang bị khóa trong Full Outfit.`);
+    if (slot === 'ACCESSORIES') {
+      setSlotNotice(`"${prod.name}" thuộc nhóm Phụ kiện đang bị khóa trong Full Outfit.`);
+      return;
+    }
+    if (slot === 'FOOTWEAR') {
+      if (prod.categorySupport?.blockCode === 'CATEGORY_DISABLED_LIMITED') {
+        setSlotNotice(`"${prod.name}" thuộc nhóm Giày đang bị khóa trong Full Outfit.`);
+        return;
+      }
+      setSlotNotice(null);
+      if (typeof onUpdateOutfitSlot === 'function') {
+        onUpdateOutfitSlot('footwear', prod, defVariant);
+      }
+      onSelectProduct(prod, defVariant);
       return;
     }
     if (!cardSupport?.allowSubmit) {
@@ -218,7 +230,7 @@ export default function ProductSelector({
       }
       onSelectProduct(prod, defVariant);
     } else {
-      setSlotNotice(`"${prod.name}" chưa thuộc nhóm Áo hoặc Quần hợp lệ cho Full Outfit.`);
+      setSlotNotice(`"${prod.name}" chưa thuộc nhóm Áo, Quần hoặc Giày hợp lệ cho Full Outfit.`);
     }
   };
 
@@ -229,28 +241,29 @@ export default function ProductSelector({
           <Shirt size={18} className="text-purple-400" />
           <span>
             {isFullOutfitMode
-              ? 'Bước 2: Ghép Bộ Full Outfit (1 Áo + 1 Quần/Váy)'
+              ? 'Bước 2: Ghép Bộ Full Outfit (1 Áo + 1 Quần + Tùy chọn Giày)'
               : 'Bước 2: Chọn Sản Phẩm KD-XX Trực Tiếp Từ Catalog'}
           </span>
         </h3>
         <span className="vto-step-badge">{filteredProducts.length} Món Đồ</span>
       </div>
 
-      {/* Full Outfit 2-Slot Tray + Locked Accessories/Footwear Notice */}
+      {/* Full Outfit 3-Slot Tray (Top + Bottom + Footwear Level 3) */}
       {isFullOutfitMode && (
         <div
           className="p-3 bg-white/[0.03] border border-purple-500/30 rounded-xl space-y-2.5"
           data-testid="vto-full-outfit-slots"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
-              { key: 'top', label: 'Slot 1: Áo / Áo khoác (TOP)', data: fullOutfitSlots?.top },
-              { key: 'bottom', label: 'Slot 2: Quần / Chân váy (BOTTOM)', data: fullOutfitSlots?.bottom }
+              { key: 'top', label: 'Slot 1: Áo / Khoác', data: fullOutfitSlots?.top },
+              { key: 'bottom', label: 'Slot 2: Quần / Váy', data: fullOutfitSlots?.bottom },
+              { key: 'footwear', label: 'Slot 3: Giày (Sneaker)', data: fullOutfitSlots?.footwear }
             ].map((slotInfo) => (
               <div
                 key={slotInfo.key}
                 data-testid={`vto-outfit-slot-${slotInfo.key}`}
-                className={`p-2.5 rounded-lg border text-xs flex items-center justify-between gap-2 ${
+                className={`p-2.5 rounded-lg border text-xs flex items-center justify-between gap-1.5 ${
                   slotInfo.data?.product
                     ? 'bg-purple-950/35 border-purple-400/50 text-white'
                     : 'bg-black/30 border-dashed border-white/15 text-slate-400'
@@ -261,13 +274,13 @@ export default function ProductSelector({
                     {slotInfo.label}
                   </div>
                   {slotInfo.data?.product ? (
-                    <div className="truncate font-semibold text-white mt-0.5">
+                    <div className="truncate font-semibold text-white mt-0.5 text-[11px]">
                       {slotInfo.data.product.name}
                       {slotInfo.data.variant?.color ? ` (${slotInfo.data.variant.color})` : ''}
                     </div>
                   ) : (
-                    <div className="text-[11px] text-slate-400 mt-0.5">
-                      Nhấp sản phẩm bên dưới để điền slot
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      {slotInfo.key === 'footwear' ? '+ Tùy chọn Full Look' : 'Nhấp sản phẩm bên dưới'}
                     </div>
                   )}
                 </div>
@@ -347,7 +360,7 @@ export default function ProductSelector({
           >
             <Lock size={12} className="text-amber-400 shrink-0" />
             <span>
-              <strong>Giày (Footwear) &amp; Kính / Phụ kiện:</strong> Đang khóa — chờ AI provider chuyên biệt được xác minh. Đầm liền thân (DRESS) chỉ dùng ở Single Item.
+              <strong>Kính mắt &amp; Phụ kiện:</strong> Đang khóa trong Full Outfit (thử ở Single Item). 👟 Giày (Footwear) đã mở khóa ở Slot 3.
             </span>
           </div>
 

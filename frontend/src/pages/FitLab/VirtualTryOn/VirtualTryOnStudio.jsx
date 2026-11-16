@@ -34,7 +34,7 @@ export default function VirtualTryOnStudio() {
   const [tryOnMode, setTryOnMode] = useState('single'); // 'single' | 'full_outfit'
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
-  const [fullOutfitSlots, setFullOutfitSlots] = useState({ top: null, bottom: null });
+  const [fullOutfitSlots, setFullOutfitSlots] = useState({ top: null, bottom: null, footwear: null });
   const [tuckStyle, setTuckStyle] = useState('untucked'); // 'untucked' | 'tucked'
   const [consentAccepted, setConsentAccepted] = useState(true);
   const [currentJob, setCurrentJob] = useState(null);
@@ -157,7 +157,15 @@ export default function VirtualTryOnStudio() {
               {
                 productId: fullOutfitSlots.top.product._id,
                 ...(fullOutfitSlots.top.variant ? { selectedVariant: fullOutfitSlots.top.variant } : {})
-              }
+              },
+              ...(fullOutfitSlots.footwear?.product?._id
+                ? [
+                    {
+                      productId: fullOutfitSlots.footwear.product._id,
+                      ...(fullOutfitSlots.footwear.variant ? { selectedVariant: fullOutfitSlots.footwear.variant } : {})
+                    }
+                  ]
+                : [])
             ],
             idempotencyKey: `FULL_${Date.now()}_${uploadedPhoto.assetId}`
           })
@@ -320,7 +328,8 @@ export default function VirtualTryOnStudio() {
 
   const isQualityReady = uploadedPhoto?.qualityAnalysis?.status !== 'REJECTED';
   const isAdmin = user?.role === 'admin' || accountData?.membershipType === 'admin' || accountData?.isUnlimited;
-  const requiredCredits = tryOnMode === 'full_outfit' ? 2 : 1;
+  const hasFootwearSelected = Boolean(fullOutfitSlots?.footwear?.product?._id);
+  const requiredCredits = tryOnMode === 'full_outfit' ? (hasFootwearSelected ? 3 : 2) : 1;
   const hasCredits = isAdmin || (accountData?.totalCredits || 0) >= requiredCredits;
   const selectedCategorySupport = selectedProduct
     ? evaluateFrontendCategorySupport(selectedProduct, accountData?.categoryMatrix || [])
@@ -650,10 +659,11 @@ export default function VirtualTryOnStudio() {
                   {tryOnMode === 'full_outfit' || currentJob?.mode === 'FULL_OUTFIT'
                     ? (() => {
                         const steps = currentJob?.executionSteps || [];
+                        const totalSteps = steps.length || (hasFootwearSelected ? 3 : 2);
                         const doneCount = steps.filter((s) => s.status === 'COMPLETED').length;
                         return currentJob?.status === 'QUEUED'
                           ? 'Đang Trong Hàng Đợi Full Outfit...'
-                          : `Đang Xử Lý Full Outfit (Bước ${Math.min(2, doneCount + 1)}/2)...`;
+                          : `Đang Xử Lý Full Outfit (Bước ${Math.min(totalSteps, doneCount + 1)}/${totalSteps})...`;
                       })()
                     : currentJob?.status === 'QUEUED'
                       ? 'Đang Trong Hàng Đợi AI...'
@@ -665,7 +675,9 @@ export default function VirtualTryOnStudio() {
                 <Sparkles size={18} />
                 <span>
                   {tryOnMode === 'full_outfit'
-                    ? (isAdmin ? 'Thử Full Outfit (Đặc Quyền Admin)' : 'Thử Full Outfit (2 Credits)')
+                    ? (isAdmin
+                        ? `Thử Full Outfit ${hasFootwearSelected ? '3 Món' : '2 Món'} (Đặc Quyền Admin)`
+                        : `Thử Full Outfit ${hasFootwearSelected ? 'Full Look (3 Credits)' : '(2 Credits)'}`)
                     : (isAdmin ? 'Bắt Đầu Thử Đồ (Đặc Quyền Admin)' : 'Bắt Đầu Thử Đồ (1 Credit)')}
                 </span>
               </>

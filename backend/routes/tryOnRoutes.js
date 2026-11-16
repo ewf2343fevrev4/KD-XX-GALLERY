@@ -463,7 +463,7 @@ router.post('/full-outfit/generate', protect, async (req, res) => {
 
     return res.json({
       success: true,
-      message: 'Yêu cầu thử đồ Full Outfit (2 bước) đã được đưa vào hàng đợi xử lý',
+      message: `Yêu cầu thử đồ Full Outfit (${job.creditsCost} bước) đã được đưa vào hàng đợi xử lý`,
       data: {
         jobId: job._id,
         mode: job.mode,

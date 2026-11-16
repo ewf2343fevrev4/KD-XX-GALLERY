@@ -68,7 +68,9 @@ export default function TryOnResultView({
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider m-0">
               {mode === 'FULL_OUTFIT'
-                ? 'Kết Quả Full Outfit AI (2 Bước) Đã Sẵn Sàng'
+                ? (Array.isArray(outfitItems) && outfitItems.length > 2
+                    ? 'Kết Quả Full Look AI (3 Bước: Áo + Quần + Giày) Đã Sẵn Sàng'
+                    : 'Kết Quả Full Outfit AI (2 Bước) Đã Sẵn Sàng')
                 : 'Kết Quả Thử Đồ Google Cloud AI Đã Sẵn Sàng'}
             </h3>
             <p className="text-xs text-slate-300 m-0">
@@ -86,17 +88,28 @@ export default function TryOnResultView({
                 </>
               )}
             </p>
-            {mode === 'FULL_OUTFIT' && tuckStyle && (
-              <div className="mt-1 flex items-center gap-1.5" data-testid="vto-result-tuck-badge">
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-900/60 text-purple-200 border border-purple-500/30">
-                  <Sparkles size={11} className="text-purple-400" />
-                  <span>
-                    Phong cách:{' '}
-                    <strong className="text-white">
-                      {tuckStyle === 'tucked' ? 'Sơ vin (Tuck-in)' : 'Thả áo ngoài (Untucked)'}
-                    </strong>
-                  </span>
-                </span>
+            {mode === 'FULL_OUTFIT' && (
+              <div className="mt-1 flex items-center flex-wrap gap-1.5">
+                {tuckStyle && (
+                  <div data-testid="vto-result-tuck-badge">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-900/60 text-purple-200 border border-purple-500/30">
+                      <Sparkles size={11} className="text-purple-400" />
+                      <span>
+                        Phong cách:{' '}
+                        <strong className="text-white">
+                          {tuckStyle === 'tucked' ? 'Sơ vin (Tuck-in)' : 'Thả áo ngoài (Untucked)'}
+                        </strong>
+                      </span>
+                    </span>
+                  </div>
+                )}
+                {Array.isArray(outfitItems) && outfitItems.some(i => i.slot === 'FOOTWEAR') && (
+                  <div data-testid="vto-result-footwear-badge">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-950/70 text-emerald-200 border border-emerald-500/40">
+                      <span>👟 Full Look 3 Món (Kèm Giày)</span>
+                    </span>
+                  </div>
+                )}
               </div>
             )}
             {resultQualityCheck?.status === 'WARNING' && resultQualityCheck?.notes && (

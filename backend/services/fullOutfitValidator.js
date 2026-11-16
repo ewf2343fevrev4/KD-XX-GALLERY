@@ -36,11 +36,11 @@ function validateFullOutfitSelection(itemEntries = [], options = {}) {
     throw err;
   }
 
-  if (itemEntries.length !== 2) {
+  if (itemEntries.length < 2 || itemEntries.length > 3) {
     const err = new Error(
-      itemEntries.length > 2
-        ? 'Full Outfit hiện chỉ hỗ trợ tối đa 2 sản phẩm (1 Áo/Áo khoác + 1 Quần/Chân váy). Giày và Phụ kiện đang bị khóa.'
-        : 'Full Outfit yêu cầu đúng 2 sản phẩm gồm 1 Áo/Áo khoác và 1 Quần/Chân váy.'
+      itemEntries.length > 3
+        ? 'Full Outfit hiện chỉ hỗ trợ tối đa 3 sản phẩm (1 Áo/Áo khoác + 1 Quần/Chân váy + 1 Giày).'
+        : 'Full Outfit yêu cầu đúng 2 sản phẩm (Áo + Quần) hoặc 3 sản phẩm (Áo + Quần + Giày).'
     );
     err.code = 'INVALID_OUTFIT_COUNT';
     err.statusCode = 400;
@@ -99,9 +99,9 @@ function validateFullOutfitSelection(itemEntries = [], options = {}) {
       throw err;
     }
 
-    if (slot === 'FOOTWEAR') {
+    if (slot === 'FOOTWEAR' && itemEntries.length === 2) {
       const err = new Error(
-        `Sản phẩm "${product.name}" thuộc nhóm Giày (FOOTWEAR) hiện đang khóa trong Full Outfit cho tới khi có provider chuyên biệt được nghiệm thu.`
+        `Sản phẩm "${product.name}" thuộc nhóm Giày (FOOTWEAR) không thể thay thế Quần trong Full Outfit 2 món. Để thử kèm Giày, vui lòng chọn đủ bộ 3 món (1 Áo + 1 Quần + 1 Giày).`
       );
       err.code = 'FULL_OUTFIT_FOOTWEAR_LOCKED';
       err.statusCode = 400;
@@ -117,8 +117,8 @@ function validateFullOutfitSelection(itemEntries = [], options = {}) {
       throw err;
     }
 
-    if (slot !== 'TOP' && slot !== 'BOTTOM') {
-      const err = new Error(`Sản phẩm "${product.name}" chưa thuộc nhóm Áo hoặc Quần hợp lệ cho Full Outfit.`);
+    if (slot !== 'TOP' && slot !== 'BOTTOM' && slot !== 'FOOTWEAR') {
+      const err = new Error(`Sản phẩm "${product.name}" chưa thuộc nhóm Áo, Quần hoặc Giày hợp lệ cho Full Outfit.`);
       err.code = 'UNSUPPORTED_OUTFIT_SLOT';
       err.statusCode = 400;
       throw err;
@@ -140,6 +140,7 @@ function validateFullOutfitSelection(itemEntries = [], options = {}) {
 
   const tops = classified.filter(c => c.slot === 'TOP');
   const bottoms = classified.filter(c => c.slot === 'BOTTOM');
+  const footwears = classified.filter(c => c.slot === 'FOOTWEAR');
 
   if (tops.length !== 1 || bottoms.length !== 1) {
     const err = new Error('Full Outfit bắt buộc gồm đúng 1 Áo/Áo khoác và 1 Quần/Chân váy (không chọn 2 món cùng loại).');
@@ -148,8 +149,16 @@ function validateFullOutfitSelection(itemEntries = [], options = {}) {
     throw err;
   }
 
+  if (footwears.length > 1) {
+    const err = new Error('Full Outfit chỉ hỗ trợ tối đa 1 đôi Giày (Footwear).');
+    err.code = 'DUPLICATE_OUTFIT_SLOT';
+    err.statusCode = 400;
+    throw err;
+  }
+
   const top = tops[0];
   const bottom = bottoms[0];
+  const footwear = footwears.length === 1 ? footwears[0] : null;
   const requestedTuck = String(options.tuckStyle || 'untucked').toLowerCase();
 
   // If the top is an outer layer (jacket, outerwear, hoodie), tucking in is unnatural & disallowed
@@ -177,11 +186,21 @@ function validateFullOutfitSelection(itemEntries = [], options = {}) {
     ];
   }
 
+  // Level 3: Thêm bước Giày (Grounding Footwear) nếu người dùng chọn Full Look 3 món
+  if (footwear) {
+    orderedSteps.push({
+      ...footwear,
+      stepOrder: 2,
+      tuckRole: 'grounded_footwear'
+    });
+  }
+
   return {
     orderedSteps,
-    creditsCost: 2,
+    creditsCost: footwear ? 3 : 2,
     tuckStyle: resolvedTuck,
-    tuckNotes
+    tuckNotes,
+    hasFootwear: Boolean(footwear)
   };
 }
 

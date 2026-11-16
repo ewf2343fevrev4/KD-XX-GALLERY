@@ -484,11 +484,11 @@ class TryOnQueueService {
     fullOutfitValidator.validatePersonImageForOutfit(personAsset);
 
     // 3. Load and enrich each requested catalog item
-    if (!Array.isArray(items) || items.length !== 2) {
+    if (!Array.isArray(items) || (items.length !== 2 && items.length !== 3)) {
       const err = new Error(
-        Array.isArray(items) && items.length > 2
-          ? 'Full Outfit hiện chỉ hỗ trợ tối đa 2 sản phẩm (1 Áo/Áo khoác + 1 Quần/Chân váy). Giày và Phụ kiện đang bị khóa.'
-          : 'Full Outfit yêu cầu đúng 2 sản phẩm gồm 1 Áo/Áo khoác và 1 Quần/Chân váy.'
+        Array.isArray(items) && items.length > 3
+          ? 'Full Outfit hiện chỉ hỗ trợ tối đa 3 sản phẩm (1 Áo/Áo khoác + 1 Quần/Chân váy + 1 Giày).'
+          : 'Full Outfit yêu cầu 2 sản phẩm (1 Áo + 1 Quần) hoặc 3 sản phẩm (1 Áo + 1 Quần + 1 Giày).'
       );
       err.code = 'INVALID_OUTFIT_COUNT';
       err.statusCode = 400;
@@ -562,7 +562,7 @@ class TryOnQueueService {
       if (!step.adapter) {
         step.adapter = this.virtualTryOn.getActiveProvider({
           category: step.taxonomy.subCategory || step.product.category,
-          domain: step.taxonomy.domain,
+          domain: step.taxonomy.domain || (step.slot === 'FOOTWEAR' ? 'footwear' : 'clothing'),
           subCategory: step.taxonomy.subCategory
         });
       }
@@ -631,9 +631,12 @@ class TryOnQueueService {
 
     // 7. Persist PENDING Full Outfit Job with outfitItems + executionSteps
     const primaryStep = orderedSteps[0];
-    const topStep = orderedSteps.find(s => s.slot === 'TOP') || orderedSteps[1];
-    const bottomStep = orderedSteps.find(s => s.slot === 'BOTTOM') || orderedSteps[0];
-    const combinedName = `${topStep.product.name} + ${bottomStep.product.name}`;
+    const topStep = orderedSteps.find(s => s.slot === 'TOP') || orderedSteps[0];
+    const bottomStep = orderedSteps.find(s => s.slot === 'BOTTOM') || orderedSteps[1];
+    const footwearStep = orderedSteps.find(s => s.slot === 'FOOTWEAR');
+    const combinedName = footwearStep
+      ? `${topStep.product?.name || 'Áo'} + ${bottomStep.product?.name || 'Quần'} + ${footwearStep.product?.name || 'Giày'}`
+      : `${topStep.product?.name || 'Áo'} + ${bottomStep.product?.name || 'Quần'}`;
 
     const outfitItems = orderedSteps.map(s => ({
       slot: s.slot,
@@ -659,9 +662,11 @@ class TryOnQueueService {
     const combinedLimitations = Array.from(new Set([
       ...(topStep.productSnapshot?.knownLimitations || []),
       ...(bottomStep.productSnapshot?.knownLimitations || []),
+      ...(footwearStep?.productSnapshot?.knownLimitations || []),
       resolvedTuck === 'tucked'
         ? 'Full Outfit sơ vin (Tuck-in): Xử lý tuần tự Áo -> Quần để cạp quần ôm trọn vạt áo.'
-        : 'Full Outfit thả áo (Untucked): Xử lý tuần tự Quần -> Áo để vạt áo rủ tự nhiên ngoài quần.'
+        : 'Full Outfit thả áo (Untucked): Xử lý tuần tự Quần -> Áo để vạt áo rủ tự nhiên ngoài quần.',
+      ...(footwearStep ? ['Full Look 3 món: Tích hợp Giày lên bàn chân chuẩn phom đứng ở bước cuối.'] : [])
     ]));
 
     const combinedSnapshot = {
@@ -1231,14 +1236,14 @@ class TryOnQueueService {
         throw resErr;
       }
 
-      if (!Array.isArray(job.outfitItems) || job.outfitItems.length !== 2) {
+      if (!Array.isArray(job.outfitItems) || (job.outfitItems.length !== 2 && job.outfitItems.length !== 3)) {
         const err = new Error('Dữ liệu outfitItems của phiên Full Outfit không hợp lệ.');
         err.code = 'INVALID_OUTFIT_ITEMS';
         err.statusCode = 400;
         throw err;
       }
 
-      if (!Array.isArray(job.executionSteps) || job.executionSteps.length !== 2) {
+      if (!Array.isArray(job.executionSteps) || job.executionSteps.length !== job.outfitItems.length) {
         job.executionSteps = job.outfitItems.map((item, idx) => ({
           stepIndex: idx,
           slot: item.slot,
@@ -1276,7 +1281,7 @@ class TryOnQueueService {
           currentPersonBase64 = stepPrepared.base64;
           currentInputAssetId = stepRecord.outputAssetId;
           if (i === 0) intermediateBuffer = stepPrepared.buffer;
-          if (i === 1) finalResultBuffer = stepPrepared.buffer;
+          if (i === job.outfitItems.length - 1) finalResultBuffer = stepPrepared.buffer;
           continue;
         }
 
@@ -1289,11 +1294,13 @@ class TryOnQueueService {
           throw err;
         }
 
-        const stepCategory = item.productSnapshot?.normalizedSubCategory || (item.slot === 'BOTTOM' ? 'pants' : 'tops');
+        const stepCategory = item.productSnapshot?.normalizedSubCategory ||
+          (item.slot === 'BOTTOM' ? 'pants' : item.slot === 'FOOTWEAR' ? 'shoes' : 'tops');
+        const stepDomain = item.slot === 'FOOTWEAR' ? 'footwear' : 'clothing';
         currentProviderAdapter = this.virtualTryOn.getActiveProvider({
           providerId: stepRecord.providerId || job.provider,
           category: stepCategory,
-          domain: 'clothing',
+          domain: stepDomain,
           subCategory: stepCategory
         });
 

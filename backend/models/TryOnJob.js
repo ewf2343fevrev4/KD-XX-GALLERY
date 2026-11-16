@@ -57,7 +57,7 @@ const tryOnJobSchema = new mongoose.Schema({
   },
   outfitItems: [{
     _id: false,
-    slot: { type: String, enum: ['TOP', 'BOTTOM'], required: true },
+    slot: { type: String, enum: ['TOP', 'BOTTOM', 'FOOTWEAR'], required: true },
     stepOrder: { type: Number, required: true },
     tuckRole: { type: String, default: '' },
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
@@ -68,7 +68,7 @@ const tryOnJobSchema = new mongoose.Schema({
   executionSteps: [{
     _id: false,
     stepIndex: { type: Number, required: true },
-    slot: { type: String, enum: ['TOP', 'BOTTOM'], required: true },
+    slot: { type: String, enum: ['TOP', 'BOTTOM', 'FOOTWEAR'], required: true },
     tuckRole: { type: String, default: '' },
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     productName: { type: String, default: '' },
