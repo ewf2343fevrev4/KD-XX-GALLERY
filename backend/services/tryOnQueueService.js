@@ -76,13 +76,14 @@ class TryOnQueueService {
 
     if (autoStart) {
       if (mongoose.connection && mongoose.connection.readyState === 1) {
-        this.recoverStuckJobs();
+        this.recoverStuckJobs().catch(() => {});
+        this.startWorkerLoop();
       } else if (mongoose.connection && typeof mongoose.connection.once === 'function') {
         mongoose.connection.once('connected', () => {
-          this.recoverStuckJobs();
+          this.recoverStuckJobs().catch(() => {});
+          this.startWorkerLoop();
         });
       }
-      this.startWorkerLoop();
     }
   }
 
@@ -382,7 +383,7 @@ class TryOnQueueService {
     this.recordRateLimitHit('tryOns', userId, isAdmin);
 
     // Trigger queue processing tick
-    setImmediate(() => this.processNextJobs());
+    setImmediate(() => this.processNextJobs().catch(() => {}));
     return job;
   }
 
@@ -393,7 +394,7 @@ class TryOnQueueService {
    *  - Server-computed 2-credit cost (ignores any client creditsCost or intermediate image inputs)
    *  - Multi-lot reservation support
    */
-  async submitFullOutfitJob({ userId, personImageAssetId, items = [], idempotencyKey = '', userRole = 'user' }) {
+  async submitFullOutfitJob({ userId, personImageAssetId, items = [], idempotencyKey = '', userRole = 'user', tuckStyle = 'untucked' }) {
     const isAdmin = userRole === 'admin';
 
     if (idempotencyKey) {
@@ -548,7 +549,7 @@ class TryOnQueueService {
     }
 
     // 4. Validate Full Outfit slot combination, DRESS exclusion, FOOTWEAR/ACCESSORIES lock & step ordering
-    const { orderedSteps, creditsCost } = fullOutfitValidator.validateFullOutfitSelection(enrichedEntries);
+    const { orderedSteps, creditsCost, tuckStyle: resolvedTuck, tuckNotes } = fullOutfitValidator.validateFullOutfitSelection(enrichedEntries, { tuckStyle });
 
     // Ensure every resolved step is backed by an active non-retired provider via Registry
     for (const step of orderedSteps) {
@@ -637,6 +638,7 @@ class TryOnQueueService {
     const outfitItems = orderedSteps.map(s => ({
       slot: s.slot,
       stepOrder: s.stepOrder,
+      tuckRole: s.tuckRole || '',
       product: s.product._id,
       productImageUrl: s.productImageUrl,
       productName: s.product.name,
@@ -646,6 +648,7 @@ class TryOnQueueService {
     const executionSteps = orderedSteps.map(s => ({
       stepIndex: s.stepOrder,
       slot: s.slot,
+      tuckRole: s.tuckRole || '',
       product: s.product._id,
       productName: s.product.name,
       providerId: s.adapter.providerId,
@@ -656,7 +659,9 @@ class TryOnQueueService {
     const combinedLimitations = Array.from(new Set([
       ...(topStep.productSnapshot?.knownLimitations || []),
       ...(bottomStep.productSnapshot?.knownLimitations || []),
-      'Full Outfit xử lý tuần tự 2 bước (Quần/Váy -> Áo/Áo khoác); ảnh kết quả cần kiểm tra chất lượng trước khi mở rộng sử dụng.'
+      resolvedTuck === 'tucked'
+        ? 'Full Outfit sơ vin (Tuck-in): Xử lý tuần tự Áo -> Quần để cạp quần ôm trọn vạt áo.'
+        : 'Full Outfit thả áo (Untucked): Xử lý tuần tự Quần -> Áo để vạt áo rủ tự nhiên ngoài quần.'
     ]));
 
     const combinedSnapshot = {
@@ -664,6 +669,8 @@ class TryOnQueueService {
       productName: combinedName,
       normalizedDomain: 'clothing',
       normalizedSubCategory: 'full_outfit',
+      tuckStyle: resolvedTuck,
+      tuckNotes: tuckNotes || null,
       knownLimitations: combinedLimitations,
       contextGeneratedAt: new Date()
     };
@@ -671,6 +678,7 @@ class TryOnQueueService {
     const job = await TryOnJob.create({
       user: userId,
       mode: 'FULL_OUTFIT',
+      tuckStyle: resolvedTuck || 'untucked',
       status: 'PENDING',
       priority,
       personImageAsset: personAsset._id,
@@ -726,7 +734,7 @@ class TryOnQueueService {
     } else {
       this.recordRateLimitHit('tryOns', userId, isAdmin);
     }
-    setImmediate(() => this.processNextJobs());
+    setImmediate(() => this.processNextJobs().catch(() => {}));
     return job;
   }
 
@@ -890,28 +898,37 @@ class TryOnQueueService {
    * Process next queued jobs ONLY if they hold a non-null creditLot reservation
    */
   async processNextJobs() {
+    if (process.env.NODE_ENV !== 'test') {
+      if (!mongoose.connection || mongoose.connection.readyState !== 1) return;
+    }
     if (this.activeWorkers >= this.maxConcurrentWorkers) return;
 
-    const job = await TryOnJob.findOneAndUpdate(
-      { status: 'QUEUED', creditLot: { $ne: null } },
-      {
-        $set: {
-          status: 'PROCESSING',
-          'timing.startedAt': new Date()
+    let job;
+    try {
+      job = await TryOnJob.findOneAndUpdate(
+        { status: 'QUEUED', creditLot: { $ne: null } },
+        {
+          $set: {
+            status: 'PROCESSING',
+            'timing.startedAt': new Date()
+          }
+        },
+        {
+          sort: { priority: -1, 'timing.queuedAt': 1 },
+          new: true
         }
-      },
-      {
-        sort: { priority: -1, 'timing.queuedAt': 1 },
-        new: true
-      }
-    );
+      );
+    } catch (err) {
+      // Guard against transient buffer timeout or disconnects
+      return;
+    }
 
     if (!job) return;
 
     this.activeWorkers++;
     this.executeJob(job).finally(() => {
       this.activeWorkers--;
-      setImmediate(() => this.processNextJobs());
+      setImmediate(() => this.processNextJobs().catch(() => {}));
     });
   }
 
@@ -2025,7 +2042,7 @@ class TryOnQueueService {
   startWorkerLoop() {
     if (this.timer) clearInterval(this.timer);
     this.timer = setInterval(() => {
-      this.processNextJobs();
+      this.processNextJobs().catch(() => {});
       this.cleanOldTimestamps(this.rateLimits.uploads);
       this.cleanOldTimestamps(this.rateLimits.tryOns);
       this.cleanOldTimestamps(this.rateLimits.cleanups);

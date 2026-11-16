@@ -35,6 +35,7 @@ export default function VirtualTryOnStudio() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [fullOutfitSlots, setFullOutfitSlots] = useState({ top: null, bottom: null });
+  const [tuckStyle, setTuckStyle] = useState('untucked'); // 'untucked' | 'tucked'
   const [consentAccepted, setConsentAccepted] = useState(true);
   const [currentJob, setCurrentJob] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -147,6 +148,7 @@ export default function VirtualTryOnStudio() {
           },
           body: JSON.stringify({
             personImageAssetId: uploadedPhoto.assetId,
+            tuckStyle,
             items: [
               {
                 productId: fullOutfitSlots.bottom.product._id,
@@ -304,6 +306,7 @@ export default function VirtualTryOnStudio() {
           mode={currentJob.mode || 'SINGLE_ITEM'}
           outfitItems={currentJob.outfitItems || []}
           resultQualityCheck={currentJob.resultQualityCheck || null}
+          tuckStyle={currentJob.tuckStyle || tuckStyle}
           assetId={currentJob.resultImageAsset}
           onDeleteAsset={handleDeleteAsset}
           onReset={() => {
@@ -566,6 +569,8 @@ export default function VirtualTryOnStudio() {
           tryOnMode={tryOnMode}
           fullOutfitSlots={fullOutfitSlots}
           onUpdateOutfitSlot={handleUpdateOutfitSlot}
+          tuckStyle={tuckStyle}
+          onUpdateTuckStyle={(style) => setTuckStyle(style)}
           onSelectProduct={(p, variant = null) => {
             setSelectedProduct(p);
             setSelectedVariant(variant);

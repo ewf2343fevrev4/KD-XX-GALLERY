@@ -28,7 +28,7 @@ function classifyProductSlot(taxonomy = {}) {
  *  - Blocks DRESS (Single Item only), FOOTWEAR, ACCESSORIES, NEEDS_REVIEW, CONFLICT
  *  - Ignores any client creditsCost and sets server creditsCost = 2
  */
-function validateFullOutfitSelection(itemEntries = []) {
+function validateFullOutfitSelection(itemEntries = [], options = {}) {
   if (!Array.isArray(itemEntries) || itemEntries.length === 0) {
     const err = new Error('Vui lòng chọn đủ 1 Áo/Áo khoác và 1 Quần/Chân váy cho Full Outfit.');
     err.code = 'INVALID_OUTFIT_ITEMS';
@@ -148,15 +148,40 @@ function validateFullOutfitSelection(itemEntries = []) {
     throw err;
   }
 
-  // Always apply BOTTOM at step 0 and TOP/OUTERWEAR at step 1 so waist/hemline drapes naturally
-  const orderedSteps = [
-    { ...bottoms[0], stepOrder: 0 },
-    { ...tops[0], stepOrder: 1 }
-  ];
+  const top = tops[0];
+  const bottom = bottoms[0];
+  const requestedTuck = String(options.tuckStyle || 'untucked').toLowerCase();
+
+  // If the top is an outer layer (jacket, outerwear, hoodie), tucking in is unnatural & disallowed
+  const isOuter = top.isOuterLayer;
+  let resolvedTuck = requestedTuck === 'tucked' ? 'tucked' : 'untucked';
+  let tuckNotes = null;
+
+  if (requestedTuck === 'tucked' && isOuter) {
+    resolvedTuck = 'untucked';
+    tuckNotes = `Sản phẩm "${top.product?.name || 'Áo ngoài'}" là áo khoác/áo ngoài, tự động áp dụng kiểu Thả áo ngoài (Untucked) để giữ phom dáng chuẩn.`;
+  }
+
+  let orderedSteps;
+  if (resolvedTuck === 'tucked') {
+    // Sơ vin / Đóng thùng: Mặc ÁO trước (Step 0) -> Quần cạp đè lên sau (Step 1)
+    orderedSteps = [
+      { ...top, stepOrder: 0, tuckRole: 'inner_tucked' },
+      { ...bottom, stepOrder: 1, tuckRole: 'outer_waistband' }
+    ];
+  } else {
+    // Thả áo ngoài (Mặc định): Mặc QUẦN trước (Step 0) -> Áo phủ ra ngoài (Step 1)
+    orderedSteps = [
+      { ...bottom, stepOrder: 0, tuckRole: 'base_bottom' },
+      { ...top, stepOrder: 1, tuckRole: 'draping_top' }
+    ];
+  }
 
   return {
     orderedSteps,
-    creditsCost: 2
+    creditsCost: 2,
+    tuckStyle: resolvedTuck,
+    tuckNotes
   };
 }
 

@@ -50,10 +50,16 @@ const tryOnJobSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
+  tuckStyle: {
+    type: String,
+    enum: ['untucked', 'tucked'],
+    default: 'untucked'
+  },
   outfitItems: [{
     _id: false,
     slot: { type: String, enum: ['TOP', 'BOTTOM'], required: true },
     stepOrder: { type: Number, required: true },
+    tuckRole: { type: String, default: '' },
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     productImageUrl: { type: String, required: true },
     productName: { type: String, default: '' },
@@ -63,6 +69,7 @@ const tryOnJobSchema = new mongoose.Schema({
     _id: false,
     stepIndex: { type: Number, required: true },
     slot: { type: String, enum: ['TOP', 'BOTTOM'], required: true },
+    tuckRole: { type: String, default: '' },
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     productName: { type: String, default: '' },
     providerId: { type: String, default: '' },

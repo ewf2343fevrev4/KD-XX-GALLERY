@@ -442,7 +442,7 @@ router.post('/generate', protect, async (req, res) => {
  */
 router.post('/full-outfit/generate', protect, async (req, res) => {
   try {
-    const { personImageAssetId, items, idempotencyKey } = req.body || {};
+    const { personImageAssetId, items, idempotencyKey, tuckStyle } = req.body || {};
 
     if (!personImageAssetId || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({
@@ -457,6 +457,7 @@ router.post('/full-outfit/generate', protect, async (req, res) => {
       personImageAssetId,
       items,
       idempotencyKey,
+      tuckStyle,
       userRole: req.user.role
     });
 
@@ -466,6 +467,7 @@ router.post('/full-outfit/generate', protect, async (req, res) => {
       data: {
         jobId: job._id,
         mode: job.mode,
+        tuckStyle: job.tuckStyle,
         creditsCost: job.creditsCost,
         status: job.status,
         productName: job.productName,

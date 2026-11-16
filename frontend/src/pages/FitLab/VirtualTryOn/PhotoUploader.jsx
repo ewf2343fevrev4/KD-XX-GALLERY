@@ -95,6 +95,8 @@ export default function PhotoUploader({
       const json = await res.json();
       if (res.ok && json.success) {
         onPhotoUploaded(json.data);
+      } else if (res.status === 401) {
+        setUploadError('Phiên đăng nhập đã hết hạn. Vui lòng bấm vào biểu tượng tài khoản (góc trên bên phải) để Đăng xuất và Đăng nhập lại.');
       } else {
         setUploadError(json.message || 'Tải ảnh thất bại. Vui lòng thử lại.');
       }

@@ -35,7 +35,9 @@ export default function ProductSelector({
   categoryMatrix = [],
   tryOnMode = 'single',
   fullOutfitSlots = { top: null, bottom: null },
-  onUpdateOutfitSlot = null
+  onUpdateOutfitSlot = null,
+  tuckStyle = 'untucked',
+  onUpdateTuckStyle = null
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -181,6 +183,13 @@ export default function ProductSelector({
 
   const isFullOutfitMode = tryOnMode === 'full_outfit';
 
+  const topProduct = fullOutfitSlots?.top?.product;
+  const topCategoryStr = String(topProduct?.category || topProduct?.subCategory || '').toLowerCase();
+  const topNameStr = String(topProduct?.name || '').toLowerCase();
+  const isOuterLayerTop = ['jacket', 'outerwear', 'hoodie', 'coat', 'khoác'].some(
+    k => topCategoryStr.includes(k) || topNameStr.includes(k)
+  );
+
   const handleCardClick = (prod, cardSupport) => {
     const defVariant = getDefaultVariant(prod);
     if (!isFullOutfitMode) {
@@ -275,6 +284,62 @@ export default function ProductSelector({
               </div>
             ))}
           </div>
+
+          {/* KD-XX Level 2: Tuck Style Selector (Tuck-in vs Untucked) */}
+          <div
+            data-testid="vto-tuck-style-selector"
+            className="pt-2.5 pb-1 border-t border-purple-500/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2"
+          >
+            <div className="flex items-center gap-1.5 text-xs text-slate-300">
+              <Sparkles size={13} className="text-purple-400 shrink-0" />
+              <span className="font-semibold text-slate-200">Phong cách may đo:</span>
+              <span className="text-[11px] text-purple-300 font-medium">
+                {tuckStyle === 'tucked'
+                  ? 'Sơ vin (Áo đóng thùng vào cạp quần)'
+                  : 'Thả áo ngoài (Vạt áo phủ tự nhiên)'}
+              </span>
+            </div>
+
+            <div className="inline-flex p-0.5 rounded-lg bg-black/50 border border-white/10 shrink-0">
+              <button
+                type="button"
+                data-testid="vto-tuck-btn-untucked"
+                onClick={() => onUpdateTuckStyle && onUpdateTuckStyle('untucked')}
+                className={`px-3 py-1 rounded-md text-[11px] font-semibold transition ${
+                  tuckStyle === 'untucked'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Thả áo ngoài
+              </button>
+              <button
+                type="button"
+                data-testid="vto-tuck-btn-tucked"
+                disabled={isOuterLayerTop}
+                onClick={() => onUpdateTuckStyle && onUpdateTuckStyle('tucked')}
+                className={`px-3 py-1 rounded-md text-[11px] font-semibold transition ${
+                  tuckStyle === 'tucked'
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : isOuterLayerTop
+                    ? 'text-slate-600 cursor-not-allowed opacity-50'
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+                title={isOuterLayerTop ? 'Áo khoác / Hoodie tự động thả ngoài để giữ phom' : 'Đóng thùng vào cạp quần'}
+              >
+                Sơ vin (Tuck-in)
+              </button>
+            </div>
+          </div>
+
+          {isOuterLayerTop && (
+            <div
+              data-testid="vto-outerwear-tuck-notice"
+              className="text-[10px] text-amber-300/80 italic flex items-center gap-1"
+            >
+              <span>ℹ️ Áo khoác / Hoodie tự động được áp dụng thả ngoài để giữ trọn vẹn phom dáng thời trang.</span>
+            </div>
+          )}
 
           <div
             data-testid="vto-locked-footwear-slot"

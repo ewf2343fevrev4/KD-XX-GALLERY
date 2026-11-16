@@ -16,6 +16,7 @@ export default function TryOnResultView({
   mode = 'SINGLE_ITEM',
   outfitItems = [],
   resultQualityCheck = null,
+  tuckStyle = 'untucked',
   onReset,
   onDeleteAsset,
   assetId
@@ -85,6 +86,19 @@ export default function TryOnResultView({
                 </>
               )}
             </p>
+            {mode === 'FULL_OUTFIT' && tuckStyle && (
+              <div className="mt-1 flex items-center gap-1.5" data-testid="vto-result-tuck-badge">
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-900/60 text-purple-200 border border-purple-500/30">
+                  <Sparkles size={11} className="text-purple-400" />
+                  <span>
+                    Phong cách:{' '}
+                    <strong className="text-white">
+                      {tuckStyle === 'tucked' ? 'Sơ vin (Tuck-in)' : 'Thả áo ngoài (Untucked)'}
+                    </strong>
+                  </span>
+                </span>
+              </div>
+            )}
             {resultQualityCheck?.status === 'WARNING' && resultQualityCheck?.notes && (
               <p className="text-[11px] text-amber-300 mt-1 mb-0" data-testid="vto-quality-warning">
                 Lưu ý kiểm tra chất lượng: {resultQualityCheck.notes}
