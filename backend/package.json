@@ -7,7 +7,7 @@
         "start": "node server.js",
         "server": "nodemon server.js",
         "dev": "nodemon server.js",
-        "test": "node --test tests/phase1.tryon.test.js tests/phase2.tryon.test.js tests/phase3.tryon.test.js tests/phase4.tryon.test.js tests/phase5.tryon.test.js tests/phase5_5.remediation.test.js tests/phase6_1.costguard.test.js"
+        "test": "node --test tests/phase1.tryon.test.js tests/phase2.tryon.test.js tests/phase3.tryon.test.js tests/phase4.tryon.test.js tests/phase5.tryon.test.js tests/phase5_5.remediation.test.js tests/phase6_1.costguard.test.js tests/phase7.pose_level1.test.js"
     },
     "keywords": [],
     "author": "",

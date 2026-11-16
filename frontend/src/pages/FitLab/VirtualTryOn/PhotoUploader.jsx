@@ -5,7 +5,8 @@ import {
   AlertTriangle,
   XCircle,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 import { buildApiUrl, buildAssetUrl } from '../../../config/apiConfig';
 
@@ -13,7 +14,9 @@ export default function PhotoUploader({
   uploadedPhoto,
   onPhotoUploaded,
   onPhotoRemoved,
-  token
+  token,
+  tryOnMode = 'single',
+  onSwitchMode = null
 }) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -138,6 +141,13 @@ export default function PhotoUploader({
             onChange={handleFileChange}
           />
 
+          {tryOnMode === 'full_outfit' && (
+            <div className="mb-2 px-3 py-1 rounded-full bg-purple-950/70 border border-purple-500/40 text-purple-300 text-[10px] font-semibold tracking-wider uppercase inline-flex items-center gap-1.5 shadow-sm">
+              <Sparkles size={11} className="text-purple-400" />
+              <span>Full Outfit — Cần Ảnh Đứng Toàn Thân (Đầu Đến Gót Chân)</span>
+            </div>
+          )}
+
           <div className="vto-dropzone-icon">
             {isUploading ? (
               <RefreshCw size={26} className="animate-spin text-purple-400" />
@@ -260,6 +270,106 @@ export default function PhotoUploader({
                   <span className="font-semibold text-slate-200">Gợi ý từ KD-XX: </span>
                   {analysis.suggestions.slice(0, 2).join(' ')}
                 </p>
+              )}
+
+              {/* KD-XX Level 1 Pose & Anatomical Integrity Card */}
+              {analysis.poseAnalysis && (
+                <div
+                  data-testid="vto-pose-analysis-widget"
+                  className="mt-3.5 p-3.5 bg-slate-900/90 border border-slate-800 rounded-xl flex flex-col gap-2.5"
+                >
+                  <div className="flex items-center justify-between text-xs border-b border-slate-800/80 pb-2">
+                    <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+                      <Sparkles size={13} className="text-purple-400" />
+                      <span>Phân Tích Tư Thế & Khung Xương (Pose AI)</span>
+                    </span>
+                    <span
+                      className={`font-mono font-bold text-[11px] px-2 py-0.5 rounded-full ${
+                        analysis.poseAnalysis.isFullBodyDetected
+                          ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-500/40'
+                          : 'bg-amber-950/80 text-amber-300 border border-amber-500/40'
+                      }`}
+                    >
+                      {analysis.poseAnalysis.isFullBodyDetected ? 'Toàn Thân (Full Body)' : 'Nửa Người (Half Body)'}
+                    </span>
+                  </div>
+
+                  {/* 3 Anatomical Zones */}
+                  <div className="grid grid-cols-3 gap-2 text-[10px]">
+                    <div className="p-2 rounded-lg bg-slate-950/70 border border-slate-800/80 flex flex-col items-center text-center gap-1">
+                      <span className="text-slate-400 font-medium">Đầu & Vai</span>
+                      <span
+                        className={`font-semibold ${
+                          analysis.poseAnalysis.zones?.upper?.status === 'PASSED'
+                            ? 'text-emerald-400'
+                            : 'text-amber-400'
+                        }`}
+                      >
+                        {analysis.poseAnalysis.zones?.upper?.status === 'PASSED' ? '✓ Cân đối' : '⚠️ Cần rõ hơn'}
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded-lg bg-slate-950/70 border border-slate-800/80 flex flex-col items-center text-center gap-1">
+                      <span className="text-slate-400 font-medium">Ngực & Thân trên</span>
+                      <span
+                        className={`font-semibold ${
+                          analysis.poseAnalysis.zones?.middle?.status === 'PASSED'
+                            ? 'text-emerald-400'
+                            : 'text-amber-400'
+                        }`}
+                      >
+                        {analysis.poseAnalysis.zones?.middle?.status === 'PASSED' ? '✓ Rõ ràng' : '⚠️ Lệch góc'}
+                      </span>
+                    </div>
+
+                    <div className="p-2 rounded-lg bg-slate-950/70 border border-slate-800/80 flex flex-col items-center text-center gap-1">
+                      <span className="text-slate-400 font-medium">Chân & Mắt cá</span>
+                      <span
+                        className={`font-semibold ${
+                          analysis.poseAnalysis.zones?.lower?.status === 'PASSED'
+                            ? 'text-emerald-400'
+                            : 'text-rose-400'
+                        }`}
+                      >
+                        {analysis.poseAnalysis.zones?.lower?.status === 'PASSED' ? '✓ Toàn thân' : '❌ Bị cắt cụt'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Full Outfit Warning & Smart Switcher if half-body in full_outfit mode */}
+                  {tryOnMode === 'full_outfit' && !analysis.poseAnalysis.isFullBodyDetected && (
+                    <div
+                      data-testid="vto-half-body-fulloutfit-warning"
+                      className="p-2.5 rounded-lg bg-amber-950/60 border border-amber-500/40 text-amber-200 text-xs flex flex-col gap-2 mt-1"
+                    >
+                      <div className="flex items-start gap-1.5">
+                        <AlertTriangle size={14} className="shrink-0 text-amber-400 mt-0.5" />
+                        <span className="leading-tight">
+                          Ảnh này thiếu phần chân. Chế độ <strong>Full Outfit</strong> yêu cầu ảnh chụp toàn thân để may đo Quần/Chân váy.
+                        </span>
+                      </div>
+
+                      {onSwitchMode && (
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <button
+                            type="button"
+                            onClick={() => onSwitchMode('single')}
+                            className="px-2.5 py-1 rounded-md bg-purple-600 hover:bg-purple-500 text-white font-medium text-[11px] transition shadow-sm"
+                          >
+                            Chuyển sang Thử 1 Món (1 Credit)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition"
+                          >
+                            Đổi ảnh toàn thân
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}

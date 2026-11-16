@@ -554,6 +554,8 @@ export default function VirtualTryOnStudio() {
             setCurrentJob(null);
           }}
           token={token}
+          tryOnMode={tryOnMode}
+          onSwitchMode={(mode) => setTryOnMode(mode)}
         />
 
         {/* Right Column: Product Selector */}

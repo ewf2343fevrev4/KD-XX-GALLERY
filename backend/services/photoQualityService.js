@@ -207,6 +207,16 @@ class PhotoQualityService {
           });
           suggestions.push('Tránh đứng ngược sáng trước cửa sổ hoặc nguồn đèn chiếu thẳng vào ống kính.');
         }
+
+        // 4. KD-XX Level 1: Human Anatomical Mass & Full-Body Pose Analysis
+        const aspectRatioVal = width > 0 && height > 0 ? height / width : 1.33;
+        var poseAnalysis = this.analyzePoseAndAnatomy(
+          data,
+          info.width,
+          info.height,
+          channels,
+          aspectRatioVal
+        );
       }
     } catch (decodeErr) {
       return {
@@ -234,7 +244,157 @@ class PhotoQualityService {
       score: Math.max(10, Math.min(100, score)),
       issues,
       suggestions: Array.from(new Set(suggestions)),
+      poseAnalysis: typeof poseAnalysis !== 'undefined' ? poseAnalysis : null,
       ...(luminanceStats ? { metrics: luminanceStats } : {})
+    };
+  }
+
+  /**
+   * KD-XX Level 1 Pose & Anatomy Analyzer
+   * Evaluates human vertical mass distribution across Upper, Middle, and Lower zones
+   * to strictly differentiate between true full-body and cropped upper-body portraits.
+   */
+  analyzePoseAndAnatomy(data, w, h, channels, aspectRatio) {
+    if (!data || w <= 0 || h <= 0 || channels < 3) {
+      return {
+        isFullBodyDetected: true,
+        poseScore: 85,
+        zones: {
+          upper: { status: 'NORMAL', label: 'Đầu & Vai' },
+          middle: { status: 'NORMAL', label: 'Ngực & Thân trên' },
+          lower: { status: 'NORMAL', label: 'Hông, Chân & Mắt cá' }
+        },
+        recommendations: []
+      };
+    }
+
+    const upperLimit = Math.max(1, Math.floor(h * 0.35));
+    const middleLimit = Math.max(upperLimit + 1, Math.floor(h * 0.65));
+
+    const getLuma = (x, y) => {
+      const idx = (y * w + x) * channels;
+      return 0.2126 * data[idx] + 0.7152 * data[idx + 1] + 0.0722 * data[idx + 2];
+    };
+
+    // Sample background reference from corners
+    const bgCorners = [
+      getLuma(0, 0),
+      getLuma(w - 1, 0),
+      getLuma(0, Math.min(4, h - 1)),
+      getLuma(w - 1, Math.min(4, h - 1))
+    ];
+    const meanBgLuma = bgCorners.reduce((a, b) => a + b, 0) / bgCorners.length;
+
+    // Row-by-row foreground activity
+    const rowActivity = new Float32Array(h);
+    for (let y = 0; y < h; y++) {
+      let activePixels = 0;
+      for (let x = 0; x < w; x++) {
+        if (Math.abs(getLuma(x, y) - meanBgLuma) > 16) {
+          activePixels++;
+        }
+      }
+      rowActivity[y] = activePixels / w;
+    }
+
+    // Zone averages
+    let upperActivity = 0;
+    for (let y = 0; y < upperLimit; y++) upperActivity += rowActivity[y];
+    upperActivity /= upperLimit;
+
+    let middleActivity = 0;
+    const midCount = Math.max(1, middleLimit - upperLimit);
+    for (let y = upperLimit; y < middleLimit; y++) middleActivity += rowActivity[y];
+    middleActivity /= midCount;
+
+    let lowerActivity = 0;
+    const lowerCount = Math.max(1, h - middleLimit);
+    for (let y = middleLimit; y < h; y++) lowerActivity += rowActivity[y];
+    lowerActivity /= lowerCount;
+
+    // Bottom-most 15% activity (ankles, feet, hemline)
+    const bottom15Limit = Math.floor(h * 0.85);
+    let bottom15Activity = 0;
+    const bottom15Count = Math.max(1, h - bottom15Limit);
+    for (let y = bottom15Limit; y < h; y++) bottom15Activity += rowActivity[y];
+    bottom15Activity /= bottom15Count;
+
+    const issues = [];
+    const recommendations = [];
+    let poseScore = 95;
+
+    // Aspect ratio check for full body: portrait is mandatory (height >= 1.15 * width)
+    const isPortrait = aspectRatio >= 1.15;
+    if (!isPortrait) {
+      poseScore -= 30;
+      issues.push('LANDSCAPE_OR_SQUARE_ASPECT');
+      recommendations.push('Chụp ảnh đứng khung dọc (tỷ lệ 3:4 hoặc 9:16) để lấy trọn vẹn toàn thân.');
+    }
+
+    // Lower body detection
+    const lowerBodyDetected = lowerActivity > 0.06 && bottom15Activity > 0.03 && isPortrait;
+    if (!lowerBodyDetected) {
+      poseScore -= 35;
+      issues.push('LOWER_BODY_TRUNCATED');
+      recommendations.push('Ảnh chưa thấy rõ vùng chân và mắt cá chân. Hãy lùi lại để lấy ảnh toàn thân từ đầu đến chân.');
+    }
+
+    // Upper body detection
+    const upperBodyDetected = upperActivity > 0.04;
+    if (!upperBodyDetected) {
+      poseScore -= 20;
+      issues.push('UPPER_BODY_UNRECOGNIZED');
+      recommendations.push('Khu vực đầu và vai chưa rõ ràng. Đảm bảo đứng chính diện.');
+    }
+
+    // Symmetry check in middle zone
+    let leftActivity = 0;
+    let rightActivity = 0;
+    const midX = Math.floor(w / 2);
+    for (let y = upperLimit; y < middleLimit; y++) {
+      for (let x = 0; x < midX; x++) {
+        if (Math.abs(getLuma(x, y) - meanBgLuma) > 16) leftActivity++;
+      }
+      for (let x = midX; x < w; x++) {
+        if (Math.abs(getLuma(x, y) - meanBgLuma) > 16) rightActivity++;
+      }
+    }
+    const totalSide = leftActivity + rightActivity;
+    const asymmetryRatio = totalSide > 0 ? Math.abs(leftActivity - rightActivity) / totalSide : 0;
+    if (asymmetryRatio > 0.50) {
+      poseScore -= 10;
+      issues.push('ASYMMETRIC_POSE');
+      recommendations.push('Đứng thẳng hướng về phía trước, tránh xoay người hoặc nghiêng quá nhiều.');
+    }
+
+    const isFullBodyDetected = lowerBodyDetected && upperBodyDetected && isPortrait;
+    const finalScore = Math.max(10, Math.min(100, poseScore));
+
+    return {
+      isFullBodyDetected,
+      poseScore: finalScore,
+      zones: {
+        upper: {
+          status: upperBodyDetected ? 'PASSED' : 'WARNING',
+          label: 'Đầu & Vai',
+          activity: Number(upperActivity.toFixed(2))
+        },
+        middle: {
+          status: asymmetryRatio <= 0.50 ? 'PASSED' : 'WARNING',
+          label: 'Ngực & Thân trên',
+          activity: Number(middleActivity.toFixed(2))
+        },
+        lower: {
+          status: lowerBodyDetected ? 'PASSED' : 'FAILED',
+          label: 'Hông, Chân & Mắt cá',
+          activity: Number(lowerActivity.toFixed(2)),
+          bottom15Activity: Number(bottom15Activity.toFixed(2))
+        }
+      },
+      issues,
+      recommendations: recommendations.length > 0
+        ? recommendations
+        : ['Tư thế đứng toàn thân đạt chuẩn vàng cho Full Outfit!']
     };
   }
 }

@@ -191,9 +191,30 @@ function validatePersonImageForOutfit(personAsset = {}) {
     throw err;
   }
 
+  // KD-XX Level 1 Pose & Anatomical Integrity Check
+  const poseAnalysis = personAsset?.qualityAnalysis?.poseAnalysis;
+  if (poseAnalysis && poseAnalysis.isFullBodyDetected === false) {
+    const primaryRecommendation =
+      poseAnalysis.recommendations?.[0] ||
+      'Ảnh chân dung chưa thấy rõ vùng hông và chân. Full Outfit yêu cầu ảnh chụp toàn thân để AI draping Quần/Chân váy.';
+    const err = new Error(primaryRecommendation);
+    err.code = 'FULL_BODY_PHOTO_REQUIRED';
+    err.statusCode = 400;
+    err.details = {
+      width,
+      height,
+      aspectRatio: Number(aspectRatio.toFixed(3)),
+      poseScore: poseAnalysis.poseScore,
+      zones: poseAnalysis.zones,
+      recommendations: poseAnalysis.recommendations
+    };
+    throw err;
+  }
+
   return {
     valid: true,
-    aspectRatio: Number(aspectRatio.toFixed(3))
+    aspectRatio: Number(aspectRatio.toFixed(3)),
+    poseAnalysis: poseAnalysis || null
   };
 }
 
