@@ -227,6 +227,46 @@ function createLookbookTexture() {
   return tex;
 }
 
+// ── Golden Specular Star Sparkle Texture Generator ──
+function createSparkleTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+
+  // Radial soft gold aura
+  const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  grad.addColorStop(0.25, 'rgba(254, 240, 138, 0.95)');
+  grad.addColorStop(0.55, 'rgba(245, 158, 11, 0.45)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 64, 64);
+
+  // 4-point diamond star flare
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+  // Horizontal ray
+  ctx.beginPath();
+  ctx.moveTo(4, 32);
+  ctx.quadraticCurveTo(32, 32, 32, 29);
+  ctx.quadraticCurveTo(32, 32, 60, 32);
+  ctx.quadraticCurveTo(32, 32, 32, 35);
+  ctx.quadraticCurveTo(32, 32, 4, 32);
+  ctx.fill();
+
+  // Vertical ray
+  ctx.beginPath();
+  ctx.moveTo(32, 4);
+  ctx.quadraticCurveTo(32, 32, 29, 32);
+  ctx.quadraticCurveTo(32, 32, 32, 60);
+  ctx.quadraticCurveTo(32, 32, 35, 32);
+  ctx.quadraticCurveTo(32, 32, 32, 4);
+  ctx.fill();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
 // ── Realistic Hanger Builder ──
 function createHanger(chromeMat, darkSteelMat) {
   const hangerGroup = new THREE.Group();
@@ -1218,7 +1258,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 1.28;
 
     container.innerHTML = '';
     container.appendChild(renderer.domElement);
@@ -1518,16 +1558,13 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
                 child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
                 child.material.map.needsUpdate = true;
               }
-              child.material.roughness = THREE.MathUtils.clamp(
-                child.material.roughness ?? 0.45,
-                0.2,
-                0.6
-              );
-              child.material.metalness = THREE.MathUtils.clamp(
-                child.material.metalness ?? 0.35,
-                0.2,
-                0.65
-              );
+              // Ultra-glossy mirror gold finish with high specular reflection
+              child.material.roughness = 0.2;
+              child.material.metalness = 0.92;
+              // Warm golden internal radiance so the gold glows vibrantly
+              child.material.emissive = new THREE.Color('#d97706');
+              child.material.emissiveIntensity = 0.28;
+              child.material.envMapIntensity = 3.6;
               child.material.needsUpdate = true;
             }
           }
@@ -1554,64 +1591,185 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         userModel.position.set(-center.x, -box.min.y, -center.z);
         mannequinWrapper.add(userModel);
 
-        // Scale to taller, imposing statuary flex mannequin height (~2.28m)
-        const targetHeight = 2.28;
+        // Scale to towering, imposing statuary flex mannequin height (~2.65m)
+        const targetHeight = 2.65;
         const scaleVal = targetHeight / (size.y || 1);
         mannequinWrapper.scale.setScalar(scaleVal);
 
         // Position in the left foreground (near empty wall / AI fitting room area)
-        // Creating cinematic depth of field (Foreground -> Midground racks -> Background walls)
-        const flexPos = { x: -4.5, y: 0.09, z: 0.9 };
+        const flexPos = { x: -4.5, y: 0.13, z: 0.9 };
         mannequinWrapper.position.set(flexPos.x, flexPos.y, flexPos.z);
         mannequinWrapper.rotation.y = 0.55; // Angle inward toward the boutique interior
 
-        // 2. Dedicated Luxury Atelier Podium underneath the Flex AI Mannequin
+        // 2. Multi-Tier Luxury Runway Podium underneath the Flex AI Mannequin
         const podiumGroup = new THREE.Group();
         podiumGroup.position.set(flexPos.x, 0, flexPos.z);
 
-        const podiumBase = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.58, 0.66, 0.09, 32),
+        // Tier 1 (Lower base tier)
+        const lowerBase = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.68, 0.76, 0.065, 32),
           new THREE.MeshStandardMaterial({
             color: '#13111c',
             roughness: 0.35,
-            metalness: 0.75,
+            metalness: 0.85,
           })
         );
-        podiumBase.position.y = 0.045;
-        podiumBase.receiveShadow = true;
-        podiumGroup.add(podiumBase);
+        lowerBase.position.y = 0.0325;
+        lowerBase.receiveShadow = true;
+        podiumGroup.add(lowerBase);
 
-        // Chrome beveled ring
-        const chromeRim = new THREE.Mesh(
-          new THREE.TorusGeometry(0.58, 0.018, 12, 32),
+        // Lower chrome rim
+        const lowerRim = new THREE.Mesh(
+          new THREE.TorusGeometry(0.68, 0.016, 12, 32),
           chromeMat
         );
-        chromeRim.rotation.x = Math.PI / 2;
-        chromeRim.position.y = 0.09;
-        podiumGroup.add(chromeRim);
+        lowerRim.rotation.x = Math.PI / 2;
+        lowerRim.position.y = 0.065;
+        podiumGroup.add(lowerRim);
 
-        // Subtle neon halo glow at base (Cyan neon ring)
-        const haloRing = new THREE.Mesh(
-          new THREE.TorusGeometry(0.62, 0.014, 12, 32),
+        // Cyan LED halo ring at lower base
+        const cyanHalo = new THREE.Mesh(
+          new THREE.TorusGeometry(0.72, 0.014, 12, 32),
           new THREE.MeshBasicMaterial({ color: '#38bdf8' })
         );
-        haloRing.rotation.x = Math.PI / 2;
-        haloRing.position.y = 0.015;
-        podiumGroup.add(haloRing);
+        cyanHalo.rotation.x = Math.PI / 2;
+        cyanHalo.position.y = 0.015;
+        podiumGroup.add(cyanHalo);
+
+        // Tier 2 (Upper stage tier)
+        const upperBase = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.56, 0.62, 0.065, 32),
+          new THREE.MeshStandardMaterial({
+            color: '#1c1926',
+            roughness: 0.28,
+            metalness: 0.8,
+          })
+        );
+        upperBase.position.y = 0.0975;
+        upperBase.receiveShadow = true;
+        podiumGroup.add(upperBase);
+
+        // Upper Gold LED halo ring
+        const goldHalo = new THREE.Mesh(
+          new THREE.TorusGeometry(0.57, 0.014, 12, 32),
+          new THREE.MeshBasicMaterial({ color: '#fbbf24' })
+        );
+        goldHalo.rotation.x = Math.PI / 2;
+        goldHalo.position.y = 0.13;
+        podiumGroup.add(goldHalo);
+
+        // 4 Micro Uplights around the upper podium ring aimed at the golden torso
+        [
+          { dx: 0.38, dz: 0.22, color: '#fde047', int: 5.5 },
+          { dx: -0.38, dz: 0.22, color: '#ffffff', int: 5.5 },
+          { dx: 0.22, dz: -0.36, color: '#38bdf8', int: 4.0 },
+          { dx: -0.22, dz: -0.36, color: '#fbcfe8', int: 4.0 },
+        ].forEach((cfg) => {
+          // Chrome bezel
+          const bezel = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.035, 0.04, 0.02, 16),
+            chromeMat
+          );
+          bezel.position.set(cfg.dx, 0.13, cfg.dz);
+          podiumGroup.add(bezel);
+
+          // Glowing lens
+          const lens = new THREE.Mesh(
+            new THREE.CircleGeometry(0.026, 16),
+            new THREE.MeshBasicMaterial({ color: cfg.color })
+          );
+          lens.rotation.x = -Math.PI / 2;
+          lens.position.set(cfg.dx, 0.141, cfg.dz);
+          podiumGroup.add(lens);
+
+          // Upward spotlight aimed directly at gold torso & head
+          const upSpot = new THREE.SpotLight(cfg.color, cfg.int, 5.0, Math.PI / 5.5, 0.3);
+          upSpot.position.set(flexPos.x + cfg.dx, 0.15, flexPos.z + cfg.dz);
+          upSpot.target.position.set(flexPos.x, 1.7, flexPos.z);
+          menGroup.add(upSpot);
+          menGroup.add(upSpot.target);
+        });
 
         menGroup.add(podiumGroup);
 
-        // 3. Dedicated warm spotlight on Flex AI mannequin
-        const mannequinSpot = new THREE.SpotLight(0xfff5ea, 6.0, 12, Math.PI / 4, 0.35);
-        mannequinSpot.position.set(-3.5, 4.5, 2.2);
-        mannequinSpot.target.position.set(flexPos.x, 1.4, flexPos.z);
-        menGroup.add(mannequinSpot);
-        menGroup.add(mannequinSpot.target);
+        // 3. Vertical Cyber-Gold Wall LED Light Column on the left wall behind the statue
+        const wallLedGroup = new THREE.Group();
+        wallLedGroup.position.set(-5.6, 3.2, 0.3);
+        wallLedGroup.rotation.y = Math.PI / 2.35;
 
-        // Cyan accent rim light from back-left
-        const rimLight = new THREE.PointLight(0x38bdf8, 3.2, 7);
-        rimLight.position.set(-5.6, 2.6, 0.0);
+        const ledCore = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.016, 0.016, 4.4, 16),
+          new THREE.MeshBasicMaterial({ color: '#fef08a' })
+        );
+        wallLedGroup.add(ledCore);
+
+        const ledGlow = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.038, 0.038, 4.38, 16),
+          new THREE.MeshBasicMaterial({
+            color: '#f59e0b',
+            transparent: true,
+            opacity: 0.45,
+          })
+        );
+        wallLedGroup.add(ledGlow);
+
+        const wallLight = new THREE.PointLight('#fef08a', 4.5, 9);
+        wallLight.position.set(0.15, 0, 0);
+        wallLedGroup.add(wallLight);
+        menGroup.add(wallLedGroup);
+
+        // 4. Dedicated dynamic warm specular spotlight on the golden mannequin
+        const sparkleLight = new THREE.SpotLight(0xfffbeb, 8.5, 14, Math.PI / 4.5, 0.28);
+        sparkleLight.position.set(-3.4, 4.8, 2.4);
+        sparkleLight.target.position.set(flexPos.x, 1.7, flexPos.z);
+        sparkleLight.castShadow = true;
+        menGroup.add(sparkleLight);
+        menGroup.add(sparkleLight.target);
+        animStateRef.current.flexSparkleLight = sparkleLight;
+
+        // Secondary cyan edge rim light
+        const rimLight = new THREE.PointLight(0x38bdf8, 3.8, 8);
+        rimLight.position.set(-5.6, 2.8, -0.2);
         menGroup.add(rimLight);
+
+        // 5. Floating Star Sparkle Diamond Glints around the golden torso
+        const sparkleTex = createSparkleTexture();
+        const sparkleMat = new THREE.SpriteMaterial({
+          map: sparkleTex,
+          blending: THREE.AdditiveBlending,
+          transparent: true,
+          opacity: 0.85,
+          depthWrite: false,
+        });
+
+        const sparkleGroup = new THREE.Group();
+        sparkleGroup.position.set(flexPos.x, 0, flexPos.z);
+
+        const sparkleOffsets = [
+          { x: 0.2, y: 1.75, z: 0.22, s: 0.24 },
+          { x: -0.18, y: 1.92, z: 0.25, s: 0.28 },
+          { x: 0.06, y: 2.12, z: 0.28, s: 0.32 },
+          { x: -0.24, y: 1.62, z: 0.18, s: 0.22 },
+          { x: 0.28, y: 1.88, z: 0.15, s: 0.26 },
+          { x: -0.09, y: 2.32, z: 0.22, s: 0.34 },
+          { x: 0.14, y: 2.45, z: 0.24, s: 0.28 },
+          { x: -0.3, y: 2.05, z: -0.1, s: 0.2 },
+          { x: 0.26, y: 2.15, z: -0.08, s: 0.22 },
+          { x: 0.02, y: 1.5, z: 0.3, s: 0.24 },
+          { x: -0.16, y: 1.3, z: 0.26, s: 0.22 },
+          { x: 0.19, y: 1.34, z: 0.24, s: 0.22 },
+        ];
+
+        sparkleOffsets.forEach((off, i) => {
+          const sprite = new THREE.Sprite(sparkleMat.clone());
+          sprite.position.set(off.x, off.y, off.z);
+          sprite.scale.set(off.s, off.s, 1);
+          sprite.userData = { baseY: off.y, baseScale: off.s, seed: i };
+          sparkleGroup.add(sprite);
+        });
+
+        menGroup.add(sparkleGroup);
+        animStateRef.current.sparkleParticles = sparkleGroup;
 
         // Add the flex AI mannequin into the scene while keeping the main men's display mannequin
         menGroup.add(mannequinWrapper);
@@ -2009,19 +2167,19 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const hitboxes = [menHitbox, centerHitbox, womenHitbox];
 
     // ── 8. Boutique Lighting Setup ──
-    const ambientLight = new THREE.AmbientLight('#2a1f3d', 1.45);
+    const ambientLight = new THREE.AmbientLight('#3b2c56', 1.85);
     scene.add(ambientLight);
 
     // Zone Accent PointLights (boosted when hovered)
-    const menLight = new THREE.PointLight('#38bdf8', 4.5, 9);
+    const menLight = new THREE.PointLight('#38bdf8', 5.5, 11);
     menLight.position.set(-4.5, 3.4, -1.2);
     scene.add(menLight);
 
-    const centerLight = new THREE.PointLight('#c084fc', 5.2, 10);
+    const centerLight = new THREE.PointLight('#c084fc', 6.0, 12);
     centerLight.position.set(0, 3.5, -1.0);
     scene.add(centerLight);
 
-    const womenLight = new THREE.PointLight('#f472b6', 4.5, 9);
+    const womenLight = new THREE.PointLight('#f472b6', 5.5, 11);
     womenLight.position.set(4.5, 3.4, -1.2);
     scene.add(womenLight);
 
@@ -2174,6 +2332,27 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         ((hz === 'center' ? 9.0 : 5.2) - centerLight.intensity) * 0.1;
       womenLight.intensity +=
         ((hz === 'women' ? 8.0 : 4.5) - womenLight.intensity) * 0.1;
+
+      // Dynamic glisten & shimmer for the Flex AI Mannequin's polished gold body
+      if (st.flexSparkleLight) {
+        const t = now * 0.0028;
+        st.flexSparkleLight.intensity =
+          8.5 + Math.sin(t * 3.5) * 2.2 + Math.cos(t * 1.9) * 1.2;
+        st.flexSparkleLight.position.x = -3.4 + Math.sin(t * 1.2) * 0.35;
+        st.flexSparkleLight.position.z = 2.4 + Math.cos(t * 1.2) * 0.35;
+      }
+
+      // Gentle floating animation & pulse for gold diamond star sparkle particles
+      if (st.sparkleParticles) {
+        const t = now * 0.002;
+        st.sparkleParticles.children.forEach((sp, i) => {
+          sp.material.rotation += 0.015 * (i % 2 === 0 ? 1 : -1);
+          sp.position.y = sp.userData.baseY + Math.sin(t * 2.2 + i * 1.2) * 0.05;
+          const pulse = 1.0 + Math.sin(t * 3.8 + i * 1.7) * 0.35;
+          sp.scale.set(sp.userData.baseScale * pulse, sp.userData.baseScale * pulse, 1);
+          sp.material.opacity = 0.5 + Math.sin(t * 3.2 + i * 2.1) * 0.45;
+        });
+      }
 
       // Project 3D anchor coordinates to 2D screen positions for Hotspot pins
       const width = container.clientWidth;
