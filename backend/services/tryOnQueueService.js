@@ -16,6 +16,7 @@ const categoryTaxonomyService = require('./categoryTaxonomyService');
 const categoryInputValidator = require('./categoryInputValidator');
 const fullOutfitValidator = require('./fullOutfitValidator');
 const fullOutfitBenchmarkGate = require('./fullOutfitBenchmarkGate');
+const footwearEnhancerService = require('./footwearEnhancerService');
 const providerConfigService = require('./tryOnProviderConfigService');
 const ProductIntelligence = require('../models/ProductIntelligence');
 const TryOnProviderConfig = require('../models/TryOnProviderConfig');
@@ -61,6 +62,7 @@ class TryOnQueueService {
     this.inputValidator = options.categoryInputValidator || categoryInputValidator;
     this.benchmarkGate = options.benchmarkGate || fullOutfitBenchmarkGate;
     this.providerConfigService = options.providerConfigService || providerConfigService;
+    this.footwearEnhancer = options.footwearEnhancerService || footwearEnhancerService;
 
     // Rate limiting in-memory trackers (sliding 10 minutes window)
     this.rateLimits = {
@@ -1404,7 +1406,28 @@ class TryOnQueueService {
           productContext: item.productSnapshot || null
         });
 
-        const stepOutputBuffer = Buffer.from(stepResult.resultBase64, 'base64');
+        let stepOutputBuffer = Buffer.from(stepResult.resultBase64, 'base64');
+
+        // KD-XX Level 3.5: Feet ROI Zoom & Local Footwear Fidelity Enhancement
+        if (item.slot === 'FOOTWEAR' && this.footwearEnhancer) {
+          try {
+            const enhancedResult = await this.footwearEnhancer.enhanceFootwearFidelity({
+              fullBodyBuffer: currentPersonBuffer || stepOutputBuffer,
+              stepResultBuffer: stepOutputBuffer,
+              productBuffer,
+              poseAnalysis: job.poseAnalysis || null
+            });
+            if (enhancedResult?.enhancedBuffer) {
+              stepOutputBuffer = enhancedResult.enhancedBuffer;
+              stepRecord.telemetry = {
+                ...(stepRecord.telemetry || {}),
+                footwearFidelity: enhancedResult.telemetry
+              };
+            }
+          } catch (enhanceErr) {
+            console.warn(`[FootwearEnhancer] Fallback to raw step output: ${enhanceErr.message}`);
+          }
+        }
         const isFinalStep = i === job.outfitItems.length - 1;
         const savedAsset = await this.storageService.saveImage({
           userId: job.user,
