@@ -543,6 +543,9 @@ router.get('/jobs/:id', protect, async (req, res) => {
           completedAt: s.completedAt || null
         })),
         resultQualityCheck: job.resultQualityCheck || null,
+        sizeRecommendation: job.sizeRecommendation || null,
+        bodyMeasurements: job.bodyMeasurements || null,
+        faceIdentityTelemetry: job.faceIdentityTelemetry || null,
         timing: job.timing,
         errorMessage: job.errorMessage,
         errorCode: job.errorCode,

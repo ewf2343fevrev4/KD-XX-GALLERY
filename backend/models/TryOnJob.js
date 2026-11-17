@@ -128,6 +128,22 @@ const tryOnJobSchema = new mongoose.Schema({
     checkedAt: { type: Date, default: null },
     metrics: { type: mongoose.Schema.Types.Mixed, default: null }
   },
+  poseAnalysis: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  faceIdentityTelemetry: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  sizeRecommendation: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
+  bodyMeasurements: {
+    type: mongoose.Schema.Types.Mixed,
+    default: null
+  },
   idempotencyKey: {
     type: String,
     sparse: true,

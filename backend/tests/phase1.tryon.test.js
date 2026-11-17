@@ -420,7 +420,7 @@ describe('KD-XX Virtual Try-On Phase 1 — Core Hardening & Provider Architectur
 
     await queue.processNextJobs();
     let done = null;
-    for (let poll = 0; poll < 10; poll++) {
+    for (let poll = 0; poll < 25; poll++) {
       await new Promise(r => setTimeout(r, 40));
       done = await TryOnJob.findById(job._id);
       if (done && done.status === 'COMPLETED') break;

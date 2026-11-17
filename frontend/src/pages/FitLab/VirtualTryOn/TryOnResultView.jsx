@@ -5,7 +5,12 @@ import {
   Trash2,
   Sparkles,
   ExternalLink,
-  Check
+  Check,
+  Ruler,
+  Copy,
+  Info,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -17,6 +22,8 @@ export default function TryOnResultView({
   outfitItems = [],
   resultQualityCheck = null,
   tuckStyle = 'untucked',
+  sizeRecommendation = null,
+  bodyMeasurements = null,
   onReset,
   onDeleteAsset,
   assetId
@@ -25,6 +32,8 @@ export default function TryOnResultView({
   const [viewMode, setViewMode] = useState('split'); // 'split' | 'side'
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteSuccess, setDeleteSuccess] = useState(false);
+  const [showMetricsDetails, setShowMetricsDetails] = useState(false);
+  const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
 
   const handleDownload = async () => {
@@ -54,6 +63,28 @@ export default function TryOnResultView({
       console.error(e);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const recommendation = sizeRecommendation || (bodyMeasurements ? { measurements: bodyMeasurements } : null);
+  const measurements = recommendation?.measurements || bodyMeasurements;
+  const itemRecs = recommendation?.itemRecommendations || [];
+  const summary = recommendation?.summary || {};
+
+  const handleCopyMeasurements = () => {
+    if (!measurements) return;
+    const lines = [
+      `📐 SỐ ĐO CƠ THỂ & SIZE ĐỀ XUẤT KD-XX:`,
+      `• Phom dáng: ${measurements.bodyShapeLabel || 'Chuẩn'}`,
+      measurements.estimatedMetrics ? `• Vai: ${measurements.estimatedMetrics.shoulderWidthCm}cm | Ngực: ${measurements.estimatedMetrics.chestCircumferenceCm}cm | Eo: ${measurements.estimatedMetrics.waistCircumferenceCm}cm | Hông: ${measurements.estimatedMetrics.hipCircumferenceCm}cm` : null,
+      itemRecs.length > 0 ? `• Đề xuất: ${itemRecs.map(i => `${i.productName}: Size ${i.recommendedSize}`).join(', ')}` : null
+    ].filter(Boolean).join('\n');
+
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(lines).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      }).catch(() => {});
     }
   };
 
@@ -203,6 +234,120 @@ export default function TryOnResultView({
           <span className="absolute bottom-4 right-4 z-10 px-3 py-1 rounded-full bg-purple-950/80 backdrop-blur-md text-[10px] font-bold text-purple-200 uppercase tracking-wider border border-purple-500/40">
             KD-XX Try-On
           </span>
+        </div>
+      )}
+
+      {/* KD-XX Level 5: AI Body Measurement & Size Recommendation Engine */}
+      {measurements && (
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 via-slate-900/50 to-indigo-950/40 border border-purple-500/30" data-testid="vto-level5-size-analyzer">
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-purple-600/20 border border-purple-400/30 flex items-center justify-center text-purple-300">
+                <Ruler size={16} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider m-0">
+                    Phân Tích Dáng & Gợi Ý Size May Đo (AI Level 5)
+                  </h4>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    {measurements.bodyShapeLabel || 'Phom Dáng Tiêu Chuẩn'}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 m-0">
+                  {summary.fitSummaryText || measurements.bodyShapeDesc || 'Phân tích phom dáng giải phẫu học dựa trên tỷ lệ ảnh đứng toàn thân.'}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleCopyMeasurements}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-xs transition-colors"
+            >
+              {copied ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+              <span>{copied ? 'Đã sao chép số đo' : 'Sao chép số đo'}</span>
+            </button>
+          </div>
+
+          {/* Recommended Sizes Grid */}
+          {itemRecs.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 my-3">
+              {itemRecs.map((rec, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-black/40 border border-purple-500/20 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium mb-1">
+                      <span>{rec.slot === 'TOP' ? 'Áo / Khoác' : rec.slot === 'BOTTOM' ? 'Quần / Váy' : rec.slot === 'FOOTWEAR' ? 'Giày / Sneaker' : 'Sản Phẩm'}</span>
+                      <span className="text-purple-400">{rec.sizeSystem || ''}</span>
+                    </div>
+                    <div className="text-xs font-bold text-white truncate mb-2" title={rec.productName}>
+                      {rec.productName}
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-white/5">
+                    <div className="flex items-baseline gap-2 mb-1">
+                      <span className="text-lg font-black text-purple-300 tracking-wide">
+                        Size {rec.recommendedSize}
+                      </span>
+                      {rec.alternativeSize && (
+                        <span className="text-[11px] text-slate-400">
+                          (Dự phòng: {rec.alternativeSize})
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-300 m-0 line-clamp-2">
+                      {rec.fitAdvice}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Collapsible Anatomy Metrics Details */}
+          <div className="mt-2 pt-2 border-t border-white/5">
+            <button
+              type="button"
+              onClick={() => setShowMetricsDetails(!showMetricsDetails)}
+              className="flex items-center justify-between w-full text-left text-xs text-purple-300 hover:text-purple-200 transition-colors"
+            >
+              <span className="flex items-center gap-1.5 font-medium">
+                <Info size={12} />
+                <span>Xem thông số giải phẫu học ước tính (Vai, Ngực, Eo, Chiều dài chân)</span>
+              </span>
+              {showMetricsDetails ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+            </button>
+
+            {showMetricsDetails && measurements.estimatedMetrics && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mt-3 pt-2">
+                <div className="p-2 rounded-lg bg-black/30 border border-white/5 text-center">
+                  <div className="text-[10px] text-slate-400 uppercase">Khung Vai</div>
+                  <div className="text-sm font-bold text-white mt-0.5">{measurements.estimatedMetrics.shoulderWidthCm} cm</div>
+                </div>
+                <div className="p-2 rounded-lg bg-black/30 border border-white/5 text-center">
+                  <div className="text-[10px] text-slate-400 uppercase">Vòng Ngực</div>
+                  <div className="text-sm font-bold text-white mt-0.5">{measurements.estimatedMetrics.chestCircumferenceCm} cm</div>
+                </div>
+                <div className="p-2 rounded-lg bg-black/30 border border-white/5 text-center">
+                  <div className="text-[10px] text-slate-400 uppercase">Vòng Eo</div>
+                  <div className="text-sm font-bold text-white mt-0.5">{measurements.estimatedMetrics.waistCircumferenceCm} cm</div>
+                </div>
+                <div className="p-2 rounded-lg bg-black/30 border border-white/5 text-center">
+                  <div className="text-[10px] text-slate-400 uppercase">Vòng Hông</div>
+                  <div className="text-sm font-bold text-white mt-0.5">{measurements.estimatedMetrics.hipCircumferenceCm} cm</div>
+                </div>
+                <div className="p-2 rounded-lg bg-black/30 border border-white/5 text-center">
+                  <div className="text-[10px] text-slate-400 uppercase">Dài Inseam</div>
+                  <div className="text-sm font-bold text-white mt-0.5">{measurements.estimatedMetrics.inseamLengthCm} cm</div>
+                </div>
+                <div className="p-2 rounded-lg bg-black/30 border border-white/5 text-center">
+                  <div className="text-[10px] text-slate-400 uppercase">Chiều Dài Chân</div>
+                  <div className="text-sm font-bold text-white mt-0.5">{measurements.estimatedMetrics.totalLegLengthCm} cm</div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

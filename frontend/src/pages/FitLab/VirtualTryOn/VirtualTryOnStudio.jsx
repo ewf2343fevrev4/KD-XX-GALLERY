@@ -315,6 +315,8 @@ export default function VirtualTryOnStudio() {
           outfitItems={currentJob.outfitItems || []}
           resultQualityCheck={currentJob.resultQualityCheck || null}
           tuckStyle={currentJob.tuckStyle || tuckStyle}
+          sizeRecommendation={currentJob.sizeRecommendation || null}
+          bodyMeasurements={currentJob.bodyMeasurements || null}
           assetId={currentJob.resultImageAsset}
           onDeleteAsset={handleDeleteAsset}
           onReset={() => {

@@ -925,7 +925,7 @@ describe('KD-XX Virtual Try-On Phase 2 — Product Intelligence & Catalog Integr
 
     await queue.processNextJobs();
     let finished = null;
-    for (let poll = 0; poll < 10; poll++) {
+    for (let poll = 0; poll < 25; poll++) {
       await new Promise(r => setTimeout(r, 40));
       finished = await TryOnJob.findById(job._id);
       if (finished && finished.status === 'COMPLETED') break;

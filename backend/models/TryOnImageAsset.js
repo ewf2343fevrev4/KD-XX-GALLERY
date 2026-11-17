@@ -55,7 +55,11 @@ const tryOnImageAssetSchema = new mongoose.Schema({
       code: String,
       message: String
     }],
-    suggestions: [String]
+    suggestions: [String],
+    poseAnalysis: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    }
   },
   // Auto-deletion deadline: max 3 days retention
   expiresAt: {

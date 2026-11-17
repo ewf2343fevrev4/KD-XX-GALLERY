@@ -18,6 +18,7 @@ const fullOutfitValidator = require('./fullOutfitValidator');
 const fullOutfitBenchmarkGate = require('./fullOutfitBenchmarkGate');
 const footwearEnhancerService = require('./footwearEnhancerService');
 const faceIdentityService = require('./faceIdentityService');
+const bodyMeasurementService = require('./bodyMeasurementService');
 const providerConfigService = require('./tryOnProviderConfigService');
 const ProductIntelligence = require('../models/ProductIntelligence');
 const TryOnProviderConfig = require('../models/TryOnProviderConfig');
@@ -65,6 +66,7 @@ class TryOnQueueService {
     this.providerConfigService = options.providerConfigService || providerConfigService;
     this.footwearEnhancer = options.footwearEnhancerService || footwearEnhancerService;
     this.faceIdentity = options.faceIdentityService || faceIdentityService;
+    this.bodyMeasurement = options.bodyMeasurementService || bodyMeasurementService;
 
     // Rate limiting in-memory trackers (sliding 10 minutes window)
     this.rateLimits = {
@@ -343,6 +345,7 @@ class TryOnQueueService {
       productImageUrl,
       productName: product.name,
       productSnapshot,
+      poseAnalysis: personAsset.qualityAnalysis?.poseAnalysis || null,
       creditsCost: 1,
       provider: providerAdapter.providerId,
       aiProviderDetails: {
@@ -731,6 +734,7 @@ class TryOnQueueService {
       productImageUrl: primaryStep.productImageUrl,
       productName: combinedName,
       productSnapshot: combinedSnapshot,
+      poseAnalysis: personAsset.qualityAnalysis?.poseAnalysis || null,
       outfitItems,
       executionSteps,
       creditsCost,
@@ -1107,6 +1111,27 @@ class TryOnQueueService {
           }
         } catch (faceErr) {
           console.warn(`[FaceIdentity:SingleItem] Fallback to raw output: ${faceErr.message}`);
+        }
+      }
+
+      // KD-XX Level 5: AI Body Measurement & Size Recommendation Engine (Single Item)
+      if (this.bodyMeasurement && personPrepared?.width && personPrepared?.height) {
+        try {
+          const poseData = job.poseAnalysis || null;
+          const sizeAdvice = this.bodyMeasurement.generateFullBodyProfileAndSizeAdvice({
+            width: personPrepared.width,
+            height: personPrepared.height,
+            poseAnalysis: poseData,
+            items: [{
+              category: job.category || job.productSnapshot?.catalogCategory || job.productSnapshot?.normalizedSubCategory || 'tops',
+              name: job.productName || job.productSnapshot?.productName || 'Sản phẩm KD-XX',
+              slot: 'GENERAL'
+            }]
+          });
+          job.sizeRecommendation = sizeAdvice;
+          job.bodyMeasurements = sizeAdvice.measurements;
+        } catch (measErr) {
+          console.warn(`[BodyMeasurement:SingleItem] Error generating size advice: ${measErr.message}`);
         }
       }
 
@@ -1534,6 +1559,23 @@ class TryOnQueueService {
           }
           finalResultBuffer = stepOutputBuffer;
           job.resultImageAsset = savedAsset._id;
+        }
+      }
+
+      // KD-XX Level 5: AI Body Measurement & Size Recommendation Engine (Full Outfit)
+      if (this.bodyMeasurement && originalPrepared?.width && originalPrepared?.height) {
+        try {
+          const poseData = job.poseAnalysis || null;
+          const sizeAdvice = this.bodyMeasurement.generateFullBodyProfileAndSizeAdvice({
+            width: originalPrepared.width,
+            height: originalPrepared.height,
+            poseAnalysis: poseData,
+            items: job.outfitItems || []
+          });
+          job.sizeRecommendation = sizeAdvice;
+          job.bodyMeasurements = sizeAdvice.measurements;
+        } catch (measErr) {
+          console.warn(`[BodyMeasurement:FullOutfit] Error generating size advice: ${measErr.message}`);
         }
       }
 
