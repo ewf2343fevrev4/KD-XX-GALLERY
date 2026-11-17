@@ -7,7 +7,7 @@
         "start": "node server.js",
         "server": "nodemon server.js",
         "dev": "nodemon server.js",
-        "test": "node --test tests/phase1.tryon.test.js tests/phase2.tryon.test.js tests/phase3.tryon.test.js tests/phase4.tryon.test.js tests/phase5.tryon.test.js tests/phase5_5.remediation.test.js tests/phase6_1.costguard.test.js tests/phase7.pose_level1.test.js tests/phase8.tuck_level2.test.js tests/phase9.footwear_level3.test.js tests/phase9_5.footwear_roi_enhancer.test.js tests/phase10.face_identity_level4.test.js tests/phase11.body_measurement_level5.test.js"
+        "test": "node --test tests/phase1.tryon.test.js tests/phase2.tryon.test.js tests/phase3.tryon.test.js tests/phase4.tryon.test.js tests/phase5.tryon.test.js tests/phase5_5.remediation.test.js tests/phase6_1.costguard.test.js tests/phase7.pose_level1.test.js tests/phase8.tuck_level2.test.js tests/phase9.footwear_level3.test.js tests/phase9_5.footwear_roi_enhancer.test.js tests/phase10.face_identity_level4.test.js tests/phase11.body_measurement_level5.test.js tests/phase12.accessory_stacking_level6.test.js"
     },
     "keywords": [],
     "author": "",

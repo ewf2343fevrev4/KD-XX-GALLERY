@@ -895,6 +895,7 @@ const apiService = {
   // KD-XX Virtual Try-On AI Module
   getTryOnAccount: (token) => apiCall('/tryon/account', token),
   getTryOnJob: (token, id) => apiCall(`/tryon/jobs/${id}`, token),
+  stackTryOnAccessory: (token, id, productId) => apiCall(`/tryon/jobs/${id}/stack-accessory`, token, { method: 'POST', body: JSON.stringify({ productId }) }),
   getTryOnAdminStats: (token) => apiCall('/tryon/admin/stats', token),
   getTryOnAdminJobs: (token, status) => apiCall(`/tryon/admin/jobs${status ? `?status=${status}` : ''}`, token),
   getTryOnAdminLedgers: (token) => apiCall('/tryon/admin/ledgers', token)

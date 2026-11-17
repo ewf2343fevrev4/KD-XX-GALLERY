@@ -15,6 +15,7 @@ const tryOnHistoryService = require('../services/tryOnHistoryService');
 const tryOnProviderConfigService = require('../services/tryOnProviderConfigService');
 const tryOnUsageStatsService = require('../services/tryOnUsageStatsService');
 const fullOutfitBenchmarkGate = require('../services/fullOutfitBenchmarkGate');
+const accessoryStackingService = require('../services/accessoryStackingService');
 const providerRegistry = require('../services/providers/TryOnProviderRegistry');
 const Product = require('../models/Product');
 const ProductIntelligence = require('../models/ProductIntelligence');
@@ -546,6 +547,7 @@ router.get('/jobs/:id', protect, async (req, res) => {
         sizeRecommendation: job.sizeRecommendation || null,
         bodyMeasurements: job.bodyMeasurements || null,
         faceIdentityTelemetry: job.faceIdentityTelemetry || null,
+        stackedAccessories: job.stackedAccessories || [],
         timing: job.timing,
         errorMessage: job.errorMessage,
         errorCode: job.errorCode,
@@ -560,6 +562,96 @@ router.get('/jobs/:id', protect, async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+/**
+ * @route POST /api/tryon/jobs/:id/stack-accessory
+ * @desc KD-XX Level 6: Stack a luxury accessory onto an existing Try-On result image
+ * @access Private (Owner only)
+ */
+router.post('/jobs/:id/stack-accessory', protect, async (req, res) => {
+  try {
+    const { productId } = req.body;
+    if (!productId) {
+      return res.status(400).json({ success: false, message: 'Thiếu thông tin phụ kiện (productId).' });
+    }
+
+    const job = await TryOnJob.findOne({ _id: req.params.id, user: req.user._id });
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy phiên thử đồ.' });
+    }
+    if (job.status !== 'COMPLETED' || !job.resultImageAsset) {
+      return res.status(400).json({
+        success: false,
+        message: 'Phiên thử đồ chưa hoàn thành hoặc không có ảnh kết quả để phối phụ kiện.'
+      });
+    }
+
+    const accessoryProduct = await Product.findById(productId);
+    if (!accessoryProduct) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy sản phẩm phụ kiện trong danh mục.' });
+    }
+
+    // 1. Load current result image buffer
+    const { buffer: currentResultBuffer } = await tryOnStorageService.getImageBuffer(
+      String(job.resultImageAsset),
+      req.user._id,
+      false
+    );
+
+    // 2. Load accessory product image buffer
+    const rawAccBuffer = await tryOnQueueService.fetchProductImageBuffer(accessoryProduct.image);
+
+    // 3. Stack accessory onto result image using anatomical landmarks
+    const taxonomy = categoryTaxonomyService.mapProductCategory(accessoryProduct);
+    const stackResult = await accessoryStackingService.stackAccessoryOntoBody({
+      personBuffer: currentResultBuffer,
+      accessoryBuffer: rawAccBuffer,
+      category: taxonomy.domain || accessoryProduct.category,
+      subCategory: taxonomy.subCategory || accessoryProduct.category,
+      poseAnalysis: job.poseAnalysis || null
+    });
+
+    // 4. Save enhanced result image
+    const enhancedAsset = await tryOnStorageService.saveImage({
+      userId: req.user._id,
+      buffer: stackResult.enhancedBuffer,
+      mimeType: 'image/png',
+      type: 'tryon_result',
+      originalFilename: `vip_accessory_${accessoryProduct.name.replace(/\s+/g, '_').toLowerCase()}.png`
+    });
+
+    job.resultImageAsset = enhancedAsset._id;
+    if (!job.stackedAccessories) job.stackedAccessories = [];
+    job.stackedAccessories.push({
+      product: accessoryProduct._id,
+      productName: accessoryProduct.name,
+      category: taxonomy.subCategory || accessoryProduct.category,
+      anchorName: stackResult.telemetry.anchorName,
+      stackedAt: new Date()
+    });
+    await job.save();
+
+    const signedUrl = await tryOnStorageService.issueSignedUrlIfValid(enhancedAsset._id, req.user._id, 1800);
+
+    return res.json({
+      success: true,
+      message: `Đã phối phụ kiện "${accessoryProduct.name}" lên ảnh kết quả thành công!`,
+      data: {
+        jobId: job._id,
+        resultImageAsset: enhancedAsset._id,
+        resultPreviewUrl: signedUrl,
+        telemetry: stackResult.telemetry,
+        stackedAccessories: job.stackedAccessories
+      }
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      code: error.code || 'ACCESSORY_STACK_ERROR',
+      message: error.message
+    });
   }
 });
 

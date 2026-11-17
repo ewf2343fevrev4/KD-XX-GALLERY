@@ -318,6 +318,8 @@ export default function VirtualTryOnStudio() {
           sizeRecommendation={currentJob.sizeRecommendation || null}
           bodyMeasurements={currentJob.bodyMeasurements || null}
           assetId={currentJob.resultImageAsset}
+          jobId={currentJob.jobId || currentJob._id}
+          stackedAccessories={currentJob.stackedAccessories || []}
           onDeleteAsset={handleDeleteAsset}
           onReset={() => {
             setCurrentJob(null);

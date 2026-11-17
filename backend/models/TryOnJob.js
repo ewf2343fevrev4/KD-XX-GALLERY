@@ -144,6 +144,14 @@ const tryOnJobSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.Mixed,
     default: null
   },
+  stackedAccessories: [{
+    _id: false,
+    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    productName: { type: String, default: '' },
+    category: { type: String, default: '' },
+    anchorName: { type: String, default: '' },
+    stackedAt: { type: Date, default: Date.now }
+  }],
   idempotencyKey: {
     type: String,
     sparse: true,

@@ -237,6 +237,7 @@ class TryOnHistoryService {
       sizeRecommendation: job.sizeRecommendation || null,
       bodyMeasurements: job.bodyMeasurements || null,
       faceIdentityTelemetry: job.faceIdentityTelemetry || null,
+      stackedAccessories: job.stackedAccessories || [],
       originalImageAsset: originalImage.assetId,
       resultImageAsset: resultImage.assetId,
       originalPreviewUrl: originalImage.signedUrl,
