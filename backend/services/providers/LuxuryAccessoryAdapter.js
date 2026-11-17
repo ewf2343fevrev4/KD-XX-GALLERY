@@ -56,61 +56,61 @@ class LuxuryAccessoryAdapter extends TryOnProviderAdapter {
       categoryCapabilities: {
         eyewear: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Anatomical Facial Landmark Stacker',
           limitations: 'Yêu cầu ảnh chụp rõ mặt để căn chỉnh sống mũi và đồng tử.'
         },
         sunglasses: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Anatomical Facial Landmark Stacker',
           limitations: 'Yêu cầu ảnh chụp rõ mặt để căn chỉnh sống mũi.'
         },
         bags: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Hip & Shoulder Crossbody Stacker',
           limitations: 'Ướm tự nhiên bên hông phải hoặc đeo chéo thân người.'
         },
         wallets: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Hand & Flank Landmark Stacker',
           limitations: 'Ướm tại vị trí cổ tay hoặc cầm tay.'
         },
         belts: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Torso Waistline Stacker',
           limitations: 'Yêu cầu ảnh rõ vùng thắt lưng và cạp quần.'
         },
         hats: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Head Crown Landmark Stacker',
           limitations: 'Yêu cầu ảnh thấy rõ đỉnh đầu và trán.'
         },
         jewelry: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Neck & Clavicle Stacker',
           limitations: 'Khuyên tai/nhẫn nhỏ ưu tiên chế độ cận cảnh.'
         },
         necklaces: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Neck & Clavicle Stacker',
           limitations: 'Đặt trên xương quai xanh và cổ áo.'
         },
         keychains: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Belt-loop Accessory Stacker',
           limitations: 'Treo tại đỉa quần hoặc cạnh túi xách.'
         },
         accessories: {
           status: 'VERIFIED',
-          isEnabledByDefault: true,
+          isEnabledByDefault: false,
           verificationSource: 'KD-XX Level 6 Luxury Accessory Engine',
           limitations: 'Tự động bóc nền và tổng hợp bóng mờ tự nhiên.'
         }
@@ -118,7 +118,7 @@ class LuxuryAccessoryAdapter extends TryOnProviderAdapter {
       verificationStatus: 'VERIFIED',
       lifecycleStage: 'GA',
       lastVerifiedAt: new Date().toISOString().split('T')[0],
-      isEnabledByDefault: true,
+      isEnabledByDefault: false,
       limitations: []
     };
   }

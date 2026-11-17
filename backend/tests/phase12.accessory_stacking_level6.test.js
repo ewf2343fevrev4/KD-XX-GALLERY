@@ -171,10 +171,18 @@ describe('KD-XX Level 6 — Luxury Anatomical Accessory Stacking Engine', () => 
     const customRegistry = new (registry.constructor)();
     customRegistry.register(new LuxuryAccessoryAdapter({ accessoryStackingService }));
 
+    const configsMap = new Map();
+    configsMap.set('kdxx-luxury-accessories-v1', {
+      providerId: 'kdxx-luxury-accessories-v1',
+      isEnabled: true,
+      categoryOverrides: { sunglasses: true, bags: true, eyewear: true, accessories: true }
+    });
+
     const sunglassesRouting = customRegistry.evaluateCategorySupport({
       category: 'sunglasses',
       domain: 'accessories',
-      subCategory: 'sunglasses'
+      subCategory: 'sunglasses',
+      configsByProviderId: configsMap
     });
 
     assert.equal(sunglassesRouting.allowSubmit, true);
@@ -184,7 +192,8 @@ describe('KD-XX Level 6 — Luxury Anatomical Accessory Stacking Engine', () => 
     const bagsRouting = customRegistry.evaluateCategorySupport({
       category: 'bags',
       domain: 'accessories',
-      subCategory: 'bags'
+      subCategory: 'bags',
+      configsByProviderId: configsMap
     });
 
     assert.equal(bagsRouting.allowSubmit, true);

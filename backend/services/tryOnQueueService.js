@@ -1094,13 +1094,16 @@ class TryOnQueueService {
       }
 
       // KD-XX Level 4: Face & Skin Identity Preservation + Super-Resolution Clarity (Single Item)
+      const isHeadAccessory = ['eyewear', 'sunglasses', 'hats', 'caps'].includes(String(job.category || '').toLowerCase()) ||
+        ['eyewear', 'sunglasses', 'hats', 'caps'].includes(String(job.productSnapshot?.subCategory || '').toLowerCase()) ||
+        job.productSnapshot?.normalizedDomain === 'eyewear';
       if (this.faceIdentity && personPrepared?.buffer) {
         try {
           const faceResult = await this.faceIdentity.preserveIdentityAndEnhance({
             originalBuffer: personPrepared.buffer,
             fittedBuffer: resultBuffer,
             options: {
-              enableFaceLock: true,
+              enableFaceLock: !isHeadAccessory,
               enableSuperResolution: true,
               poseAnalysis: job.poseAnalysis || null
             }

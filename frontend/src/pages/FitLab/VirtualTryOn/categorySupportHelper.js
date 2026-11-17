@@ -107,6 +107,15 @@ export function evaluateFrontendCategorySupport(product, categoryMatrix = []) {
         reason: 'Hỗ trợ thử giày cao cấp qua Feet ROI Zoom & Local Footwear Fidelity Enhancer.'
       };
     }
+    const isAccessoryUnlocked = ['eyewear', 'sunglasses', 'bags', 'belts', 'hats', 'jewelry', 'wallets', 'keychains', 'accessories', 'other_accessories'].includes(cs.categoryKey) && cs.allowSubmit;
+    if (isAccessoryUnlocked) {
+      return {
+        ...cs,
+        status: 'VERIFIED',
+        displayStatus: 'VERIFIED',
+        reason: 'Hỗ trợ thử phụ kiện xa xỉ qua KD-XX VIP Stacking Engine (Level 6).'
+      };
+    }
     return {
       ...cs,
       displayStatus: cs.status
@@ -140,14 +149,18 @@ export function evaluateFrontendCategorySupport(product, categoryMatrix = []) {
   if (Array.isArray(categoryMatrix) && categoryMatrix.length > 0) {
     const match = categoryMatrix.find((m) => m.key === categoryKey);
     if (match) {
-      const isFootwearAllowed = match.key === 'footwear' && match.allowSubmit;
+      const isAllowed = match.allowSubmit;
       return {
         ...match,
         categoryKey: match.key,
-        status: isFootwearAllowed ? 'VERIFIED' : match.status,
-        displayStatus: isFootwearAllowed ? 'VERIFIED' : match.status,
-        reason: isFootwearAllowed
-          ? 'Hỗ trợ thử giày cao cấp qua Feet ROI Zoom & Local Footwear Fidelity Enhancer.'
+        status: isAllowed ? 'VERIFIED' : match.status,
+        displayStatus: isAllowed ? 'VERIFIED' : match.status,
+        reason: isAllowed
+          ? (match.key === 'footwear'
+            ? 'Hỗ trợ thử giày cao cấp qua Feet ROI Zoom & Local Footwear Fidelity Enhancer.'
+            : ['eyewear', 'bags', 'hats', 'jewelry', 'belts', 'wallets', 'keychains'].includes(match.key)
+              ? 'Hỗ trợ thử phụ kiện xa xỉ qua KD-XX VIP Stacking Engine (Level 6).'
+              : match.reason)
           : match.reason
       };
     }

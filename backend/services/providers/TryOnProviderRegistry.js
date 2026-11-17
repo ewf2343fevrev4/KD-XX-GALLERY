@@ -3,6 +3,7 @@ const GeminiImageEditAdapter = require('./GeminiImageEditAdapter');
 const EyewearProvider = require('./EyewearProvider');
 const FootwearProvider = require('./FootwearProvider');
 const AccessoriesProvider = require('./AccessoriesProvider');
+const LuxuryAccessoryAdapter = require('./LuxuryAccessoryAdapter');
 const {
   FashnTryOnMaxStub,
   KlingKolorsVtoStub,
@@ -89,6 +90,7 @@ class TryOnProviderRegistry {
     this.register(new FootwearProvider());
     this.register(new EyewearProvider());
     this.register(new AccessoriesProvider());
+    this.register(new LuxuryAccessoryAdapter());
     this.register(new FashnTryOnMaxStub());
     this.register(new KlingKolorsVtoStub());
     this.register(new BanubaEyewearArStub());
