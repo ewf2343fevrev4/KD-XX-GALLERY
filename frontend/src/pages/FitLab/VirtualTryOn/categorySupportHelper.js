@@ -99,6 +99,14 @@ export function evaluateFrontendCategorySupport(product, categoryMatrix = []) {
         reason: cs.reason || 'Danh mục sản phẩm có xung đột tag (NEEDS_REVIEW), cần Admin xác nhận trước.'
       };
     }
+    if (cs.categoryKey === 'footwear' && cs.allowSubmit) {
+      return {
+        ...cs,
+        status: 'VERIFIED',
+        displayStatus: 'VERIFIED',
+        reason: 'Hỗ trợ thử giày cao cấp qua Feet ROI Zoom & Local Footwear Fidelity Enhancer.'
+      };
+    }
     return {
       ...cs,
       displayStatus: cs.status

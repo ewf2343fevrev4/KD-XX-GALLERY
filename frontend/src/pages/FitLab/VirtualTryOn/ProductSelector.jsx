@@ -590,7 +590,7 @@ export default function ProductSelector({
           ) : selectedSupport?.modelId ? (
             <div className="text-[11px] text-slate-400 pt-0.5">
               AI Provider: <span className="text-slate-200 font-medium">{selectedSupport.providerName || 'Google Cloud'}</span>{' '}
-              (<code className="text-purple-300">{selectedSupport.modelId}</code>) • Thử 1 sản phẩm trang phục
+              (<code className="text-purple-300">{selectedSupport.modelId}</code>) • {classifyFrontendOutfitSlot(selectedProduct) === 'FOOTWEAR' ? '👟 Thử giày cao cấp (Feet ROI Zoom & Local Enhancer)' : 'Thử 1 sản phẩm trang phục'}
             </div>
           ) : activeTaxonomy?.tryOnSupportLevel && activeTaxonomy.tryOnSupportLevel !== 'DIRECT' ? (
             <div className="flex items-start gap-2 text-[11px] text-amber-200/90 pt-1">
