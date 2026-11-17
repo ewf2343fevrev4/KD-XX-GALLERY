@@ -28,7 +28,7 @@ const CAMERA_PRESETS = {
 const HOTSPOT_ANCHORS = {
   men: new THREE.Vector3(-4.55, 3.05, -1.3),
   center: new THREE.Vector3(0, 2.55, -0.7),
-  women: new THREE.Vector3(4.55, 3.05, -1.3),
+  women: new THREE.Vector3(4.85, 2.85, -1.8),
 };
 
 // ── Procedural Brick Texture Generator ──
@@ -576,6 +576,7 @@ function createDetailedMenGarment({
 }
 
 // ── Realistic Women's Garment Builder (Couture Dresses, Slips, Trench Coats, Blazers) ──
+// eslint-disable-next-line no-unused-vars
 function createDetailedWomenGarment({
   type,
   color,
@@ -1868,74 +1869,6 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     womenSignGlow.position.set(6.65, 4.15, -2.05);
     womenGroup.add(womenSignGlow);
 
-    // Women's Sleek Clothing Rack 1 (Foreground right)
-    const womenRack1 = new THREE.Group();
-    womenRack1.position.set(3.85, 0, -1.45);
-    womenRack1.rotation.y = -0.22;
-
-    const wRackBase = new THREE.Mesh(
-      new THREE.BoxGeometry(2.2, 0.08, 0.75),
-      darkSteelMat
-    );
-    wRackBase.position.y = 0.04;
-    womenRack1.add(wRackBase);
-
-    [-1.0, 1.0].forEach((rx) => {
-      const upright = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.032, 0.032, 2.35, 12),
-        chromeMat
-      );
-      upright.position.set(rx, 1.2, 0);
-      womenRack1.add(upright);
-    });
-
-    const wCrossbar = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.03, 0.03, 2.05, 12),
-      chromeMat
-    );
-    wCrossbar.rotation.z = Math.PI / 2;
-    wCrossbar.position.set(0, 2.35, 0);
-    womenRack1.add(wCrossbar);
-
-    // Realistic Hanging Women's Garments (Couture Flared Gown Dresses, Silk Slips, Trench Coats, Blazers)
-    const womenGarmentsConfig = [
-      { type: 'flared_dress', color: '#f472b6', secondary: '#fbcfe8', accent: '#ffffff' },
-      { type: 'slip', color: '#faf5ff', secondary: '#f8fafc', accent: '#c084fc' },
-      { type: 'trench_coat', color: '#18181b', secondary: '#3f3f46', accent: '#d4d4dc' },
-      { type: 'flared_dress', color: '#be185d', secondary: '#f43f5e', accent: '#ffffff' },
-      { type: 'cropped_blazer', color: '#09090b', secondary: '#c084fc', accent: '#d4d4dc' },
-      { type: 'slip', color: '#d8b4fe', secondary: '#f3e8ff', accent: '#f472b6' },
-      { type: 'flared_dress', color: '#2e1065', secondary: '#7e22ce', accent: '#ffffff' },
-    ];
-
-    womenGarmentsConfig.forEach((cfg, idx) => {
-      const gx = -0.78 + idx * 0.26;
-      const piece = createDetailedWomenGarment({
-        type: cfg.type,
-        color: cfg.color,
-        secondaryColor: cfg.secondary,
-        accentColor: cfg.accent,
-        chromeMat,
-        darkSteelMat,
-      });
-      piece.position.set(gx, 2.34, 0);
-      piece.rotation.y = -0.08 + (idx % 2 === 0 ? -0.04 : 0.04);
-      womenRack1.add(piece);
-    });
-    womenGroup.add(womenRack1);
-
-    // Styled Women's Couture Display Mannequin on Chrome Stand
-    const womenMannequin = createMannequin({
-      gender: 'women',
-      outfitColor: '#09090b',
-      accentColor: '#f472b6',
-      chromeMat,
-      darkSteelMat,
-    });
-    womenMannequin.position.set(2.35, 0, -1.05);
-    womenMannequin.rotation.y = -0.35;
-    womenGroup.add(womenMannequin);
-
     // ── Load Luxury Dior Pool Window Display Installation on Back Wall ──
     gltfLoader.load(
       '/models/display/dior_pool_window.glb',
@@ -2547,7 +2480,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           <span className="campaign-store-hotspot__info">
             <span className="campaign-store-hotspot__label">WOMEN&apos;S</span>
             <span className="campaign-store-hotspot__action">
-              Luxury Dresses &amp; Coats →
+              Luxury Collection →
             </span>
           </span>
         </button>
@@ -2600,7 +2533,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           disabled={isTransitioning}
         >
           <span className="campaign-store-dock-btn__index">03</span>
-          <span>WOMEN&apos;S RACKS</span>
+          <span>WOMEN&apos;S SHOWCASE</span>
         </button>
       </div>
 
