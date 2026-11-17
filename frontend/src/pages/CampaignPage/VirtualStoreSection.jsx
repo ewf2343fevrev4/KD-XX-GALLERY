@@ -1983,21 +1983,21 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         poolModel.position.set(-center.x, -box.min.y, -center.z);
         windowWrapper.add(poolModel);
 
-        // Scale to cover the entire back wall behind the women's area (~4.35m height, ~4.22m width)
-        const targetHeight = 4.35;
+        // Scale to fit the back wall bay beautifully (~3.10m height, ~3.01m width)
+        const targetHeight = 3.10;
         const scaleVal = targetHeight / (size.y || 1);
         windowWrapper.scale.setScalar(scaleVal);
 
         // Position straight & flat against the back brick wall behind the women's section:
-        // Centered at x=4.85, width ~4.22m spans from x=2.74 to x=6.96, completely covering the wall.
-        // Back wall is at z = -4.20; display depth is ~1.80m; z=-3.28 puts back edge flush at z=-4.18.
-        const windowPos = { x: 4.85, y: 0.08, z: -3.28 };
+        // Centered between steel pillars at x=3.1 and x=6.6 (x=4.85).
+        // Back wall is at z = -4.20; display depth is ~1.28m; z=-3.48 puts back edge flush at z=-4.12.
+        const windowPos = { x: 4.85, y: 0.08, z: -3.48 };
         windowWrapper.position.set(windowPos.x, windowPos.y, windowPos.z);
-        windowWrapper.rotation.y = 0; // Flat and straight covering the back wall
+        windowWrapper.rotation.y = 0; // Flat and straight on the back wall
 
-        // Architectural foundation plinth under the giant window display (straight)
+        // Architectural foundation plinth under the window display (straight)
         const foundationPlinth = new THREE.Mesh(
-          new THREE.BoxGeometry(4.32, 0.08, 1.95),
+          new THREE.BoxGeometry(3.22, 0.08, 1.42),
           new THREE.MeshStandardMaterial({
             color: '#12101c',
             roughness: 0.35,
@@ -2011,28 +2011,28 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         // Subtle glowing cyan neon strip along the bottom front edge
         const baseNeonStrip = new THREE.Mesh(
-          new THREE.BoxGeometry(4.34, 0.02, 0.04),
+          new THREE.BoxGeometry(3.24, 0.02, 0.04),
           new THREE.MeshBasicMaterial({ color: '#38bdf8' })
         );
-        baseNeonStrip.position.set(0, 0.04, 0.97);
+        baseNeonStrip.position.set(0, 0.04, 0.71);
         foundationPlinth.add(baseNeonStrip);
 
-        // Dedicated Atmospheric Lighting for the Giant Pool Window:
+        // Dedicated Atmospheric Lighting for the Pool Window:
         // 1. Deep Turquoise / Aquamarine Pool Water Radiance from within
-        const poolWaterGlow = new THREE.PointLight('#38bdf8', 6.5, 9.5);
-        poolWaterGlow.position.set(windowPos.x, 2.0, windowPos.z + 0.3);
+        const poolWaterGlow = new THREE.PointLight('#38bdf8', 5.5, 7.5);
+        poolWaterGlow.position.set(windowPos.x, 1.35, windowPos.z + 0.3);
         womenGroup.add(poolWaterGlow);
 
         // 2. Warm Gold Downlight on the Dior Logo and Swimming-Suit Mannequin
-        const logoDownlight = new THREE.SpotLight('#fef08a', 5.5, 10.0, Math.PI / 4, 0.45);
-        logoDownlight.position.set(windowPos.x, 5.2, windowPos.z + 1.5);
-        logoDownlight.target.position.set(windowPos.x, 3.2, windowPos.z);
+        const logoDownlight = new THREE.SpotLight('#fef08a', 4.8, 8, Math.PI / 4, 0.45);
+        logoDownlight.position.set(windowPos.x, 4.2, windowPos.z + 1.2);
+        logoDownlight.target.position.set(windowPos.x, 2.2, windowPos.z);
         womenGroup.add(logoDownlight);
         womenGroup.add(logoDownlight.target);
 
         // 3. Pool caustics front fill light
-        const poolFrontFill = new THREE.PointLight('#0284c7', 4.5, 8.0);
-        poolFrontFill.position.set(windowPos.x, 2.4, windowPos.z + 1.2);
+        const poolFrontFill = new THREE.PointLight('#0284c7', 3.5, 6.0);
+        poolFrontFill.position.set(windowPos.x, 1.6, windowPos.z + 0.9);
         womenGroup.add(poolFrontFill);
 
         womenGroup.add(windowWrapper);
