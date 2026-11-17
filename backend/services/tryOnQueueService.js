@@ -17,6 +17,7 @@ const categoryInputValidator = require('./categoryInputValidator');
 const fullOutfitValidator = require('./fullOutfitValidator');
 const fullOutfitBenchmarkGate = require('./fullOutfitBenchmarkGate');
 const footwearEnhancerService = require('./footwearEnhancerService');
+const faceIdentityService = require('./faceIdentityService');
 const providerConfigService = require('./tryOnProviderConfigService');
 const ProductIntelligence = require('../models/ProductIntelligence');
 const TryOnProviderConfig = require('../models/TryOnProviderConfig');
@@ -63,6 +64,7 @@ class TryOnQueueService {
     this.benchmarkGate = options.benchmarkGate || fullOutfitBenchmarkGate;
     this.providerConfigService = options.providerConfigService || providerConfigService;
     this.footwearEnhancer = options.footwearEnhancerService || footwearEnhancerService;
+    this.faceIdentity = options.faceIdentityService || faceIdentityService;
 
     // Rate limiting in-memory trackers (sliding 10 minutes window)
     this.rateLimits = {
@@ -1086,6 +1088,28 @@ class TryOnQueueService {
           console.warn(`[FootwearEnhancer:SingleItem] Fallback to raw output: ${enhanceErr.message}`);
         }
       }
+
+      // KD-XX Level 4: Face & Skin Identity Preservation + Super-Resolution Clarity (Single Item)
+      if (this.faceIdentity && personPrepared?.buffer) {
+        try {
+          const faceResult = await this.faceIdentity.preserveIdentityAndEnhance({
+            originalBuffer: personPrepared.buffer,
+            fittedBuffer: resultBuffer,
+            options: {
+              enableFaceLock: true,
+              enableSuperResolution: true,
+              poseAnalysis: job.poseAnalysis || null
+            }
+          });
+          if (faceResult?.enhancedBuffer) {
+            resultBuffer = faceResult.enhancedBuffer;
+            job.faceIdentityTelemetry = faceResult.telemetry;
+          }
+        } catch (faceErr) {
+          console.warn(`[FaceIdentity:SingleItem] Fallback to raw output: ${faceErr.message}`);
+        }
+      }
+
       const resultAsset = await this.storageService.saveImage({
         userId: job.user,
         buffer: resultBuffer,
@@ -1488,6 +1512,26 @@ class TryOnQueueService {
           currentPersonBase64 = nextPrepared.base64;
           currentInputAssetId = savedAsset._id;
         } else {
+          // KD-XX Level 4: Final Face Identity Preservation & Super-Resolution (Full Outfit)
+          if (this.faceIdentity && originalPrepared?.buffer) {
+            try {
+              const faceResult = await this.faceIdentity.preserveIdentityAndEnhance({
+                originalBuffer: originalPrepared.buffer,
+                fittedBuffer: stepOutputBuffer,
+                options: {
+                  enableFaceLock: true,
+                  enableSuperResolution: true,
+                  poseAnalysis: job.poseAnalysis || null
+                }
+              });
+              if (faceResult?.enhancedBuffer) {
+                stepOutputBuffer = faceResult.enhancedBuffer;
+                job.faceIdentityTelemetry = faceResult.telemetry;
+              }
+            } catch (faceErr) {
+              console.warn(`[FaceIdentity:FullOutfit] Fallback: ${faceErr.message}`);
+            }
+          }
           finalResultBuffer = stepOutputBuffer;
           job.resultImageAsset = savedAsset._id;
         }

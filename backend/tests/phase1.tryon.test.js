@@ -419,11 +419,15 @@ describe('KD-XX Virtual Try-On Phase 1 — Core Hardening & Provider Architectur
     assert.equal(String(job.creditLot), String(lot._id));
 
     await queue.processNextJobs();
-    await new Promise(r => setTimeout(r, 40));
+    let done = null;
+    for (let poll = 0; poll < 10; poll++) {
+      await new Promise(r => setTimeout(r, 40));
+      done = await TryOnJob.findById(job._id);
+      if (done && done.status === 'COMPLETED') break;
+    }
 
-    const done = await TryOnJob.findById(job._id);
     assert.equal(predictCalls, 1);
-    assert.equal(done.status, 'COMPLETED');
+    assert.equal(done?.status, 'COMPLETED');
     assert.ok(done.resultImageAsset);
     assert.equal(lot.remainingAmount, 4);
     assert.equal(lot.reservedAmount, 0);
