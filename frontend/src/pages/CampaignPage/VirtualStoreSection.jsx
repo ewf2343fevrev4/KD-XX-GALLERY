@@ -1847,7 +1847,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const womenGroup = new THREE.Group();
     scene.add(womenGroup);
 
-    // Women's Neon Sign on upper right wall
+    // Women's Neon Sign on upper right wall (Flush against back wall)
     const womenSignTex = createNeonSignTexture({
       title: "WOMEN'S",
       subtitle: 'LUXURY RUNWAY & DRESSES',
@@ -1858,8 +1858,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       new THREE.PlaneGeometry(2.9, 1.08),
       new THREE.MeshBasicMaterial({ map: womenSignTex, transparent: true })
     );
-    womenSign.position.set(4.85, 4.15, -3.7);
-    womenSign.rotation.y = -0.18;
+    womenSign.position.set(4.85, 4.15, -3.95);
+    womenSign.rotation.y = 0; // Flat and straight on the back wall
     womenGroup.add(womenSign);
 
     // Women's Sleek Clothing Rack 1 (Foreground right)
@@ -1930,7 +1930,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     womenMannequin.rotation.y = -0.35;
     womenGroup.add(womenMannequin);
 
-    // ── Load Luxury Dior Pool Window Display Installation on Right Wall ──
+    // ── Load Luxury Dior Pool Window Display Installation on Back Wall ──
     gltfLoader.load(
       '/models/display/dior_pool_window.glb',
       (gltf) => {
@@ -1940,25 +1940,85 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
+
             if (child.material) {
               child.material.side = THREE.DoubleSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
                 child.material.map.needsUpdate = true;
               }
-              // Enhance gold / metal materials in the display (like Dior logo and ladder)
-              if (
-                child.material.name &&
-                (child.material.name.toLowerCase().includes('jinshu') ||
-                  child.material.name.toLowerCase().includes('logo'))
+
+              const matName = (child.material.name || '').toLowerCase();
+              const meshName = (child.name || '').toLowerCase();
+
+              // 1. Underwater water volume body (Mesh_0.002 / Material_0.005)
+              if (matName.includes('material_0.005') || meshName.includes('mesh_0.002')) {
+                child.material.transparent = true;
+                child.material.opacity = 0.65;
+                child.material.depthWrite = false;
+                child.material.color = new THREE.Color('#0ea5e9'); // Vibrant crystal cyan
+                child.material.emissive = new THREE.Color('#0284c7');
+                child.material.emissiveIntensity = 0.35;
+                child.material.roughness = 0.1;
+                child.material.metalness = 0.1;
+                child.renderOrder = 5;
+              }
+              // 2. Top water surface meniscus / waterline wave (Mesh_0.001 / Material_0.001)
+              else if (matName.includes('material_0.001') || meshName.includes('mesh_0.001')) {
+                child.material.transparent = true;
+                child.material.opacity = 0.88;
+                child.material.depthWrite = false;
+                child.material.color = new THREE.Color('#38bdf8');
+                child.material.emissive = new THREE.Color('#7dd3fc');
+                child.material.emissiveIntensity = 0.45;
+                child.material.roughness = 0.05;
+                child.material.metalness = 0.15;
+                child.renderOrder = 6;
+              }
+              // 3. Front water caustics / ripple distortion glass sheet (Mesh_0, Mesh_1 / Material_0)
+              else if (
+                matName === 'material_0' ||
+                meshName === 'mesh_0' ||
+                meshName === 'mesh_1'
               ) {
+                child.material.transparent = true;
+                child.material.opacity = 0.75;
+                child.material.depthWrite = false;
+                child.material.color = new THREE.Color('#bae6fd');
+                child.material.roughness = 0.08;
+                child.material.metalness = 0.2;
+                child.renderOrder = 7;
+              }
+              // 4. Pool tile interior & stairs (dior_qian1, dior_neili01)
+              else if (matName.includes('dior_qian') || matName.includes('dior_neili')) {
+                child.material.color = new THREE.Color('#0284c7');
+                child.material.roughness = 0.25;
+                child.material.metalness = 0.15;
+                child.renderOrder = 0;
+              }
+              // 5. Metallic Gold Logo, ladder and details (Dior letters, jinshu, etc.)
+              else if (
+                matName.includes('jinshu') ||
+                matName.includes('logo') ||
+                matName === 'material_0.003' ||
+                matName.includes('材质.003') ||
+                meshName.includes('path24') ||
+                meshName.includes('path25')
+              ) {
+                child.material.color = new THREE.Color('#fbbf24');
                 child.material.metalness = 0.95;
                 child.material.roughness = 0.15;
-                child.material.envMapIntensity = 2.8;
+                child.material.envMapIntensity = 3.0;
+                child.renderOrder = 1;
               }
-              // Transparent water & glass layers
-              if (child.material.transparent || child.material.opacity < 1) {
-                child.material.depthWrite = true;
+              // 6. Generic transparent meshes (hair, lashes, trim)
+              else if (child.material.transparent || child.material.opacity < 1) {
+                child.material.depthWrite = false;
+                child.renderOrder = 2;
+              }
+              // 7. Generic opaque meshes
+              else {
+                child.renderOrder = 0;
               }
             }
           }
@@ -1984,19 +2044,21 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         poolModel.position.set(-center.x, -box.min.y, -center.z);
         windowWrapper.add(poolModel);
 
-        // Scale to fit the wall bay beautifully (~2.88m height, ~2.8m width)
-        const targetHeight = 2.88;
+        // Scale to fit the back wall bay beautifully (~3.10m height, ~3.01m width)
+        const targetHeight = 3.10;
         const scaleVal = targetHeight / (size.y || 1);
         windowWrapper.scale.setScalar(scaleVal);
 
-        // Position on the right wall behind the women's clothing rack
-        const windowPos = { x: 5.75, y: 0.08, z: -2.45 };
+        // Position straight & flat against the back brick wall behind the women's section:
+        // Centered between steel pillars at x=3.1 and x=6.6 (x=4.85).
+        // Back wall is at z = -4.20; display depth is ~1.28m; z=-3.48 puts back edge flush at z=-4.12.
+        const windowPos = { x: 4.85, y: 0.08, z: -3.48 };
         windowWrapper.position.set(windowPos.x, windowPos.y, windowPos.z);
-        windowWrapper.rotation.y = -0.38; // Angled flush with boutique wall and facing camera
+        windowWrapper.rotation.y = 0; // Flat and straight on the back wall
 
-        // Architectural foundation plinth under the window display
+        // Architectural foundation plinth under the window display (straight)
         const foundationPlinth = new THREE.Mesh(
-          new THREE.BoxGeometry(3.1, 0.08, 1.35),
+          new THREE.BoxGeometry(3.22, 0.08, 1.42),
           new THREE.MeshStandardMaterial({
             color: '#12101c',
             roughness: 0.35,
@@ -2004,30 +2066,35 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           })
         );
         foundationPlinth.position.set(windowPos.x, 0.04, windowPos.z);
-        foundationPlinth.rotation.y = -0.38;
+        foundationPlinth.rotation.y = 0; // Straight
         foundationPlinth.receiveShadow = true;
         womenGroup.add(foundationPlinth);
 
-        // Subtle glowing cyan neon strip along the bottom base
+        // Subtle glowing cyan neon strip along the bottom front edge
         const baseNeonStrip = new THREE.Mesh(
-          new THREE.BoxGeometry(3.12, 0.02, 0.04),
+          new THREE.BoxGeometry(3.24, 0.02, 0.04),
           new THREE.MeshBasicMaterial({ color: '#38bdf8' })
         );
-        baseNeonStrip.position.set(0, 0.04, 0.68);
+        baseNeonStrip.position.set(0, 0.04, 0.71);
         foundationPlinth.add(baseNeonStrip);
 
         // Dedicated Atmospheric Lighting for the Pool Window:
-        // 1. Turquoise / Aquamarine Pool Water Interior Radiance
-        const poolWaterGlow = new THREE.PointLight('#38bdf8', 4.8, 6.5);
-        poolWaterGlow.position.set(windowPos.x - 0.2, 1.4, windowPos.z + 0.3);
+        // 1. Deep Turquoise / Aquamarine Pool Water Radiance from within
+        const poolWaterGlow = new THREE.PointLight('#38bdf8', 5.5, 7.5);
+        poolWaterGlow.position.set(windowPos.x, 1.35, windowPos.z + 0.3);
         womenGroup.add(poolWaterGlow);
 
         // 2. Warm Gold Downlight on the Dior Logo and Swimming-Suit Mannequin
-        const logoDownlight = new THREE.SpotLight('#fef08a', 5.0, 7, Math.PI / 4, 0.45);
-        logoDownlight.position.set(windowPos.x - 0.4, 3.6, windowPos.z + 1.2);
+        const logoDownlight = new THREE.SpotLight('#fef08a', 4.8, 8, Math.PI / 4, 0.45);
+        logoDownlight.position.set(windowPos.x, 4.2, windowPos.z + 1.2);
         logoDownlight.target.position.set(windowPos.x, 2.2, windowPos.z);
         womenGroup.add(logoDownlight);
         womenGroup.add(logoDownlight.target);
+
+        // 3. Pool caustics front fill light
+        const poolFrontFill = new THREE.PointLight('#0284c7', 3.5, 6.0);
+        poolFrontFill.position.set(windowPos.x, 1.6, windowPos.z + 0.9);
+        womenGroup.add(poolFrontFill);
 
         womenGroup.add(windowWrapper);
       },
