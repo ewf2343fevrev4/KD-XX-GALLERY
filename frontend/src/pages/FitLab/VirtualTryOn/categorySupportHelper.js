@@ -132,10 +132,15 @@ export function evaluateFrontendCategorySupport(product, categoryMatrix = []) {
   if (Array.isArray(categoryMatrix) && categoryMatrix.length > 0) {
     const match = categoryMatrix.find((m) => m.key === categoryKey);
     if (match) {
+      const isFootwearAllowed = match.key === 'footwear' && match.allowSubmit;
       return {
         ...match,
         categoryKey: match.key,
-        displayStatus: match.status
+        status: isFootwearAllowed ? 'VERIFIED' : match.status,
+        displayStatus: isFootwearAllowed ? 'VERIFIED' : match.status,
+        reason: isFootwearAllowed
+          ? 'Hỗ trợ thử giày cao cấp qua Feet ROI Zoom & Local Footwear Fidelity Enhancer.'
+          : match.reason
       };
     }
   }

@@ -1066,7 +1066,26 @@ class TryOnQueueService {
       });
 
       // 5. Save result image to private storage
-      const resultBuffer = Buffer.from(tryOnResult.resultBase64, 'base64');
+      let resultBuffer = Buffer.from(tryOnResult.resultBase64, 'base64');
+
+      // KD-XX Level 3.5: Feet ROI Zoom & Local Footwear Fidelity Enhancement for Single Item
+      const isFootwearJob = job.productSnapshot?.normalizedDomain === 'footwear' ||
+        ['shoes', 'footwear', 'sneakers', 'boots', 'loafers', 'sandals'].includes(String(job.category || '').toLowerCase());
+      if (isFootwearJob && this.footwearEnhancer) {
+        try {
+          const enhancedResult = await this.footwearEnhancer.enhanceFootwearFidelity({
+            fullBodyBuffer: personPrepared.buffer || resultBuffer,
+            stepResultBuffer: resultBuffer,
+            productBuffer,
+            poseAnalysis: job.poseAnalysis || null
+          });
+          if (enhancedResult?.enhancedBuffer) {
+            resultBuffer = enhancedResult.enhancedBuffer;
+          }
+        } catch (enhanceErr) {
+          console.warn(`[FootwearEnhancer:SingleItem] Fallback to raw output: ${enhanceErr.message}`);
+        }
+      }
       const resultAsset = await this.storageService.saveImage({
         userId: job.user,
         buffer: resultBuffer,

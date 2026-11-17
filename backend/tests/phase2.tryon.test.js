@@ -924,9 +924,13 @@ describe('KD-XX Virtual Try-On Phase 2 — Product Intelligence & Catalog Integr
     assert.equal(job.productSnapshot.verificationStatus, 'VERIFIED');
 
     await queue.processNextJobs();
-    await new Promise(r => setTimeout(r, 40));
-    const finished = await TryOnJob.findById(job._id);
-    assert.equal(finished.status, 'COMPLETED');
+    let finished = null;
+    for (let poll = 0; poll < 10; poll++) {
+      await new Promise(r => setTimeout(r, 40));
+      finished = await TryOnJob.findById(job._id);
+      if (finished && finished.status === 'COMPLETED') break;
+    }
+    assert.equal(finished?.status, 'COMPLETED');
     assert.equal(predictCalls, 1);
   });
 
