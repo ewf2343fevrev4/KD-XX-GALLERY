@@ -10,8 +10,8 @@ const CAMERA_PRESETS = {
     lookAt: new THREE.Vector3(0, 1.85, -1.6),
   },
   men: {
-    pos: new THREE.Vector3(-3.35, 2.15, 2.25),
-    lookAt: new THREE.Vector3(-4.9, 1.95, -1.65),
+    pos: new THREE.Vector3(-3.0, 2.05, 2.85),
+    lookAt: new THREE.Vector3(-3.35, 1.65, -1.25),
   },
   center: {
     pos: new THREE.Vector3(0, 2.15, 2.35),
@@ -1514,42 +1514,104 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
-              child.material.roughness = Math.min(child.material.roughness || 0.5, 0.65);
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = THREE.MathUtils.clamp(
+                child.material.roughness ?? 0.45,
+                0.2,
+                0.6
+              );
+              child.material.metalness = THREE.MathUtils.clamp(
+                child.material.metalness ?? 0.35,
+                0.2,
+                0.65
+              );
+              child.material.needsUpdate = true;
             }
           }
         });
 
         // Compute exact bounding box
+        userModel.updateMatrixWorld(true);
         const box = new THREE.Box3().setFromObject(userModel);
         const size = new THREE.Vector3();
         box.getSize(size);
         const center = new THREE.Vector3();
         box.getCenter(center);
 
+        console.log('✅ AI 3D Mannequin loaded successfully:', {
+          size: { x: size.x.toFixed(3), y: size.y.toFixed(3), z: size.z.toFixed(3) },
+          center: { x: center.x.toFixed(3), y: center.y.toFixed(3), z: center.z.toFixed(3) },
+        });
+
+        // 1. Mannequin wrapper group
         const mannequinWrapper = new THREE.Group();
+        mannequinWrapper.name = 'userMannequinWrapper';
 
         // Center on X and Z, align bottom to Y = 0
-        userModel.position.x = -center.x;
-        userModel.position.z = -center.z;
-        userModel.position.y = -box.min.y;
+        userModel.position.set(-center.x, -box.min.y, -center.z);
+        mannequinWrapper.add(userModel);
 
         // Scale to realistic human mannequin height (~1.82m)
         const targetHeight = 1.82;
         const scaleVal = targetHeight / (size.y || 1);
         mannequinWrapper.scale.setScalar(scaleVal);
 
-        // Position in the Men's section corner (replacing procedural cylinder mannequin)
-        mannequinWrapper.position.set(-2.3, 0, -1.05);
+        // Elevate slightly to sit on podium (podium height = 0.08m)
+        mannequinWrapper.position.set(-2.3, 0.08, -1.05);
         mannequinWrapper.rotation.y = 0.35;
 
-        // Dedicated subtle spotlight for the user mannequin
-        const mannequinSpot = new THREE.SpotLight(0xa855f7, 3.5, 8, Math.PI / 4, 0.45);
-        mannequinSpot.position.set(-2.0, 3.6, 1.2);
+        // 2. Dedicated Atelier Podium underneath the AI Mannequin
+        const podiumGroup = new THREE.Group();
+        podiumGroup.position.set(-2.3, 0, -1.05);
+
+        const podiumBase = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.52, 0.58, 0.08, 32),
+          new THREE.MeshStandardMaterial({
+            color: '#13111c',
+            roughness: 0.35,
+            metalness: 0.75,
+          })
+        );
+        podiumBase.position.y = 0.04;
+        podiumBase.receiveShadow = true;
+        podiumGroup.add(podiumBase);
+
+        // Chrome beveled ring
+        const chromeRim = new THREE.Mesh(
+          new THREE.TorusGeometry(0.52, 0.015, 12, 32),
+          chromeMat
+        );
+        chromeRim.rotation.x = Math.PI / 2;
+        chromeRim.position.y = 0.08;
+        podiumGroup.add(chromeRim);
+
+        // Subtle neon halo glow at base
+        const haloRing = new THREE.Mesh(
+          new THREE.TorusGeometry(0.55, 0.012, 12, 32),
+          new THREE.MeshBasicMaterial({ color: '#38bdf8' })
+        );
+        haloRing.rotation.x = Math.PI / 2;
+        haloRing.position.y = 0.015;
+        podiumGroup.add(haloRing);
+
+        menGroup.add(podiumGroup);
+
+        // 3. Dedicated warm spotlight on AI mannequin
+        const mannequinSpot = new THREE.SpotLight(0xfff5ea, 5.0, 10, Math.PI / 4, 0.35);
+        mannequinSpot.position.set(-1.8, 3.8, 1.4);
         mannequinSpot.target.position.set(-2.3, 1.2, -1.05);
         menGroup.add(mannequinSpot);
         menGroup.add(mannequinSpot.target);
 
-        // Replace the procedural placeholder with the user's real AI mannequin
+        // Cyan accent rim light from back-left
+        const rimLight = new THREE.PointLight(0x38bdf8, 2.5, 6);
+        rimLight.position.set(-3.2, 2.2, -1.8);
+        menGroup.add(rimLight);
+
+        // Replace the procedural placeholder with the real user AI mannequin
         menGroup.remove(menMannequin);
         menGroup.add(mannequinWrapper);
       },
