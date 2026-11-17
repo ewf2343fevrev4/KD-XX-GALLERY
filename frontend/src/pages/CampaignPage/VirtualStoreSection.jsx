@@ -1554,43 +1554,45 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         userModel.position.set(-center.x, -box.min.y, -center.z);
         mannequinWrapper.add(userModel);
 
-        // Scale to realistic human mannequin height (~1.82m)
-        const targetHeight = 1.82;
+        // Scale to taller, imposing statuary flex mannequin height (~2.28m)
+        const targetHeight = 2.28;
         const scaleVal = targetHeight / (size.y || 1);
         mannequinWrapper.scale.setScalar(scaleVal);
 
-        // Elevate slightly to sit on podium (podium height = 0.08m)
-        mannequinWrapper.position.set(-2.3, 0.08, -1.05);
-        mannequinWrapper.rotation.y = 0.35;
+        // Position in the left foreground (near empty wall / AI fitting room area)
+        // Creating cinematic depth of field (Foreground -> Midground racks -> Background walls)
+        const flexPos = { x: -4.5, y: 0.09, z: 0.9 };
+        mannequinWrapper.position.set(flexPos.x, flexPos.y, flexPos.z);
+        mannequinWrapper.rotation.y = 0.55; // Angle inward toward the boutique interior
 
-        // 2. Dedicated Atelier Podium underneath the AI Mannequin
+        // 2. Dedicated Luxury Atelier Podium underneath the Flex AI Mannequin
         const podiumGroup = new THREE.Group();
-        podiumGroup.position.set(-2.3, 0, -1.05);
+        podiumGroup.position.set(flexPos.x, 0, flexPos.z);
 
         const podiumBase = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.52, 0.58, 0.08, 32),
+          new THREE.CylinderGeometry(0.58, 0.66, 0.09, 32),
           new THREE.MeshStandardMaterial({
             color: '#13111c',
             roughness: 0.35,
             metalness: 0.75,
           })
         );
-        podiumBase.position.y = 0.04;
+        podiumBase.position.y = 0.045;
         podiumBase.receiveShadow = true;
         podiumGroup.add(podiumBase);
 
         // Chrome beveled ring
         const chromeRim = new THREE.Mesh(
-          new THREE.TorusGeometry(0.52, 0.015, 12, 32),
+          new THREE.TorusGeometry(0.58, 0.018, 12, 32),
           chromeMat
         );
         chromeRim.rotation.x = Math.PI / 2;
-        chromeRim.position.y = 0.08;
+        chromeRim.position.y = 0.09;
         podiumGroup.add(chromeRim);
 
-        // Subtle neon halo glow at base
+        // Subtle neon halo glow at base (Cyan neon ring)
         const haloRing = new THREE.Mesh(
-          new THREE.TorusGeometry(0.55, 0.012, 12, 32),
+          new THREE.TorusGeometry(0.62, 0.014, 12, 32),
           new THREE.MeshBasicMaterial({ color: '#38bdf8' })
         );
         haloRing.rotation.x = Math.PI / 2;
@@ -1599,20 +1601,19 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         menGroup.add(podiumGroup);
 
-        // 3. Dedicated warm spotlight on AI mannequin
-        const mannequinSpot = new THREE.SpotLight(0xfff5ea, 5.0, 10, Math.PI / 4, 0.35);
-        mannequinSpot.position.set(-1.8, 3.8, 1.4);
-        mannequinSpot.target.position.set(-2.3, 1.2, -1.05);
+        // 3. Dedicated warm spotlight on Flex AI mannequin
+        const mannequinSpot = new THREE.SpotLight(0xfff5ea, 6.0, 12, Math.PI / 4, 0.35);
+        mannequinSpot.position.set(-3.5, 4.5, 2.2);
+        mannequinSpot.target.position.set(flexPos.x, 1.4, flexPos.z);
         menGroup.add(mannequinSpot);
         menGroup.add(mannequinSpot.target);
 
         // Cyan accent rim light from back-left
-        const rimLight = new THREE.PointLight(0x38bdf8, 2.5, 6);
-        rimLight.position.set(-3.2, 2.2, -1.8);
+        const rimLight = new THREE.PointLight(0x38bdf8, 3.2, 7);
+        rimLight.position.set(-5.6, 2.6, 0.0);
         menGroup.add(rimLight);
 
-        // Replace the procedural placeholder with the real user AI mannequin
-        menGroup.remove(menMannequin);
+        // Add the flex AI mannequin into the scene while keeping the main men's display mannequin
         menGroup.add(mannequinWrapper);
       },
       undefined,
