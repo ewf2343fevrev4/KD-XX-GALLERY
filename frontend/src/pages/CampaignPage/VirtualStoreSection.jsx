@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './VirtualStoreSection.css';
 
 // ── Camera presets inside the single 3D boutique scene ──
@@ -1488,7 +1489,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
     menGroup.add(menRackGroup);
 
-    // Styled Men's Display Mannequin on Chrome Stand
+    // Styled Men's Display Mannequin on Chrome Stand (Placeholder while user GLB loads)
     const menMannequin = createMannequin({
       gender: 'men',
       outfitColor: '#111827',
@@ -1499,6 +1500,64 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     menMannequin.position.set(-2.3, 0, -1.05);
     menMannequin.rotation.y = 0.35;
     menGroup.add(menMannequin);
+
+    // ── Load User's AI-Generated 3D Mannequin Model ──
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load(
+      '/models/mannequin/mannequin_dorad.glb',
+      (gltf) => {
+        const userModel = gltf.scene;
+
+        userModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              child.material.roughness = Math.min(child.material.roughness || 0.5, 0.65);
+            }
+          }
+        });
+
+        // Compute exact bounding box
+        const box = new THREE.Box3().setFromObject(userModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const mannequinWrapper = new THREE.Group();
+
+        // Center on X and Z, align bottom to Y = 0
+        userModel.position.x = -center.x;
+        userModel.position.z = -center.z;
+        userModel.position.y = -box.min.y;
+
+        // Scale to realistic human mannequin height (~1.82m)
+        const targetHeight = 1.82;
+        const scaleVal = targetHeight / (size.y || 1);
+        mannequinWrapper.scale.setScalar(scaleVal);
+
+        // Position in the Men's section corner (replacing procedural cylinder mannequin)
+        mannequinWrapper.position.set(-2.3, 0, -1.05);
+        mannequinWrapper.rotation.y = 0.35;
+
+        // Dedicated subtle spotlight for the user mannequin
+        const mannequinSpot = new THREE.SpotLight(0xa855f7, 3.5, 8, Math.PI / 4, 0.45);
+        mannequinSpot.position.set(-2.0, 3.6, 1.2);
+        mannequinSpot.target.position.set(-2.3, 1.2, -1.05);
+        menGroup.add(mannequinSpot);
+        menGroup.add(mannequinSpot.target);
+
+        // Replace the procedural placeholder with the user's real AI mannequin
+        menGroup.remove(menMannequin);
+        menGroup.add(mannequinWrapper);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load user mannequin GLB:', err);
+      }
+    );
 
     // ── 5. CENTER AREA: MIX & MATCH STYLING TABLE ──
     const centerGroup = new THREE.Group();
