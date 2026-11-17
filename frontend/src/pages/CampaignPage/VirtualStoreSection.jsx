@@ -28,7 +28,7 @@ const CAMERA_PRESETS = {
 const HOTSPOT_ANCHORS = {
   men: new THREE.Vector3(-4.55, 3.05, -1.3),
   center: new THREE.Vector3(0, 2.55, -0.7),
-  women: new THREE.Vector3(4.85, 2.85, -1.8),
+  women: new THREE.Vector3(4.85, 4.05, -2.2),
 };
 
 // ── Procedural Brick Texture Generator ──
@@ -1848,7 +1848,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const womenGroup = new THREE.Group();
     scene.add(womenGroup);
 
-    // Women's Neon Sign mounted on the angled right wall (Tường chéo bên phải)
+    // Women's Neon Sign mounted flush on the angled right wall (Tường chéo bên phải)
     const womenSignTex = createNeonSignTexture({
       title: "WOMEN'S",
       subtitle: 'LUXURY RUNWAY & DRESSES',
@@ -1856,17 +1856,17 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       secondaryColor: '#c084fc',
     });
     const womenSign = new THREE.Mesh(
-      new THREE.PlaneGeometry(3.0, 1.12),
+      new THREE.PlaneGeometry(2.9, 1.08),
       new THREE.MeshBasicMaterial({ map: womenSignTex, transparent: true })
     );
-    // Mounted elegantly on the angled right brick wall
-    womenSign.position.set(6.95, 4.15, -2.25);
-    womenSign.rotation.y = -Math.PI / 2.7; // ~ -1.16 rad (-66.7 deg), flush with angled right wall facing camera
+    // Positioned exactly 3.5cm proud of rightWall at lx = -2.0, completely flush with the angled brick wall
+    womenSign.position.set(7.102, 4.15, -2.437);
+    womenSign.rotation.y = -Math.PI / 2.35; // EXACT angle of rightWall so it sits 100% flush!
     womenGroup.add(womenSign);
 
     // Soft pink neon ambient glow on the angled right wall around the sign
-    const womenSignGlow = new THREE.PointLight('#f472b6', 2.8, 4.5);
-    womenSignGlow.position.set(6.65, 4.15, -2.05);
+    const womenSignGlow = new THREE.PointLight('#f472b6', 2.2, 4.0);
+    womenSignGlow.position.set(6.85, 4.15, -2.35);
     womenGroup.add(womenSignGlow);
 
     // ── Load Luxury Dior Pool Window Display Installation on Back Wall ──
@@ -1893,23 +1893,23 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
               // 1. Underwater water volume body (Mesh_0.002 / Material_0.005)
               if (matName.includes('material_0.005') || meshName.includes('mesh_0.002')) {
                 child.material.transparent = true;
-                child.material.opacity = 0.65;
+                child.material.opacity = 0.42; // Deep clarity without milky fog
                 child.material.depthWrite = false;
-                child.material.color = new THREE.Color('#0ea5e9'); // Vibrant crystal cyan
-                child.material.emissive = new THREE.Color('#0284c7');
-                child.material.emissiveIntensity = 0.35;
-                child.material.roughness = 0.1;
+                child.material.color = new THREE.Color('#0284c7'); // Rich, deep Mediterranean azure
+                child.material.emissive = new THREE.Color('#0369a1');
+                child.material.emissiveIntensity = 0.08; // Subtle internal aquatic glow, preserving contrast
+                child.material.roughness = 0.12;
                 child.material.metalness = 0.1;
                 child.renderOrder = 5;
               }
               // 2. Top water surface meniscus / waterline wave (Mesh_0.001 / Material_0.001)
               else if (matName.includes('material_0.001') || meshName.includes('mesh_0.001')) {
                 child.material.transparent = true;
-                child.material.opacity = 0.88;
+                child.material.opacity = 0.82;
                 child.material.depthWrite = false;
-                child.material.color = new THREE.Color('#38bdf8');
-                child.material.emissive = new THREE.Color('#7dd3fc');
-                child.material.emissiveIntensity = 0.45;
+                child.material.color = new THREE.Color('#0ea5e9');
+                child.material.emissive = new THREE.Color('#38bdf8');
+                child.material.emissiveIntensity = 0.18; // Sharp and defined waterline without glare
                 child.material.roughness = 0.05;
                 child.material.metalness = 0.15;
                 child.renderOrder = 6;
@@ -1921,16 +1921,23 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
                 meshName === 'mesh_1'
               ) {
                 child.material.transparent = true;
-                child.material.opacity = 0.75;
+                child.material.opacity = 0.22; // Delicate water refractions: crystal clear so inside is 100% sharp!
                 child.material.depthWrite = false;
-                child.material.color = new THREE.Color('#bae6fd');
-                child.material.roughness = 0.08;
-                child.material.metalness = 0.2;
+                child.material.color = new THREE.Color('#38bdf8'); // Clear aqua caustics
+                child.material.roughness = 0.1;
+                child.material.metalness = 0.1;
                 child.renderOrder = 7;
               }
               // 4. Pool tile interior & stairs (dior_qian1, dior_neili01)
-              else if (matName.includes('dior_qian') || matName.includes('dior_neili')) {
-                child.material.color = new THREE.Color('#0284c7');
+              else if (matName.includes('dior_neili')) {
+                // High-resolution pool tile texture: keep white multiplier for 100% sharpness & contrast
+                child.material.color = new THREE.Color('#ffffff');
+                child.material.roughness = 0.22;
+                child.material.metalness = 0.1;
+                child.renderOrder = 0;
+              }
+              else if (matName.includes('dior_qian')) {
+                child.material.color = new THREE.Color('#0369a1'); // Deep saturated Mediterranean pool blue
                 child.material.roughness = 0.25;
                 child.material.metalness = 0.15;
                 child.renderOrder = 0;
@@ -1944,10 +1951,10 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
                 meshName.includes('path24') ||
                 meshName.includes('path25')
               ) {
-                child.material.color = new THREE.Color('#fbbf24');
+                child.material.color = new THREE.Color('#eab308'); // Rich warm luxury gold
                 child.material.metalness = 0.95;
                 child.material.roughness = 0.15;
-                child.material.envMapIntensity = 3.0;
+                child.material.envMapIntensity = 2.5;
                 child.renderOrder = 1;
               }
               // 6. Generic transparent meshes (hair, lashes, trim)
@@ -2017,21 +2024,21 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         baseNeonStrip.position.set(0, 0.04, 0.71);
         foundationPlinth.add(baseNeonStrip);
 
-        // Dedicated Atmospheric Lighting for the Pool Window:
-        // 1. Deep Turquoise / Aquamarine Pool Water Radiance from within
-        const poolWaterGlow = new THREE.PointLight('#38bdf8', 5.5, 7.5);
+        // Dedicated Atmospheric Lighting for the Pool Window (Balanced to avoid bleaching/over-exposure):
+        // 1. Deep Turquoise Pool Water Radiance from within
+        const poolWaterGlow = new THREE.PointLight('#0284c7', 1.8, 5.0);
         poolWaterGlow.position.set(windowPos.x, 1.35, windowPos.z + 0.3);
         womenGroup.add(poolWaterGlow);
 
-        // 2. Warm Gold Downlight on the Dior Logo and Swimming-Suit Mannequin
-        const logoDownlight = new THREE.SpotLight('#fef08a', 4.8, 8, Math.PI / 4, 0.45);
+        // 2. Focused Gold Downlight on the Dior Logo and Swimming-Suit Mannequin
+        const logoDownlight = new THREE.SpotLight('#fef08a', 2.4, 6.0, Math.PI / 4, 0.45);
         logoDownlight.position.set(windowPos.x, 4.2, windowPos.z + 1.2);
         logoDownlight.target.position.set(windowPos.x, 2.2, windowPos.z);
         womenGroup.add(logoDownlight);
         womenGroup.add(logoDownlight.target);
 
-        // 3. Pool caustics front fill light
-        const poolFrontFill = new THREE.PointLight('#0284c7', 3.5, 6.0);
+        // 3. Subtle Pool caustics front fill light
+        const poolFrontFill = new THREE.PointLight('#0369a1', 0.8, 3.5);
         poolFrontFill.position.set(windowPos.x, 1.6, windowPos.z + 0.9);
         womenGroup.add(poolFrontFill);
 
