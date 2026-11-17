@@ -19,8 +19,8 @@ const CAMERA_PRESETS = {
     lookAt: new THREE.Vector3(0, 1.45, -1.1),
   },
   women: {
-    pos: new THREE.Vector3(3.35, 2.15, 2.25),
-    lookAt: new THREE.Vector3(4.9, 1.95, -1.65),
+    pos: new THREE.Vector3(3.0, 2.05, 2.85),
+    lookAt: new THREE.Vector3(3.35, 1.65, -1.25),
   },
 };
 
@@ -1987,6 +1987,117 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       handle.rotation.y = -0.4;
       womenGroup.add(handle);
     });
+
+    // ── Load User's AI-Generated 3D Female Mannequin Model (Mirrored on Right Side) ──
+    gltfLoader.load(
+      '/models/mannequin/mannequin_female.glb',
+      (gltf) => {
+        const femaleModel = gltf.scene;
+
+        femaleModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
+                child.material.map.needsUpdate = true;
+              }
+
+              // PBR map auto-multiplication:
+              // Metallic-Roughness texture: Blue channel = 1.0 on gold, 0.0 on white. Green channel = ~0.05 on gold, ~0.05 on white.
+              child.material.metalness = 1.0;
+              child.material.roughness = 0.85;
+              child.material.envMapIntensity = 2.6; // Reflects neutral studio environment
+              child.material.emissive.set('#000000');
+              child.material.needsUpdate = true;
+            }
+          }
+        });
+
+        // Compute exact bounding box
+        femaleModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(femaleModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        console.log('✅ AI 3D Female Mannequin loaded successfully:', {
+          size: { x: size.x.toFixed(3), y: size.y.toFixed(3), z: size.z.toFixed(3) },
+          center: { x: center.x.toFixed(3), y: center.y.toFixed(3), z: center.z.toFixed(3) },
+        });
+
+        // 1. Female mannequin wrapper group
+        const femaleWrapper = new THREE.Group();
+        femaleWrapper.name = 'userFemaleMannequinWrapper';
+
+        // Center on X and Z, align bottom to Y = 0
+        femaleModel.position.set(-center.x, -box.min.y, -center.z);
+        femaleWrapper.add(femaleModel);
+
+        // Scale to towering, imposing statuary flex mannequin height (~2.65m)
+        const targetHeight = 2.65;
+        const scaleVal = targetHeight / (size.y || 1);
+        femaleWrapper.scale.setScalar(scaleVal);
+
+        // Position in the right foreground (symmetrically mirroring the male statue on the left)
+        const flexPosFemale = { x: 4.5, y: 0.05, z: 0.9 };
+        femaleWrapper.position.set(flexPosFemale.x, flexPosFemale.y, flexPosFemale.z);
+        femaleWrapper.rotation.y = -0.55; // Mirrored angle inward toward boutique interior
+
+        // 2. Clean, Minimalist Gallery Podium (Sleek dark titanium with chrome trim)
+        const podiumGroupFemale = new THREE.Group();
+        podiumGroupFemale.position.set(flexPosFemale.x, 0, flexPosFemale.z);
+
+        const podiumBase = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.58, 0.64, 0.05, 32),
+          new THREE.MeshStandardMaterial({
+            color: '#14121d',
+            roughness: 0.4,
+            metalness: 0.7,
+          })
+        );
+        podiumBase.position.y = 0.025;
+        podiumBase.receiveShadow = true;
+        podiumGroupFemale.add(podiumBase);
+
+        // Top chrome beveled rim
+        const chromeRim = new THREE.Mesh(
+          new THREE.TorusGeometry(0.58, 0.014, 12, 32),
+          chromeMat
+        );
+        chromeRim.rotation.x = Math.PI / 2;
+        chromeRim.position.y = 0.05;
+        podiumGroupFemale.add(chromeRim);
+
+        womenGroup.add(podiumGroupFemale);
+
+        // 3. Studio High-Contrast Lighting Rig (Mirrored Key, Fill, and Rim)
+        const keyLightFemale = new THREE.SpotLight(0xffffff, 7.5, 18, Math.PI / 4, 0.35);
+        keyLightFemale.position.set(3.1, 4.8, 2.7);
+        keyLightFemale.target.position.set(flexPosFemale.x, 1.5, flexPosFemale.z);
+        keyLightFemale.castShadow = true;
+        womenGroup.add(keyLightFemale);
+        womenGroup.add(keyLightFemale.target);
+
+        const fillLightFemale = new THREE.PointLight(0xf1f5f9, 2.8, 9);
+        fillLightFemale.position.set(5.8, 2.8, 2.0);
+        womenGroup.add(fillLightFemale);
+
+        const rimLightFemale = new THREE.PointLight(0xe2e8f0, 3.2, 8);
+        rimLightFemale.position.set(5.4, 3.5, -0.6);
+        womenGroup.add(rimLightFemale);
+
+        // Add the flex AI female mannequin into the scene while keeping the main women's display mannequin
+        womenGroup.add(femaleWrapper);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load user female mannequin GLB:', err);
+      }
+    );
 
     // ── 7. Raycast Hitboxes for Direct 3D Clicking & Hovering ──
     const hitboxMat = new THREE.MeshBasicMaterial({
