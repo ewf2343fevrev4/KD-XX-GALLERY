@@ -1930,63 +1930,112 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     womenMannequin.rotation.y = -0.35;
     womenGroup.add(womenMannequin);
 
-    // Women's Backlit Boutique Mirror & Accessory Pedestals on Right Wall
-    const mirrorGroup = new THREE.Group();
-    mirrorGroup.position.set(5.75, 1.95, -2.55);
-    mirrorGroup.rotation.y = -0.35;
+    // ── Load Luxury Dior Pool Window Display Installation on Right Wall ──
+    gltfLoader.load(
+      '/models/display/dior_pool_window.glb',
+      (gltf) => {
+        const poolModel = gltf.scene;
 
-    const mirrorNeonRim = new THREE.Mesh(
-      new THREE.BoxGeometry(1.55, 3.15, 0.06),
-      ledPinkMat
+        poolModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
+                child.material.map.needsUpdate = true;
+              }
+              // Enhance gold / metal materials in the display (like Dior logo and ladder)
+              if (
+                child.material.name &&
+                (child.material.name.toLowerCase().includes('jinshu') ||
+                  child.material.name.toLowerCase().includes('logo'))
+              ) {
+                child.material.metalness = 0.95;
+                child.material.roughness = 0.15;
+                child.material.envMapIntensity = 2.8;
+              }
+              // Transparent water & glass layers
+              if (child.material.transparent || child.material.opacity < 1) {
+                child.material.depthWrite = true;
+              }
+            }
+          }
+        });
+
+        // Compute exact bounding box and center
+        poolModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(poolModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        console.log('✅ Dior Pool Window Display loaded successfully:', {
+          size: { x: size.x.toFixed(3), y: size.y.toFixed(3), z: size.z.toFixed(3) },
+          center: { x: center.x.toFixed(3), y: center.y.toFixed(3), z: center.z.toFixed(3) },
+        });
+
+        const windowWrapper = new THREE.Group();
+        windowWrapper.name = 'diorPoolWindowWrapper';
+
+        // Center on X and Z, align bottom to Y = 0
+        poolModel.position.set(-center.x, -box.min.y, -center.z);
+        windowWrapper.add(poolModel);
+
+        // Scale to fit the wall bay beautifully (~2.88m height, ~2.8m width)
+        const targetHeight = 2.88;
+        const scaleVal = targetHeight / (size.y || 1);
+        windowWrapper.scale.setScalar(scaleVal);
+
+        // Position on the right wall behind the women's clothing rack
+        const windowPos = { x: 5.75, y: 0.08, z: -2.45 };
+        windowWrapper.position.set(windowPos.x, windowPos.y, windowPos.z);
+        windowWrapper.rotation.y = -0.38; // Angled flush with boutique wall and facing camera
+
+        // Architectural foundation plinth under the window display
+        const foundationPlinth = new THREE.Mesh(
+          new THREE.BoxGeometry(3.1, 0.08, 1.35),
+          new THREE.MeshStandardMaterial({
+            color: '#12101c',
+            roughness: 0.35,
+            metalness: 0.8,
+          })
+        );
+        foundationPlinth.position.set(windowPos.x, 0.04, windowPos.z);
+        foundationPlinth.rotation.y = -0.38;
+        foundationPlinth.receiveShadow = true;
+        womenGroup.add(foundationPlinth);
+
+        // Subtle glowing cyan neon strip along the bottom base
+        const baseNeonStrip = new THREE.Mesh(
+          new THREE.BoxGeometry(3.12, 0.02, 0.04),
+          new THREE.MeshBasicMaterial({ color: '#38bdf8' })
+        );
+        baseNeonStrip.position.set(0, 0.04, 0.68);
+        foundationPlinth.add(baseNeonStrip);
+
+        // Dedicated Atmospheric Lighting for the Pool Window:
+        // 1. Turquoise / Aquamarine Pool Water Interior Radiance
+        const poolWaterGlow = new THREE.PointLight('#38bdf8', 4.8, 6.5);
+        poolWaterGlow.position.set(windowPos.x - 0.2, 1.4, windowPos.z + 0.3);
+        womenGroup.add(poolWaterGlow);
+
+        // 2. Warm Gold Downlight on the Dior Logo and Swimming-Suit Mannequin
+        const logoDownlight = new THREE.SpotLight('#fef08a', 5.0, 7, Math.PI / 4, 0.45);
+        logoDownlight.position.set(windowPos.x - 0.4, 3.6, windowPos.z + 1.2);
+        logoDownlight.target.position.set(windowPos.x, 2.2, windowPos.z);
+        womenGroup.add(logoDownlight);
+        womenGroup.add(logoDownlight.target);
+
+        womenGroup.add(windowWrapper);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load Dior Pool Window GLB:', err);
+      }
     );
-    mirrorGroup.add(mirrorNeonRim);
-
-    const mirrorSurface = new THREE.Mesh(
-      new THREE.BoxGeometry(1.42, 3.02, 0.09),
-      new THREE.MeshStandardMaterial({
-        color: '#e2e8f0',
-        roughness: 0.05,
-        metalness: 0.96,
-      })
-    );
-    mirrorSurface.position.z = 0.02;
-    mirrorGroup.add(mirrorSurface);
-    womenGroup.add(mirrorGroup);
-
-    // Two Luxury Handbag Display Plinths
-    [
-      { x: 4.9, z: -0.65, h: 0.95, bagColor: '#f472b6' },
-      { x: 5.45, z: -1.25, h: 1.2, bagColor: '#f8fafc' },
-    ].forEach((ped) => {
-      const plinth = new THREE.Mesh(
-        new THREE.BoxGeometry(0.46, ped.h, 0.46),
-        marbleMat
-      );
-      plinth.position.set(ped.x, ped.h / 2, ped.z);
-      plinth.castShadow = true;
-      womenGroup.add(plinth);
-
-      // Structured handbag on plinth
-      const bag = new THREE.Mesh(
-        new THREE.BoxGeometry(0.26, 0.22, 0.14),
-        new THREE.MeshStandardMaterial({
-          color: ped.bagColor,
-          roughness: 0.3,
-          metalness: 0.2,
-        })
-      );
-      bag.position.set(ped.x, ped.h + 0.11, ped.z);
-      bag.rotation.y = -0.4;
-      womenGroup.add(bag);
-
-      const handle = new THREE.Mesh(
-        new THREE.TorusGeometry(0.065, 0.012, 8, 16, Math.PI),
-        chromeMat
-      );
-      handle.position.set(ped.x, ped.h + 0.22, ped.z);
-      handle.rotation.y = -0.4;
-      womenGroup.add(handle);
-    });
 
     // ── Load User's AI-Generated 3D Female Mannequin Model (Mirrored on Right Side) ──
     gltfLoader.load(
