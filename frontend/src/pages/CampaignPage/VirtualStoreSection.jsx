@@ -28,7 +28,7 @@ const CAMERA_PRESETS = {
 const HOTSPOT_ANCHORS = {
   men: new THREE.Vector3(-4.55, 3.05, -1.3),
   center: new THREE.Vector3(0, 2.55, -0.7),
-  women: new THREE.Vector3(4.85, 4.05, -2.2),
+  women: new THREE.Vector3(3.95, 3.85, -2.2),
 };
 
 // ── Procedural Brick Texture Generator ──
