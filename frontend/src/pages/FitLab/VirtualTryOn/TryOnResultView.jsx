@@ -10,47 +10,9 @@ import {
   Copy,
   Info,
   ChevronDown,
-  ChevronUp,
-  Gem,
-  Loader2
+  ChevronUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import apiService from '../../../services/api';
-
-const VIP_ACCESSORY_PRESETS = [
-  {
-    name: 'Classic MA Sunglasses',
-    slot: 'Kính Râm',
-    category: 'accessories',
-    subCategory: 'sunglasses',
-    icon: '🕶️',
-    anchorDesc: 'Căn chỉnh sống mũi & tròng kính UV'
-  },
-  {
-    name: 'Bandana Leather Bag',
-    slot: 'Túi Da',
-    category: 'accessories',
-    subCategory: 'bags',
-    icon: '👜',
-    anchorDesc: 'Đeo chéo ngang hông tự nhiên'
-  },
-  {
-    name: 'MA Leather Belt',
-    slot: 'Thắt Lưng',
-    category: 'accessories',
-    subCategory: 'belts',
-    icon: '⛓️',
-    anchorDesc: 'Khóa logo kim loại ôm cạp quần'
-  },
-  {
-    name: 'AMIRI Script Logo Hat',
-    slot: 'Mũ Lưỡi Trai',
-    category: 'accessories',
-    subCategory: 'hats',
-    icon: '🧢',
-    anchorDesc: 'Vòm mũ ôm đỉnh đầu chuẩn phom'
-  }
-];
 
 export default function TryOnResultView({
   originalPhotoUrl,
@@ -75,39 +37,11 @@ export default function TryOnResultView({
   const [showMetricsDetails, setShowMetricsDetails] = useState(false);
   const [copied, setCopied] = useState(false);
   const [currentResultUrl, setCurrentResultUrl] = useState(resultPhotoUrl);
-  const [isStacking, setIsStacking] = useState(false);
-  const [stackSuccess, setStackSuccess] = useState('');
-  const [stackedList, setStackedList] = useState(Array.isArray(stackedAccessories) ? stackedAccessories : []);
   const navigate = useNavigate();
 
   useEffect(() => {
     setCurrentResultUrl(resultPhotoUrl);
   }, [resultPhotoUrl]);
-
-  const handleStackAccessory = async (preset) => {
-    setIsStacking(true);
-    setStackSuccess('');
-    try {
-      const token = localStorage.getItem('token');
-      if (jobId && token) {
-        // Find matching product in catalog or send preset
-        const res = await apiService.stackTryOnAccessory(token, jobId, preset.id || preset.name);
-        if (res?.data?.resultPreviewUrl) {
-          setCurrentResultUrl(res.data.resultPreviewUrl);
-        }
-      }
-      setStackedList((prev) => [...prev, { productName: preset.name, slot: preset.slot }]);
-      setStackSuccess(`Đã phối ${preset.slot} (${preset.name}) lên ảnh kết quả thành công!`);
-      setTimeout(() => setStackSuccess(''), 4000);
-    } catch (e) {
-      // Graceful fallback for preview / offline demo
-      setStackedList((prev) => [...prev, { productName: preset.name, slot: preset.slot }]);
-      setStackSuccess(`Đã phối ${preset.slot} (${preset.name}) lên ảnh kết quả!`);
-      setTimeout(() => setStackSuccess(''), 4000);
-    } finally {
-      setIsStacking(false);
-    }
-  };
 
   const handleDownload = async () => {
     try {
@@ -424,88 +358,6 @@ export default function TryOnResultView({
         </div>
       )}
 
-      {/* KD-XX Level 6: Luxury Anatomical Accessory Stacking Engine */}
-      <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-900/80 via-purple-950/30 to-slate-900/80 border border-purple-500/20" data-testid="vto-level6-accessory-stacker">
-        <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-400/30 flex items-center justify-center text-indigo-300">
-              <Gem size={16} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider m-0">
-                  Phối Thêm Phụ Kiện Xa Xỉ (KD-XX VIP Level 6)
-                </h4>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                  Anatomical Anchor AI
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-400 m-0">
-                Ướm kính mát, túi da, thắt lưng trực tiếp lên phom người chuẩn xác theo giải phẫu học mà không bị mờ méo logo.
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => navigate('/fit-lab?mode=canvas')}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-900/40 hover:bg-purple-800/60 text-purple-200 border border-purple-500/30 text-xs transition-colors"
-          >
-            <Sparkles size={13} />
-            <span>Mở Trên Canvas Studio</span>
-          </button>
-        </div>
-
-        {/* Quick Accessory Presets */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 my-2">
-          {VIP_ACCESSORY_PRESETS.map((acc, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => handleStackAccessory(acc)}
-              disabled={isStacking}
-              className="p-2.5 rounded-xl bg-black/40 hover:bg-purple-950/40 border border-white/10 hover:border-purple-500/40 text-left transition-all group flex flex-col justify-between"
-            >
-              <div className="flex items-center justify-between text-[11px] text-slate-400 mb-1">
-                <span>{acc.icon}</span>
-                <span className="text-[9px] uppercase tracking-wider text-purple-400 font-bold">{acc.slot}</span>
-              </div>
-              <div className="text-xs font-semibold text-white group-hover:text-purple-200 truncate">
-                {acc.name}
-              </div>
-              <div className="text-[10px] text-slate-400 mt-1">
-                {acc.anchorDesc}
-              </div>
-            </button>
-          ))}
-        </div>
-
-        {isStacking && (
-          <div className="flex items-center gap-2 mt-2 text-xs text-purple-300">
-            <Loader2 size={13} className="animate-spin" />
-            <span>Đang căn chỉnh điểm neo giải phẫu & ướm phụ kiện lên ảnh...</span>
-          </div>
-        )}
-
-        {stackSuccess && (
-          <div className="flex items-center gap-1.5 mt-2 text-xs text-emerald-400" data-testid="vto-stack-success">
-            <Check size={13} />
-            <span>{stackSuccess}</span>
-          </div>
-        )}
-
-        {stackedList.length > 0 && (
-          <div className="flex items-center flex-wrap gap-1.5 mt-2 pt-2 border-t border-white/5">
-            <span className="text-[10px] text-slate-400">Đã phối trên ảnh:</span>
-            {stackedList.map((item, i) => (
-              <span key={i} className="text-[10px] px-2 py-0.5 rounded-md bg-purple-950/60 text-purple-300 border border-purple-500/20">
-                ✓ {item.productName || item.name}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-
       {/* Action Toolbar */}
       <div className="vto-result-actions-bar">
         <div className="vto-result-buttons">
@@ -525,6 +377,15 @@ export default function TryOnResultView({
           >
             <RotateCcw size={15} />
             <span>Thử Sản Phẩm Khác</span>
+          </button>
+
+          <button
+            type="button"
+            className="vto-secondary-action-btn"
+            onClick={() => navigate('/fit-lab?mode=canvas')}
+          >
+            <Sparkles size={15} />
+            <span>Mở Trên Canvas Studio</span>
           </button>
 
           {product?._id && (

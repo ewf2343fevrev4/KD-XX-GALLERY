@@ -141,11 +141,7 @@ export default function ProductSelector({
           name.includes('bag') ||
           name.includes('wallet') ||
           name.includes('card holder') ||
-          name.includes('hat') ||
-          name.includes('cap') ||
-          name.includes('keychain') ||
-          name.includes('necklace') ||
-          tags.some(t => t.includes('belt') || t.includes('bag') || t.includes('card') || t.includes('watch') || t.includes('hat') || t.includes('keychain'))
+          tags.some(t => t.includes('belt') || t.includes('bag') || t.includes('card') || t.includes('watch'))
         );
       }
 
@@ -208,7 +204,7 @@ export default function ProductSelector({
       return;
     }
     if (slot === 'ACCESSORIES') {
-      setSlotNotice(`"${prod.name}" là phụ kiện VIP Level 6. Bạn có thể chuyển sang tab Single Item để thử riêng, hoặc ướm nhanh lên bộ đồ ở màn hình Kết quả.`);
+      setSlotNotice(`"${prod.name}" thuộc nhóm Phụ kiện đang bị khóa trong Full Outfit.`);
       return;
     }
     if (slot === 'FOOTWEAR') {
@@ -362,9 +358,9 @@ export default function ProductSelector({
             data-testid="vto-locked-footwear-slot"
             className="px-2.5 py-2 rounded-lg bg-slate-900/70 border border-white/10 text-[11px] text-slate-300 flex items-center gap-2"
           >
-            <Sparkles size={13} className="text-purple-400 shrink-0" />
+            <Lock size={12} className="text-amber-400 shrink-0" />
             <span>
-              <strong>💎 Phụ kiện &amp; Kính râm:</strong> Đã sẵn sàng ở chế độ <strong>Single Item</strong> và ướm thêm ở <strong>Màn hình Kết quả (Level 6 VIP)</strong>. 👟 Giày mở khóa ở Slot 3.
+              <strong>Kính mắt &amp; Phụ kiện:</strong> Đang tạm khóa (chờ tích hợp AI chuyên biệt). 👟 Giày (Footwear) đã mở khóa ở Slot 3.
             </span>
           </div>
 
@@ -594,7 +590,7 @@ export default function ProductSelector({
           ) : selectedSupport?.modelId ? (
             <div className="text-[11px] text-slate-400 pt-0.5">
               AI Provider: <span className="text-slate-200 font-medium">{selectedSupport.providerName || 'Google Cloud'}</span>{' '}
-              (<code className="text-purple-300">{selectedSupport.modelId}</code>) • {classifyFrontendOutfitSlot(selectedProduct) === 'FOOTWEAR' ? '👟 Thử giày cao cấp (Feet ROI Zoom & Local Enhancer)' : ['eyewear', 'sunglasses', 'bags', 'belts', 'hats', 'jewelry', 'wallets', 'keychains', 'accessories', 'other_accessories'].includes(selectedSupport.categoryKey) ? '💎 Ướm phụ kiện giải phẫu chuẩn xác (Level 6 VIP)' : 'Thử 1 sản phẩm trang phục'}
+              (<code className="text-purple-300">{selectedSupport.modelId}</code>) • {classifyFrontendOutfitSlot(selectedProduct) === 'FOOTWEAR' ? '👟 Thử giày cao cấp (Feet ROI Zoom & Local Enhancer)' : 'Thử 1 sản phẩm trang phục'}
             </div>
           ) : activeTaxonomy?.tryOnSupportLevel && activeTaxonomy.tryOnSupportLevel !== 'DIRECT' ? (
             <div className="flex items-start gap-2 text-[11px] text-amber-200/90 pt-1">

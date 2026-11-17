@@ -107,15 +107,6 @@ export function evaluateFrontendCategorySupport(product, categoryMatrix = []) {
         reason: 'Hỗ trợ thử giày cao cấp qua Feet ROI Zoom & Local Footwear Fidelity Enhancer.'
       };
     }
-    const isAccessoryUnlocked = ['eyewear', 'sunglasses', 'bags', 'belts', 'hats', 'jewelry', 'wallets', 'keychains', 'accessories', 'other_accessories'].includes(cs.categoryKey) && cs.allowSubmit;
-    if (isAccessoryUnlocked) {
-      return {
-        ...cs,
-        status: 'VERIFIED',
-        displayStatus: 'VERIFIED',
-        reason: 'Hỗ trợ thử phụ kiện xa xỉ qua KD-XX VIP Stacking Engine (Level 6).'
-      };
-    }
     return {
       ...cs,
       displayStatus: cs.status
@@ -149,18 +140,14 @@ export function evaluateFrontendCategorySupport(product, categoryMatrix = []) {
   if (Array.isArray(categoryMatrix) && categoryMatrix.length > 0) {
     const match = categoryMatrix.find((m) => m.key === categoryKey);
     if (match) {
-      const isAllowed = match.allowSubmit;
+      const isFootwearAllowed = match.key === 'footwear' && match.allowSubmit;
       return {
         ...match,
         categoryKey: match.key,
-        status: isAllowed ? 'VERIFIED' : match.status,
-        displayStatus: isAllowed ? 'VERIFIED' : match.status,
-        reason: isAllowed
-          ? (match.key === 'footwear'
-            ? 'Hỗ trợ thử giày cao cấp qua Feet ROI Zoom & Local Footwear Fidelity Enhancer.'
-            : ['eyewear', 'bags', 'hats', 'jewelry', 'belts', 'wallets', 'keychains'].includes(match.key)
-              ? 'Hỗ trợ thử phụ kiện xa xỉ qua KD-XX VIP Stacking Engine (Level 6).'
-              : match.reason)
+        status: isFootwearAllowed ? 'VERIFIED' : match.status,
+        displayStatus: isFootwearAllowed ? 'VERIFIED' : match.status,
+        reason: isFootwearAllowed
+          ? 'Hỗ trợ thử giày cao cấp qua Feet ROI Zoom & Local Footwear Fidelity Enhancer.'
           : match.reason
       };
     }
@@ -195,7 +182,7 @@ export function evaluateFrontendCategorySupport(product, categoryMatrix = []) {
       status: 'NOT_CONFIGURED',
       displayStatus: 'NOT_CONFIGURED',
       allowSubmit: false,
-      reason: product.taxonomy?.supportReason || 'Kính mắt (Eyewear) cần AI provider định vị khuôn mặt chuyên biệt (hiện chưa cấu hình).'
+      reason: product.taxonomy?.supportReason || 'Kính mắt (Eyewear) đang tạm khóa — chờ tích hợp AI model 3D AR chuyên biệt.'
     };
   }
 
@@ -204,7 +191,7 @@ export function evaluateFrontendCategorySupport(product, categoryMatrix = []) {
     status: 'UNSUPPORTED',
     displayStatus: 'UNSUPPORTED',
     allowSubmit: false,
-    reason: product.taxonomy?.supportReason || 'Phụ kiện này chưa có AI Try-On provider được xác minh.'
+    reason: product.taxonomy?.supportReason || 'Phụ kiện xa xỉ (Trang sức, Túi, Thắt lưng) đang tạm khóa — chờ tích hợp AI model 3D chuyên biệt.'
   };
 }
 
