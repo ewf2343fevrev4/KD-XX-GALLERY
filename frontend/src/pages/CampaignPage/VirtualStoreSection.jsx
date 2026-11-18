@@ -1883,6 +1883,158 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     womenSignGlow.position.set(6.95, 4.88, -1.95);
     womenGroup.add(womenSignGlow);
 
+    // ── Floating 3-Tier Luxury Glass Shelf Mounted on Angled Right Wall ──
+    const shelfGroup = new THREE.Group();
+    shelfGroup.name = 'rightWallGlassShelfGroup';
+    shelfGroup.position.set(7.50, 2.15, -0.90);
+    shelfGroup.rotation.y = -Math.PI / 2.35; // Flush with angled right wall
+
+    // Architectural Ultra-Clear Tempered Glass Material
+    const luxuryGlassMat = new THREE.MeshPhysicalMaterial({
+      color: '#f8fafc',
+      transparent: true,
+      opacity: 0.48,
+      roughness: 0.08,
+      metalness: 0.12,
+      transmission: 0.88,
+      ior: 1.52,
+      reflectivity: 0.92,
+      thickness: 0.025,
+      envMapIntensity: 2.2,
+    });
+
+    // Dark Titanium / Polished Chrome Rail Material
+    const shelfFrameMat = new THREE.MeshStandardMaterial({
+      color: '#27272a',
+      roughness: 0.22,
+      metalness: 0.92,
+    });
+
+    const shelfWidth = 2.0; // 2.0m wide display span
+    const shelfDepth = 0.42; // 42cm deep for bags, shoes, perfume bottles
+    const shelfThick = 0.022; // 2.2cm thick beveled glass
+    const tierYPositions = [-0.52, 0.0, 0.52]; // 3 Tiers (Bottom: 1.63m, Mid: 2.15m, Top: 2.67m)
+
+    // 1. Two Vertical Architectural Wall Rails (Wall Uprights)
+    [-0.72, 0.72].forEach((xPos) => {
+      // Main vertical mounting track
+      const upright = new THREE.Mesh(
+        new THREE.BoxGeometry(0.035, 1.38, 0.035),
+        shelfFrameMat
+      );
+      upright.position.set(xPos, 0, 0.025);
+      upright.castShadow = true;
+      upright.receiveShadow = true;
+      shelfGroup.add(upright);
+
+      // Top and bottom chrome standoff mounting bosses
+      [-0.67, 0.67].forEach((yPos) => {
+        const boss = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.024, 0.024, 0.03, 16),
+          chromeMat
+        );
+        boss.rotation.x = Math.PI / 2;
+        boss.position.set(xPos, yPos, 0.015);
+        shelfGroup.add(boss);
+      });
+    });
+
+    // 2. Three Cantilevered Tempered Glass Shelves with Built-in Under-Shelf LED Strips
+    tierYPositions.forEach((yPos, tierIdx) => {
+      // Tempered glass shelf slab
+      const glassShelf = new THREE.Mesh(
+        new THREE.BoxGeometry(shelfWidth, shelfThick, shelfDepth),
+        luxuryGlassMat
+      );
+      glassShelf.position.set(0, yPos, shelfDepth / 2 + 0.025);
+      glassShelf.castShadow = true;
+      glassShelf.receiveShadow = true;
+      shelfGroup.add(glassShelf);
+
+      // Polished chrome front edge trim highlight
+      const frontTrim = new THREE.Mesh(
+        new THREE.BoxGeometry(shelfWidth + 0.005, 0.006, 0.008),
+        chromeMat
+      );
+      frontTrim.position.set(0, yPos, shelfDepth + 0.027);
+      shelfGroup.add(frontTrim);
+
+      // Architectural Cantilever Support Arms (under the glass)
+      [-0.72, 0.72].forEach((xPos) => {
+        const bracket = new THREE.Mesh(
+          new THREE.BoxGeometry(0.028, 0.028, shelfDepth - 0.04),
+          shelfFrameMat
+        );
+        bracket.position.set(
+          xPos,
+          yPos - shelfThick / 2 - 0.014,
+          shelfDepth / 2 + 0.025
+        );
+        bracket.castShadow = true;
+        shelfGroup.add(bracket);
+      });
+
+      // Concealed Luxury LED light strip beneath the rear of each glass shelf
+      const shelfLed = new THREE.Mesh(
+        new THREE.BoxGeometry(shelfWidth - 0.08, 0.01, 0.018),
+        new THREE.MeshBasicMaterial({ color: '#fbcfe8' })
+      );
+      shelfLed.position.set(0, yPos - shelfThick / 2, 0.035);
+      shelfGroup.add(shelfLed);
+
+      // Minimalist luxury display pedestals / velvet riser blocks on each shelf
+      // (Ready for user .glb products to be placed on top!)
+      [-0.55, 0, 0.55].forEach((slotX, slotIdx) => {
+        const slotGroup = new THREE.Group();
+        slotGroup.name = `shelfSlot_tier${tierIdx + 1}_pos${slotIdx + 1}`;
+        slotGroup.position.set(slotX, yPos + shelfThick / 2, shelfDepth / 2 + 0.025);
+
+        // Sleek velvet display riser block (adds luxury gallery depth)
+        const riser = new THREE.Mesh(
+          new THREE.BoxGeometry(0.24, 0.016, 0.22),
+          new THREE.MeshStandardMaterial({
+            color: '#181524',
+            roughness: 0.8,
+            metalness: 0.1,
+          })
+        );
+        riser.position.y = 0.008;
+        riser.receiveShadow = true;
+        slotGroup.add(riser);
+
+        // Polished chrome base border on the riser
+        const riserRim = new THREE.Mesh(
+          new THREE.BoxGeometry(0.246, 0.004, 0.226),
+          chromeMat
+        );
+        riserRim.position.y = 0.002;
+        slotGroup.add(riserRim);
+
+        shelfGroup.add(slotGroup);
+      });
+    });
+
+    // 3. Dedicated Gallery Lighting for the 3-Tier Shelf Unit
+    // Overhead focused spotlight highlighting products on the glass tiers
+    const shelfSpotlight = new THREE.SpotLight(
+      '#ffffff',
+      4.2,
+      7.5,
+      Math.PI / 3.6,
+      0.35
+    );
+    shelfSpotlight.position.set(0, 1.8, 0.95);
+    shelfSpotlight.target.position.set(0, 0, 0.25);
+    shelfGroup.add(shelfSpotlight);
+    shelfGroup.add(shelfSpotlight.target);
+
+    // Warm rose/pink ambient fill light for Parisian haute couture display mood
+    const shelfGlow = new THREE.PointLight('#f472b6', 2.0, 4.2);
+    shelfGlow.position.set(0, 0.1, 0.55);
+    shelfGroup.add(shelfGlow);
+
+    womenGroup.add(shelfGroup);
+
     // ── Load Luxury Dior SS24 Paris Runway Window Display on Back Wall ──
     let showcaseMixer = null;
     gltfLoader.load(
