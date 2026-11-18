@@ -1886,7 +1886,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     // ── Floating 3-Tier Luxury Glass Shelf Mounted on Angled Right Wall ──
     const shelfGroup = new THREE.Group();
     shelfGroup.name = 'rightWallGlassShelfGroup';
-    shelfGroup.position.set(7.50, 2.15, -0.90);
+    shelfGroup.position.set(7.45, 2.15, -1.10);
     shelfGroup.rotation.y = -Math.PI / 2.35; // Flush with angled right wall
 
     // Architectural Ultra-Clear Tempered Glass Material
@@ -1910,13 +1910,13 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       metalness: 0.92,
     });
 
-    const shelfWidth = 2.0; // 2.0m wide display span
+    const shelfWidth = 3.0; // Extended to 3.0m wide grand luxury display span
     const shelfDepth = 0.42; // 42cm deep for bags, shoes, perfume bottles
     const shelfThick = 0.022; // 2.2cm thick beveled glass
     const tierYPositions = [-0.52, 0.0, 0.52]; // 3 Tiers (Bottom: 1.63m, Mid: 2.15m, Top: 2.67m)
 
-    // 1. Two Vertical Architectural Wall Rails (Wall Uprights)
-    [-0.72, 0.72].forEach((xPos) => {
+    // 1. Three Vertical Architectural Wall Rails (Left, Center, Right Uprights)
+    [-1.15, 0.0, 1.15].forEach((xPos) => {
       // Main vertical mounting track
       const upright = new THREE.Mesh(
         new THREE.BoxGeometry(0.035, 1.38, 0.035),
@@ -1959,8 +1959,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       frontTrim.position.set(0, yPos, shelfDepth + 0.027);
       shelfGroup.add(frontTrim);
 
-      // Architectural Cantilever Support Arms (under the glass)
-      [-0.72, 0.72].forEach((xPos) => {
+      // Architectural Cantilever Support Arms (3 arms per tier under the glass)
+      [-1.15, 0.0, 1.15].forEach((xPos) => {
         const bracket = new THREE.Mesh(
           new THREE.BoxGeometry(0.028, 0.028, shelfDepth - 0.04),
           shelfFrameMat
@@ -1983,8 +1983,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       shelfGroup.add(shelfLed);
 
       // Minimalist luxury display pedestals / velvet riser blocks on each shelf
-      // (Ready for user .glb products to be placed on top!)
-      [-0.55, 0, 0.55].forEach((slotX, slotIdx) => {
+      // 4 Display Slots per tier = 12 total dedicated display spots for user .glb products!
+      [-1.12, -0.38, 0.38, 1.12].forEach((slotX, slotIdx) => {
         const slotGroup = new THREE.Group();
         slotGroup.name = `shelfSlot_tier${tierIdx + 1}_pos${slotIdx + 1}`;
         slotGroup.position.set(slotX, yPos + shelfThick / 2, shelfDepth / 2 + 0.025);
@@ -2014,22 +2014,24 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       });
     });
 
-    // 3. Dedicated Gallery Lighting for the 3-Tier Shelf Unit
-    // Overhead focused spotlight highlighting products on the glass tiers
-    const shelfSpotlight = new THREE.SpotLight(
-      '#ffffff',
-      4.2,
-      7.5,
-      Math.PI / 3.6,
-      0.35
-    );
-    shelfSpotlight.position.set(0, 1.8, 0.95);
-    shelfSpotlight.target.position.set(0, 0, 0.25);
-    shelfGroup.add(shelfSpotlight);
-    shelfGroup.add(shelfSpotlight.target);
+    // 3. Dedicated Gallery Lighting for the 3.0m Wide Shelf Unit
+    // Dual overhead focused spotlights evenly illuminating the 3.0m span
+    [-0.75, 0.75].forEach((spX) => {
+      const shelfSpotlight = new THREE.SpotLight(
+        '#ffffff',
+        3.5,
+        8.0,
+        Math.PI / 3.4,
+        0.35
+      );
+      shelfSpotlight.position.set(spX, 1.8, 0.95);
+      shelfSpotlight.target.position.set(spX, 0, 0.25);
+      shelfGroup.add(shelfSpotlight);
+      shelfGroup.add(shelfSpotlight.target);
+    });
 
     // Warm rose/pink ambient fill light for Parisian haute couture display mood
-    const shelfGlow = new THREE.PointLight('#f472b6', 2.0, 4.2);
+    const shelfGlow = new THREE.PointLight('#f472b6', 2.4, 4.8);
     shelfGlow.position.set(0, 0.1, 0.55);
     shelfGroup.add(shelfGlow);
 
