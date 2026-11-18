@@ -1994,11 +1994,11 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         windowWrapper.add(ss24Model);
 
         // Scale:
-        // Width: Left edge aligns with left black steel pillar (x = 3.26), right edge touches angled right wall (x ~ 6.84)
-        // Total width = 6.84 - 3.26 = 3.58m (expands seamlessly to right wall)
-        const targetWidth = 3.58;
-        const scaleX = targetWidth / (size.x || 1); // ~2.07
-        const scaleY = scaleX; // Proportional majestic height: ~3.78m tall
+        // Width: Left edge aligns snugly against left steel pillar (x = 3.02), right edge touches angled right wall (x ~ 6.84)
+        // Total width = 6.84 - 3.02 = 3.82m (expands seamlessly to both column and right wall)
+        const targetWidth = 3.82;
+        const scaleX = targetWidth / (size.x || 1); // ~2.21
+        const scaleY = scaleX; // Proportional majestic height: ~4.04m tall
 
         // Depth: Shifted forward to clear black pillar (back at z = -3.78) and front extending forward to z = -0.38
         const targetDepth = 3.40;
@@ -2006,14 +2006,14 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         windowWrapper.scale.set(scaleX, scaleY, scaleZ);
 
         // Position:
-        // Centered between x = 3.26 (pillar right face) and x = 6.84 (right wall) -> x = 5.05
-        // Shifted forward to z = -3.78 so it never collides or gets covered by the black pillar!
-        const showcasePos = { x: 5.05, y: 0.04, z: -3.78 };
+        // Centered between left pillar (x = 3.02) and right wall (x = 6.84) -> x = 4.93
+        // Shifted left so its left edge is completely flush against the left column with 0 gap!
+        const showcasePos = { x: 4.93, y: 0.04, z: -3.78 };
         windowWrapper.position.set(showcasePos.x, showcasePos.y, showcasePos.z);
         windowWrapper.rotation.y = 0; // Straight and flat on the back wall
 
         // Architectural foundation plinth at the base extending with the platform
-        const plinthWidth = targetWidth + 0.08; // 3.66m
+        const plinthWidth = targetWidth + 0.08; // 3.90m
         const plinthDepth = targetDepth + 0.08; // 3.48m
         const foundationPlinth = new THREE.Mesh(
           new THREE.BoxGeometry(plinthWidth, 0.05, plinthDepth),
