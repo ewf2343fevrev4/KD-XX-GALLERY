@@ -1576,10 +1576,10 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const scaleVal = targetHeight / (size.y || 1);
         mannequinWrapper.scale.setScalar(scaleVal);
 
-        // Position in the left foreground (near empty wall / AI fitting room area)
-        const flexPos = { x: -4.5, y: 0.05, z: 0.9 };
+        // Position in the left foreground (balanced symmetrically, moved forward and spread to left)
+        const flexPos = { x: -5.2, y: 0.05, z: 1.7 };
         mannequinWrapper.position.set(flexPos.x, flexPos.y, flexPos.z);
-        mannequinWrapper.rotation.y = 0.55; // Angle inward toward the boutique interior
+        mannequinWrapper.rotation.y = 0.58; // Elegant inward angle toward the center styling table
 
         // 2. Clean, Minimalist Gallery Podium (Sleek dark titanium with chrome trim)
         const podiumGroup = new THREE.Group();
@@ -1611,7 +1611,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         // 3. Studio High-Contrast Lighting Rig (Crisp Key Light, Soft Fill, Clean Rim)
         // Main Studio Key Light (Casts crisp highlights on the gold head and white body)
         const keyLight = new THREE.SpotLight(0xffffff, 7.5, 18, Math.PI / 4, 0.35);
-        keyLight.position.set(-3.1, 4.8, 2.7);
+        keyLight.position.set(-3.6, 5.0, 3.4);
         keyLight.target.position.set(flexPos.x, 1.5, flexPos.z);
         keyLight.castShadow = true;
         menGroup.add(keyLight);
@@ -1619,12 +1619,12 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         // Soft Studio Fill Light (Keeps body shadows smooth and elegant)
         const fillLight = new THREE.PointLight(0xf1f5f9, 2.8, 9);
-        fillLight.position.set(-5.8, 2.8, 2.0);
+        fillLight.position.set(-6.6, 3.0, 2.8);
         menGroup.add(fillLight);
 
         // Studio Rim / Silhouette Light (Outlines the back of shoulders and neck)
         const rimLight = new THREE.PointLight(0xe2e8f0, 3.2, 8);
-        rimLight.position.set(-5.4, 3.5, -0.6);
+        rimLight.position.set(-6.0, 3.6, 0.2);
         menGroup.add(rimLight);
 
         // Add the flex AI mannequin into the scene while keeping the main men's display mannequin
@@ -2131,10 +2131,10 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const scaleVal = targetHeight / (size.y || 1);
         femaleWrapper.scale.setScalar(scaleVal);
 
-        // Position in the right foreground (symmetrically mirroring the male statue on the left)
-        const flexPosFemale = { x: 4.5, y: 0.05, z: 0.9 };
+        // Position in the right foreground (balanced symmetrically, moved forward and spread to right)
+        const flexPosFemale = { x: 5.2, y: 0.05, z: 1.7 };
         femaleWrapper.position.set(flexPosFemale.x, flexPosFemale.y, flexPosFemale.z);
-        femaleWrapper.rotation.y = -0.55; // Mirrored angle inward toward boutique interior
+        femaleWrapper.rotation.y = -0.58; // Mirrored inward angle toward center styling table
 
         // 2. Clean, Minimalist Gallery Podium (Sleek dark titanium with chrome trim)
         const podiumGroupFemale = new THREE.Group();
@@ -2165,18 +2165,18 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         // 3. Studio High-Contrast Lighting Rig (Mirrored Key, Fill, and Rim)
         const keyLightFemale = new THREE.SpotLight(0xffffff, 7.5, 18, Math.PI / 4, 0.35);
-        keyLightFemale.position.set(3.1, 4.8, 2.7);
+        keyLightFemale.position.set(3.6, 5.0, 3.4);
         keyLightFemale.target.position.set(flexPosFemale.x, 1.5, flexPosFemale.z);
         keyLightFemale.castShadow = true;
         womenGroup.add(keyLightFemale);
         womenGroup.add(keyLightFemale.target);
 
         const fillLightFemale = new THREE.PointLight(0xf1f5f9, 2.8, 9);
-        fillLightFemale.position.set(5.8, 2.8, 2.0);
+        fillLightFemale.position.set(6.6, 3.0, 2.8);
         womenGroup.add(fillLightFemale);
 
         const rimLightFemale = new THREE.PointLight(0xe2e8f0, 3.2, 8);
-        rimLightFemale.position.set(5.4, 3.5, -0.6);
+        rimLightFemale.position.set(6.0, 3.6, 0.2);
         womenGroup.add(rimLightFemale);
 
         // Add the flex AI female mannequin into the scene while keeping the main women's display mannequin
