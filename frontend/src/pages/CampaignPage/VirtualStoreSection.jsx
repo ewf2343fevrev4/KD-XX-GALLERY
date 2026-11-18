@@ -1289,12 +1289,50 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     leftWall.receiveShadow = true;
     scene.add(leftWall);
 
-    // Angled right brick wall
-    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 7.5), brickMat);
-    rightWall.position.set(7.6, 3.75, -0.5);
-    rightWall.rotation.y = -Math.PI / 2.35;
-    rightWall.receiveShadow = true;
-    scene.add(rightWall);
+    // Angled right brick wall with architectural aperture for the Dior Perspective Window
+    const rightWallGroup = new THREE.Group();
+    rightWallGroup.position.set(7.6, 3.75, -0.5);
+    rightWallGroup.rotation.y = -Math.PI / 2.35;
+
+    // Helper to generate perfectly continuous wall UVs (mapped 1:1 to 10m x 7.5m wall coordinates)
+    const createSeamlessWallPlane = (w, h, cx, cy) => {
+      const geom = new THREE.PlaneGeometry(w, h);
+      const pos = geom.attributes.position;
+      const uvs = geom.attributes.uv;
+      for (let i = 0; i < pos.count; i++) {
+        const lx = cx + pos.getX(i);
+        const ly = cy + pos.getY(i);
+        const u = (lx + 5.0) / 10.0;
+        const v = (ly + 3.75) / 7.5;
+        uvs.setXY(i, u, v);
+      }
+      uvs.needsUpdate = true;
+      return geom;
+    };
+
+    // Aperture geometry: window at lx = -2.0, width = 2.12m, world y = 0.08 to 3.28m
+    // Total wall span: lx in [-5.0, +5.0], world y in [0, 7.5] (ly in [-3.75, +3.75])
+    const rightWallBack = new THREE.Mesh(createSeamlessWallPlane(1.94, 7.5, -4.03, 0), brickMat);
+    rightWallBack.position.set(-4.03, 0, 0);
+    rightWallBack.receiveShadow = true;
+    rightWallGroup.add(rightWallBack);
+
+    const rightWallFront = new THREE.Mesh(createSeamlessWallPlane(5.94, 7.5, 2.03, 0), brickMat);
+    rightWallFront.position.set(2.03, 0, 0);
+    rightWallFront.receiveShadow = true;
+    rightWallGroup.add(rightWallFront);
+
+    const rightWallTop = new THREE.Mesh(createSeamlessWallPlane(2.12, 4.22, -2.0, 1.64), brickMat);
+    rightWallTop.position.set(-2.0, 1.64, 0);
+    rightWallTop.receiveShadow = true;
+    rightWallGroup.add(rightWallTop);
+
+    const rightWallBase = new THREE.Mesh(createSeamlessWallPlane(2.12, 0.08, -2.0, -3.71), brickMat);
+    rightWallBase.position.set(-2.0, -3.71, 0);
+    rightWallBase.receiveShadow = true;
+    rightWallGroup.add(rightWallBase);
+
+    scene.add(rightWallGroup);
 
     // Industrial steel columns dividing the 3 bays on the back wall
     [-3.1, 3.1, -6.6, 6.6].forEach((xPos) => {
@@ -2050,6 +2088,158 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Load Luxury Metaretail: Dior Perspective Window Display Installation on Right Wall ──
+    gltfLoader.load(
+      '/models/display/dior_perspective_window.glb',
+      (gltf) => {
+        const perspectiveModel = gltf.scene;
+
+        perspectiveModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
+                child.material.map.needsUpdate = true;
+              }
+
+              const matName = (child.material.name || '').toLowerCase();
+              const meshName = (child.name || '').toLowerCase();
+
+              // 0. Hide outer white studio shell (Plane049) so only the window & perspective interior are visible
+              if (meshName.includes('plane049') || matName.includes('material.010')) {
+                child.visible = false;
+                return;
+              }
+
+              // 1. Front protective showcase glass (Plane055 / Material.014)
+              if (meshName.includes('plane055') || matName.includes('material.014')) {
+                child.material.transparent = true;
+                child.material.opacity = 0.22; // Delicate crystal clear glass reflection
+                child.material.depthWrite = false;
+                child.material.roughness = 0.05;
+                child.material.metalness = 0.2;
+                child.material.color = new THREE.Color('#e0f2fe');
+                child.renderOrder = 5;
+              }
+              // 2. Outer architectural titanium window frame (Plane054 / Material.003)
+              else if (meshName.includes('plane054') || matName.includes('material.003')) {
+                child.material.color = new THREE.Color('#334155'); // Luxury dark slate titanium frame
+                child.material.metalness = 0.85;
+                child.material.roughness = 0.25;
+                child.material.envMapIntensity = 2.2;
+                child.renderOrder = 1;
+              }
+              // 3. Metallic Dior logo letters (path2495..path2503 / SVGMat.001)
+              else if (
+                meshName.includes('path24') ||
+                meshName.includes('path25') ||
+                matName.includes('svgmat')
+              ) {
+                child.material.color = new THREE.Color('#eab308'); // Rich warm luxury gold
+                child.material.metalness = 0.95;
+                child.material.roughness = 0.15;
+                child.material.envMapIntensity = 2.5;
+                child.renderOrder = 2;
+              }
+              // 4. Haute couture mannequin in black dress (tripo_material_... / Object_4..7)
+              else if (matName.includes('tripo_material') || meshName.startsWith('object_')) {
+                child.material.roughness = 0.45;
+                child.material.metalness = 0.15;
+                child.material.envMapIntensity = 1.8;
+                child.renderOrder = 0;
+              }
+              // 5. Sky & clouds ceiling (Material.009 / Material.010)
+              else if (matName.includes('material.009') || matName.includes('material.010')) {
+                child.material.roughness = 0.8;
+                child.material.metalness = 0.0;
+                child.material.envMapIntensity = 1.4;
+                child.renderOrder = 0;
+              }
+              // 6. Checkered marble floor & neoclassical arches (Material.001 / Material.007)
+              else if (matName.includes('material.007') || matName.includes('material.001')) {
+                child.material.roughness = 0.22;
+                child.material.metalness = 0.12;
+                child.material.envMapIntensity = 2.0;
+                child.renderOrder = 0;
+              }
+            }
+          }
+        });
+
+        const perspectiveWrapper = new THREE.Group();
+        perspectiveWrapper.name = 'diorPerspectiveWindowWrapper';
+
+        // Center on front frame: frame center is at x=-8.03, bottom is at y=-2.04, front face is at z=1.93
+        perspectiveModel.position.set(8.03, 2.04, -1.93);
+        perspectiveWrapper.add(perspectiveModel);
+
+        // Scale to towering 3.20m height (frame height is 8.82m)
+        const targetHeight = 3.20;
+        const scaleVal = targetHeight / 8.82;
+        perspectiveWrapper.scale.setScalar(scaleVal);
+
+        // Position on the angled right wall directly below the WOMEN'S neon sign
+        // World coordinates for lx = -2.0, lz = 0.015m proud: x = 7.121, y = 0.08, z = -2.441
+        perspectiveWrapper.position.set(7.121, 0.08, -2.441);
+        perspectiveWrapper.rotation.y = -Math.PI / 2.35; // Flush with the angled right wall!
+
+        // Foundation plinth at the base of the perspective window
+        const perspectivePlinth = new THREE.Mesh(
+          new THREE.BoxGeometry(2.26, 0.08, 0.45),
+          new THREE.MeshStandardMaterial({
+            color: '#12101c',
+            roughness: 0.35,
+            metalness: 0.8,
+          })
+        );
+        perspectivePlinth.position.set(7.121, 0.04, -2.441);
+        perspectivePlinth.rotation.y = -Math.PI / 2.35;
+        perspectivePlinth.receiveShadow = true;
+        womenGroup.add(perspectivePlinth);
+
+        // Subtle glowing pink/gold neon strip along the bottom front edge
+        const baseNeonStrip = new THREE.Mesh(
+          new THREE.BoxGeometry(2.28, 0.02, 0.03),
+          new THREE.MeshBasicMaterial({ color: '#f472b6' })
+        );
+        baseNeonStrip.position.set(0, 0.04, 0.22);
+        perspectivePlinth.add(baseNeonStrip);
+
+        // Dedicated Atmospheric Lighting for the Perspective Window:
+        // 1. Natural daylight & sky radiance from high inside the corridor
+        const skyRadiance = new THREE.PointLight('#bae6fd', 2.2, 6.0);
+        skyRadiance.position.set(0, 3.4, -1.8);
+        perspectiveWrapper.add(skyRadiance);
+
+        // 2. Focused spotlight on the Dior couture mannequin in black gown
+        const gownSpotlight = new THREE.SpotLight('#fffbeb', 2.6, 6.0, Math.PI / 3.5, 0.4);
+        gownSpotlight.position.set(0, 3.2, -0.2);
+        gownSpotlight.target.position.set(-0.2, 1.2, -1.2);
+        perspectiveWrapper.add(gownSpotlight);
+        perspectiveWrapper.add(gownSpotlight.target);
+
+        // 3. Warm gold glow on the Dior letters at the bottom left
+        const logoGlow = new THREE.PointLight('#eab308', 1.4, 2.5);
+        logoGlow.position.set(-0.65, 0.45, 0.18);
+        perspectiveWrapper.add(logoGlow);
+
+        womenGroup.add(perspectiveWrapper);
+        console.log('✅ Dior Perspective Window Display loaded successfully');
+      },
+      (xhr) => {
+        if (xhr.total > 0) {
+          console.log(`Perspective GLB: ${Math.round((xhr.loaded / xhr.total) * 100)}%`);
+        }
+      },
+      (err) => {
+        console.warn('Could not load Dior Perspective Window GLB:', err);
+      }
+    );
+
     // ── Load User's AI-Generated 3D Female Mannequin Model (Mirrored on Right Side) ──
     gltfLoader.load(
       '/models/mannequin/mannequin_female.glb',
@@ -2185,10 +2375,10 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     scene.add(centerHitbox);
 
     const womenHitbox = new THREE.Mesh(
-      new THREE.BoxGeometry(3.6, 4.2, 3.2),
+      new THREE.BoxGeometry(5.2, 4.2, 3.6),
       hitboxMat
     );
-    womenHitbox.position.set(4.6, 2.1, -1.8);
+    womenHitbox.position.set(5.3, 2.1, -1.9);
     womenHitbox.userData = { zone: 'women' };
     scene.add(womenHitbox);
 
