@@ -7,7 +7,7 @@ import './VirtualStoreSection.css';
 // ── Camera presets inside the single 3D boutique scene ──
 const CAMERA_PRESETS = {
   overview: {
-    pos: new THREE.Vector3(0, 2.55, 7.6),
+    pos: new THREE.Vector3(0, 2.65, 8.4),
     lookAt: new THREE.Vector3(0, 1.85, -1.6),
   },
   men: {
@@ -28,7 +28,7 @@ const CAMERA_PRESETS = {
 const HOTSPOT_ANCHORS = {
   men: new THREE.Vector3(-4.55, 3.05, -1.3),
   center: new THREE.Vector3(0, 2.55, -0.7),
-  women: new THREE.Vector3(3.95, 3.85, -2.2),
+  women: new THREE.Vector3(4.15, 4.65, -1.8),
 };
 
 // ── Procedural Brick Texture Generator ──
@@ -1203,7 +1203,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     scene.fog = new THREE.FogExp2('#07050c', 0.042);
 
     const camera = new THREE.PerspectiveCamera(
-      50,
+      56,
       container.clientWidth / container.clientHeight,
       0.1,
       50
@@ -1859,14 +1859,14 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       new THREE.PlaneGeometry(2.9, 1.08),
       new THREE.MeshBasicMaterial({ map: womenSignTex, transparent: true })
     );
-    // Positioned exactly 3.5cm proud of rightWall at lx = -2.0, completely flush with the angled brick wall
-    womenSign.position.set(7.102, 4.15, -2.437);
+    // Positioned higher up and advanced slightly along rightWall so it is 100% uncovered by the Dior showcase
+    womenSign.position.set(7.195, 4.88, -2.048);
     womenSign.rotation.y = -Math.PI / 2.35; // EXACT angle of rightWall so it sits 100% flush!
     womenGroup.add(womenSign);
 
     // Soft pink neon ambient glow on the angled right wall around the sign
     const womenSignGlow = new THREE.PointLight('#f472b6', 2.2, 4.0);
-    womenSignGlow.position.set(6.85, 4.15, -2.35);
+    womenSignGlow.position.set(6.95, 4.88, -1.95);
     womenGroup.add(womenSignGlow);
 
     // ── Load Luxury Dior SS24 Paris Runway Window Display on Back Wall ──
