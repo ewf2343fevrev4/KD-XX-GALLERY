@@ -1886,7 +1886,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     // ── Floating 3-Tier Luxury Glass Shelf Mounted on Angled Right Wall ──
     const shelfGroup = new THREE.Group();
     shelfGroup.name = 'rightWallGlassShelfGroup';
-    shelfGroup.position.set(7.45, 2.15, -1.10);
+    // Shifted forward along the wall (ds = +0.55m) into the open, visible foreground
+    shelfGroup.position.set(7.58, 2.15, -0.56);
     shelfGroup.rotation.y = -Math.PI / 2.35; // Flush with angled right wall
 
     // Architectural Ultra-Clear Tempered Glass Material
