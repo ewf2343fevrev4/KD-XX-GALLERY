@@ -1994,11 +1994,11 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         windowWrapper.add(ss24Model);
 
         // Scale:
-        // Width: Left edge aligns 100% seamlessly flush against left steel pillar (x = 2.80), right edge touches angled right wall (x ~ 6.84)
-        // Total width = 6.84 - 2.80 = 4.04m (completely closes the gap, perfectly flush with the column)
-        const targetWidth = 4.04;
-        const scaleX = targetWidth / (size.x || 1); // ~2.34
-        const scaleY = scaleX; // Proportional majestic height: ~4.27m tall
+        // Width: Left edge aligns perfectly flush with left steel pillar without overhanging (x = 2.95), right edge touches angled right wall (x ~ 6.81)
+        // Total width = 3.86m (calibrated to be completely flush with zero gap and zero excess overhang)
+        const targetWidth = 3.86;
+        const scaleX = targetWidth / (size.x || 1); // ~2.23
+        const scaleY = scaleX; // Proportional majestic height: ~4.08m tall (clears the neon sign cleanly)
 
         // Depth: Shifted forward to clear black pillar (back at z = -3.78) and front extending forward to z = -0.38
         const targetDepth = 3.40;
@@ -2006,14 +2006,14 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         windowWrapper.scale.set(scaleX, scaleY, scaleZ);
 
         // Position:
-        // Centered between left pillar (x = 2.80) and right wall (x = 6.84) -> x = 4.82
-        // Shifted left so its left edge is completely seamless and flush against the left column (0 gap)
-        const showcasePos = { x: 4.82, y: 0.04, z: -3.78 };
+        // Centered between left pillar edge (x = 2.95) and right wall (x = 6.81) -> x = 4.88
+        // Shifted inward by 6cm from previous x=4.82 so it sits 100% flush without being "hơi thừa"
+        const showcasePos = { x: 4.88, y: 0.04, z: -3.78 };
         windowWrapper.position.set(showcasePos.x, showcasePos.y, showcasePos.z);
         windowWrapper.rotation.y = 0; // Straight and flat on the back wall
 
         // Architectural foundation plinth at the base extending with the platform
-        const plinthWidth = targetWidth + 0.08; // 4.12m
+        const plinthWidth = targetWidth + 0.08; // 3.94m
         const plinthDepth = targetDepth + 0.08; // 3.48m
         const foundationPlinth = new THREE.Mesh(
           new THREE.BoxGeometry(plinthWidth, 0.05, plinthDepth),
