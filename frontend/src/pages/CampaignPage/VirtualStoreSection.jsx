@@ -1606,6 +1606,20 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         chromeRim.position.y = 0.05;
         podiumGroup.add(chromeRim);
 
+        // Luminous Neon LED Underglow Ring around base (Cyber Cyan / Electric Blue for Men's)
+        const baseNeonRing = new THREE.Mesh(
+          new THREE.TorusGeometry(0.642, 0.016, 12, 48),
+          new THREE.MeshBasicMaterial({ color: '#38bdf8' })
+        );
+        baseNeonRing.rotation.x = Math.PI / 2;
+        baseNeonRing.position.y = 0.012;
+        podiumGroup.add(baseNeonRing);
+
+        // Floor glow pool beneath the podium
+        const baseGlowLight = new THREE.PointLight('#38bdf8', 3.2, 3.2);
+        baseGlowLight.position.set(0, 0.03, 0);
+        podiumGroup.add(baseGlowLight);
+
         menGroup.add(podiumGroup);
 
         // 3. Studio High-Contrast Lighting Rig (Crisp Key Light, Soft Fill, Clean Rim)
@@ -2160,6 +2174,20 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         chromeRim.rotation.x = Math.PI / 2;
         chromeRim.position.y = 0.05;
         podiumGroupFemale.add(chromeRim);
+
+        // Luminous Neon LED Underglow Ring around base (Luxury Neon Pink for Women's)
+        const baseNeonRingFemale = new THREE.Mesh(
+          new THREE.TorusGeometry(0.642, 0.016, 12, 48),
+          new THREE.MeshBasicMaterial({ color: '#f472b6' })
+        );
+        baseNeonRingFemale.rotation.x = Math.PI / 2;
+        baseNeonRingFemale.position.y = 0.012;
+        podiumGroupFemale.add(baseNeonRingFemale);
+
+        // Floor glow pool beneath the podium
+        const baseGlowLightFemale = new THREE.PointLight('#f472b6', 3.2, 3.2);
+        baseGlowLightFemale.position.set(0, 0.03, 0);
+        podiumGroupFemale.add(baseGlowLightFemale);
 
         womenGroup.add(podiumGroupFemale);
 
