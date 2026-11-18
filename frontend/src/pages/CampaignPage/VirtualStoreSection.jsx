@@ -1869,13 +1869,14 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     womenSignGlow.position.set(6.85, 4.15, -2.35);
     womenGroup.add(womenSignGlow);
 
-    // ── Load Luxury Dior Pool Window Display Installation on Back Wall ──
+    // ── Load Luxury Dior SS24 Paris Runway Window Display on Back Wall ──
+    let showcaseMixer = null;
     gltfLoader.load(
-      '/models/display/dior_pool_window.glb',
+      '/models/display/dior_ss24_showcase.glb',
       (gltf) => {
-        const poolModel = gltf.scene;
+        const ss24Model = gltf.scene;
 
-        poolModel.traverse((child) => {
+        ss24Model.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
@@ -1890,163 +1891,191 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
               const matName = (child.material.name || '').toLowerCase();
               const meshName = (child.name || '').toLowerCase();
 
-              // 1. Underwater water volume body (Mesh_0.002 / Material_0.005)
-              if (matName.includes('material_0.005') || meshName.includes('mesh_0.002')) {
-                child.material.transparent = true;
-                child.material.opacity = 0.42; // Deep clarity without milky fog
-                child.material.depthWrite = false;
-                child.material.color = new THREE.Color('#0284c7'); // Rich, deep Mediterranean azure
-                child.material.emissive = new THREE.Color('#0369a1');
-                child.material.emissiveIntensity = 0.08; // Subtle internal aquatic glow, preserving contrast
-                child.material.roughness = 0.12;
-                child.material.metalness = 0.1;
-                child.renderOrder = 5;
-              }
-              // 2. Top water surface meniscus / waterline wave (Mesh_0.001 / Material_0.001)
-              else if (matName.includes('material_0.001') || meshName.includes('mesh_0.001')) {
-                child.material.transparent = true;
-                child.material.opacity = 0.82;
-                child.material.depthWrite = false;
-                child.material.color = new THREE.Color('#0ea5e9');
-                child.material.emissive = new THREE.Color('#38bdf8');
-                child.material.emissiveIntensity = 0.18; // Sharp and defined waterline without glare
-                child.material.roughness = 0.05;
-                child.material.metalness = 0.15;
-                child.renderOrder = 6;
-              }
-              // 3. Front water caustics / ripple distortion glass sheet (Mesh_0, Mesh_1 / Material_0)
-              else if (
-                matName === 'material_0' ||
-                meshName === 'mesh_0' ||
-                meshName === 'mesh_1'
-              ) {
-                child.material.transparent = true;
-                child.material.opacity = 0.22; // Delicate water refractions: crystal clear so inside is 100% sharp!
-                child.material.depthWrite = false;
-                child.material.color = new THREE.Color('#38bdf8'); // Clear aqua caustics
-                child.material.roughness = 0.1;
-                child.material.metalness = 0.1;
-                child.renderOrder = 7;
-              }
-              // 4. Pool tile interior & stairs (dior_qian1, dior_neili01)
-              else if (matName.includes('dior_neili')) {
-                // High-resolution pool tile texture: keep white multiplier for 100% sharpness & contrast
-                child.material.color = new THREE.Color('#ffffff');
-                child.material.roughness = 0.22;
-                child.material.metalness = 0.1;
+              // 1. Parisian architectural map backdrop (material / dioodododo_1)
+              if (matName === 'material' || matName.includes('dioodododo')) {
+                child.material.roughness = 0.35;
+                child.material.metalness = 0.05;
+                child.material.envMapIntensity = 1.2;
                 child.renderOrder = 0;
               }
-              else if (matName.includes('dior_qian')) {
-                child.material.color = new THREE.Color('#0369a1'); // Deep saturated Mediterranean pool blue
-                child.material.roughness = 0.25;
+              // 2. Parisian map runway floor platform (Material.002 / Image_22)
+              else if (matName.includes('material.002')) {
+                child.material.transparent = false;
+                child.material.opacity = 1.0;
+                child.material.roughness = 0.28;
                 child.material.metalness = 0.15;
-                child.renderOrder = 0;
+                child.material.envMapIntensity = 1.4;
+                child.renderOrder = 1;
               }
-              // 5. Metallic Gold Logo, ladder and details (Dior letters, jinshu, etc.)
+              // 3. 3D Dior Letters on Platform (acad4bff11a2 / path2495..path2503)
               else if (
-                matName.includes('jinshu') ||
-                matName.includes('logo') ||
-                matName === 'material_0.003' ||
-                matName.includes('材质.003') ||
+                matName.includes('acad4bff11a2') ||
+                meshName.includes('object_118') ||
+                meshName.includes('object_121') ||
+                meshName.includes('object_124') ||
+                meshName.includes('object_127') ||
                 meshName.includes('path24') ||
                 meshName.includes('path25')
               ) {
-                child.material.color = new THREE.Color('#eab308'); // Rich warm luxury gold
-                child.material.metalness = 0.95;
-                child.material.roughness = 0.15;
-                child.material.envMapIntensity = 2.5;
-                child.renderOrder = 1;
-              }
-              // 6. Generic transparent meshes (hair, lashes, trim)
-              else if (child.material.transparent || child.material.opacity < 1) {
-                child.material.depthWrite = false;
+                child.material.transparent = false;
+                child.material.opacity = 1.0;
+                child.material.color = new THREE.Color('#141416');
+                child.material.roughness = 0.18;
+                child.material.metalness = 0.9;
+                child.material.envMapIntensity = 2.4;
                 child.renderOrder = 2;
               }
-              // 7. Generic opaque meshes
+              // 4. Industrial Metal Frame, Ladder & Structure (Material.008)
+              else if (matName.includes('material.008')) {
+                child.material.color = new THREE.Color('#27272a');
+                child.material.roughness = 0.3;
+                child.material.metalness = 0.8;
+                child.material.envMapIntensity = 1.6;
+                child.renderOrder = 0;
+              }
+              // 5. Luxury Handbag (Material_11, Material_12, Material_10, Material_9 / Stitches, Pattern, Metal, Leather, Fabric)
+              else if (
+                matName.includes('material_11') ||
+                matName.includes('material_12') ||
+                matName.includes('material_10') ||
+                matName.includes('material_9') ||
+                meshName.includes('stitches') ||
+                meshName.includes('pattern') ||
+                meshName.includes('leather') ||
+                meshName.includes('fabric')
+              ) {
+                child.material.roughness = 0.35;
+                child.material.metalness = 0.1;
+                child.material.envMapIntensity = 1.8;
+                child.renderOrder = 1;
+              }
+              // 6. Luxury Footwear & Slides (KCQ209KPYS15W_MAT, Strap_MAT, Suola, backup_Esterno)
+              else if (
+                matName.includes('kcq209') ||
+                matName.includes('strap') ||
+                matName.includes('suola') ||
+                matName.includes('backup')
+              ) {
+                child.material.roughness = 0.4;
+                child.material.metalness = 0.1;
+                child.material.envMapIntensity = 1.5;
+                child.renderOrder = 1;
+              }
+              // 7. General meshes
               else {
+                if (child.material.transparent && child.material.opacity > 0.9) {
+                  child.material.transparent = false;
+                }
                 child.renderOrder = 0;
               }
             }
           }
         });
 
-        // Compute exact bounding box and center
-        poolModel.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(poolModel);
+        // Compute exact bounding box and dimensions
+        ss24Model.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(ss24Model);
         const size = new THREE.Vector3();
         box.getSize(size);
         const center = new THREE.Vector3();
         box.getCenter(center);
 
-        console.log('✅ Dior Pool Window Display loaded successfully:', {
+        console.log('✅ Dior SS24 Paris Showcase loaded successfully:', {
           size: { x: size.x.toFixed(3), y: size.y.toFixed(3), z: size.z.toFixed(3) },
-          center: { x: center.x.toFixed(3), y: center.y.toFixed(3), z: center.z.toFixed(3) },
+          boxMin: { x: box.min.x.toFixed(3), y: box.min.y.toFixed(3), z: box.min.z.toFixed(3) },
+          boxMax: { x: box.max.x.toFixed(3), y: box.max.y.toFixed(3), z: box.max.z.toFixed(3) },
         });
 
         const windowWrapper = new THREE.Group();
-        windowWrapper.name = 'diorPoolWindowWrapper';
+        windowWrapper.name = 'diorSs24ShowcaseWrapper';
 
-        // Center on X and Z, align bottom to Y = 0
-        poolModel.position.set(-center.x, -box.min.y, -center.z);
-        windowWrapper.add(poolModel);
+        // Center on X, align bottom to Y = 0, align back of backdrop to Z = 0
+        ss24Model.position.set(-center.x, -box.min.y, -box.min.z);
+        windowWrapper.add(ss24Model);
 
-        // Scale to fit the back wall bay beautifully (~3.10m height, ~3.01m width)
-        const targetHeight = 3.10;
-        const scaleVal = targetHeight / (size.y || 1);
-        windowWrapper.scale.setScalar(scaleVal);
+        // Scale:
+        // Width: Wall opening between black steel pillars is 3.18m (pillars at x=3.10 and x=6.60).
+        // Target width = 3.20m so it fits snugly and seamlessly inside the space bounded by the pillars.
+        const targetWidth = 3.20;
+        const scaleX = targetWidth / (size.x || 1); // ~1.85
+        const scaleY = scaleX; // Uniform height: ~3.38m tall, majestic scale under ceiling trusses
+        // Depth: user asked to extend the floor platform forward by 2-3 floor tiles (~1.8m - 2.2m) compared to the old cabinet.
+        // Old cabinet ended at z = -2.77.
+        // Extending forward by 2-3 tiles places the front edge at z ~ -0.90 to -0.80.
+        // From back wall (z = -4.15) to front edge (z = -0.80) is depth ~3.35m.
+        const targetDepth = 3.35;
+        const scaleZ = targetDepth / (size.z || 1); // ~1.14
+        windowWrapper.scale.set(scaleX, scaleY, scaleZ);
 
-        // Position straight & flat against the back brick wall behind the women's section:
-        // Centered between steel pillars at x=3.1 and x=6.6 (x=4.85).
-        // Back wall is at z = -4.20; display depth is ~1.28m; z=-3.48 puts back edge flush at z=-4.12.
-        const windowPos = { x: 4.85, y: 0.08, z: -3.48 };
-        windowWrapper.position.set(windowPos.x, windowPos.y, windowPos.z);
-        windowWrapper.rotation.y = 0; // Flat and straight on the back wall
+        // Position:
+        // Centered between black steel pillars at x = 4.85
+        // Placed flat right against the back brick wall at z = -4.15
+        const showcasePos = { x: 4.85, y: 0.04, z: -4.15 };
+        windowWrapper.position.set(showcasePos.x, showcasePos.y, showcasePos.z);
+        windowWrapper.rotation.y = 0; // Straight and flat on the back wall
 
-        // Architectural foundation plinth under the window display (straight)
+        // Architectural foundation plinth at the base extending with the platform
+        const plinthWidth = targetWidth + 0.12; // 3.32m
+        const plinthDepth = targetDepth + 0.10; // 3.45m
         const foundationPlinth = new THREE.Mesh(
-          new THREE.BoxGeometry(3.22, 0.08, 1.42),
+          new THREE.BoxGeometry(plinthWidth, 0.05, plinthDepth),
           new THREE.MeshStandardMaterial({
-            color: '#12101c',
-            roughness: 0.35,
-            metalness: 0.8,
+            color: '#111018',
+            roughness: 0.4,
+            metalness: 0.75,
           })
         );
-        foundationPlinth.position.set(windowPos.x, 0.04, windowPos.z);
-        foundationPlinth.rotation.y = 0; // Straight
+        foundationPlinth.position.set(showcasePos.x, 0.025, showcasePos.z + plinthDepth / 2);
         foundationPlinth.receiveShadow = true;
         womenGroup.add(foundationPlinth);
 
-        // Subtle glowing cyan neon strip along the bottom front edge
+        // Subtle glowing pink/gold neon strip along the front bottom edge of the platform
         const baseNeonStrip = new THREE.Mesh(
-          new THREE.BoxGeometry(3.24, 0.02, 0.04),
-          new THREE.MeshBasicMaterial({ color: '#38bdf8' })
+          new THREE.BoxGeometry(plinthWidth + 0.02, 0.018, 0.03),
+          new THREE.MeshBasicMaterial({ color: '#f472b6' })
         );
-        baseNeonStrip.position.set(0, 0.04, 0.71);
+        baseNeonStrip.position.set(0, 0.025, plinthDepth / 2);
         foundationPlinth.add(baseNeonStrip);
 
-        // Dedicated Atmospheric Lighting for the Pool Window (Balanced to avoid bleaching/over-exposure):
-        // 1. Deep Turquoise Pool Water Radiance from within
-        const poolWaterGlow = new THREE.PointLight('#0284c7', 1.8, 5.0);
-        poolWaterGlow.position.set(windowPos.x, 1.35, windowPos.z + 0.3);
-        womenGroup.add(poolWaterGlow);
+        // Dedicated Atmospheric Lighting:
+        // 1. High Editorial Spotlight on the Dior Paris Map Backdrop & Runway Accessories
+        const backdropSpotlight = new THREE.SpotLight('#ffffff', 3.4, 8.5, Math.PI / 3.4, 0.35);
+        backdropSpotlight.position.set(showcasePos.x, 4.5, -2.4);
+        backdropSpotlight.target.position.set(showcasePos.x, 1.8, -4.1);
+        womenGroup.add(backdropSpotlight);
+        womenGroup.add(backdropSpotlight.target);
 
-        // 2. Focused Gold Downlight on the Dior Logo and Swimming-Suit Mannequin
-        const logoDownlight = new THREE.SpotLight('#fef08a', 2.4, 6.0, Math.PI / 4, 0.45);
-        logoDownlight.position.set(windowPos.x, 4.2, windowPos.z + 1.2);
-        logoDownlight.target.position.set(windowPos.x, 2.2, windowPos.z);
-        womenGroup.add(logoDownlight);
-        womenGroup.add(logoDownlight.target);
+        // 2. Focused Spotlight on the 3D Dior Letters and Platform Runway Floor
+        const lettersSpotlight = new THREE.SpotLight('#fffbeb', 2.8, 6.5, Math.PI / 3.2, 0.4);
+        lettersSpotlight.position.set(showcasePos.x, 3.6, -0.6);
+        lettersSpotlight.target.position.set(showcasePos.x, 0.3, -1.8);
+        womenGroup.add(lettersSpotlight);
+        womenGroup.add(lettersSpotlight.target);
 
-        // 3. Subtle Pool caustics front fill light
-        const poolFrontFill = new THREE.PointLight('#0369a1', 0.8, 3.5);
-        poolFrontFill.position.set(windowPos.x, 1.6, windowPos.z + 0.9);
-        womenGroup.add(poolFrontFill);
+        // 3. Warm Ambient Fill for Parisian haute couture mood
+        const ambientFill = new THREE.PointLight('#fbcfe8', 1.2, 4.5);
+        ambientFill.position.set(showcasePos.x, 2.2, -2.2);
+        womenGroup.add(ambientFill);
+
+        // Animation mixer for conveyor belts
+        if (gltf.animations && gltf.animations.length > 0) {
+          showcaseMixer = new THREE.AnimationMixer(ss24Model);
+          gltf.animations.forEach((clip) => {
+            const action = showcaseMixer.clipAction(clip);
+            action.setEffectiveTimeScale(0.4); // Elegant, slow luxury speed
+            action.play();
+          });
+        }
 
         womenGroup.add(windowWrapper);
       },
-      undefined,
+      (xhr) => {
+        if (xhr.total > 0) {
+          console.log(`SS24 GLB: ${Math.round((xhr.loaded / xhr.total) * 100)}%`);
+        }
+      },
       (err) => {
-        console.warn('Could not load Dior Pool Window GLB:', err);
+        console.warn('Could not load Dior SS24 Paris Showcase GLB:', err);
       }
     );
 
@@ -2307,11 +2336,16 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       visibilityObserver.observe(container);
     }
 
+    let lastFrameTime = performance.now();
     const animate = (now) => {
       reqId = requestAnimationFrame(animate);
 
       // Skip rendering and GPU load when section is scrolled out of viewport
       if (!isVisible) return;
+
+      const delta = Math.min((now - lastFrameTime) / 1000, 0.1);
+      lastFrameTime = now;
+      if (showcaseMixer) showcaseMixer.update(delta);
 
       const st = animStateRef.current;
 
