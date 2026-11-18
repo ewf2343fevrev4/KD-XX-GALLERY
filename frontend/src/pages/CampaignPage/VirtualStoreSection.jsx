@@ -19,8 +19,8 @@ const CAMERA_PRESETS = {
     lookAt: new THREE.Vector3(0, 1.45, -1.1),
   },
   women: {
-    pos: new THREE.Vector3(3.0, 2.05, 2.85),
-    lookAt: new THREE.Vector3(3.35, 1.65, -1.25),
+    pos: new THREE.Vector3(3.2, 2.15, 3.2),
+    lookAt: new THREE.Vector3(4.8, 1.75, -1.6),
   },
 };
 
@@ -1994,29 +1994,27 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         windowWrapper.add(ss24Model);
 
         // Scale:
-        // Width: Wall opening between black steel pillars is 3.18m (pillars at x=3.10 and x=6.60).
-        // Target width = 3.20m so it fits snugly and seamlessly inside the space bounded by the pillars.
-        const targetWidth = 3.20;
-        const scaleX = targetWidth / (size.x || 1); // ~1.85
-        const scaleY = scaleX; // Uniform height: ~3.38m tall, majestic scale under ceiling trusses
-        // Depth: user asked to extend the floor platform forward by 2-3 floor tiles (~1.8m - 2.2m) compared to the old cabinet.
-        // Old cabinet ended at z = -2.77.
-        // Extending forward by 2-3 tiles places the front edge at z ~ -0.90 to -0.80.
-        // From back wall (z = -4.15) to front edge (z = -0.80) is depth ~3.35m.
-        const targetDepth = 3.35;
-        const scaleZ = targetDepth / (size.z || 1); // ~1.14
+        // Width: Left edge aligns with left black steel pillar (x = 3.26), right edge touches angled right wall (x ~ 6.84)
+        // Total width = 6.84 - 3.26 = 3.58m (expands seamlessly to right wall)
+        const targetWidth = 3.58;
+        const scaleX = targetWidth / (size.x || 1); // ~2.07
+        const scaleY = scaleX; // Proportional majestic height: ~3.78m tall
+
+        // Depth: Shifted forward to clear black pillar (back at z = -3.78) and front extending forward to z = -0.38
+        const targetDepth = 3.40;
+        const scaleZ = targetDepth / (size.z || 1); // ~1.16
         windowWrapper.scale.set(scaleX, scaleY, scaleZ);
 
         // Position:
-        // Centered between black steel pillars at x = 4.85
-        // Placed flat right against the back brick wall at z = -4.15
-        const showcasePos = { x: 4.85, y: 0.04, z: -4.15 };
+        // Centered between x = 3.26 (pillar right face) and x = 6.84 (right wall) -> x = 5.05
+        // Shifted forward to z = -3.78 so it never collides or gets covered by the black pillar!
+        const showcasePos = { x: 5.05, y: 0.04, z: -3.78 };
         windowWrapper.position.set(showcasePos.x, showcasePos.y, showcasePos.z);
         windowWrapper.rotation.y = 0; // Straight and flat on the back wall
 
         // Architectural foundation plinth at the base extending with the platform
-        const plinthWidth = targetWidth + 0.12; // 3.32m
-        const plinthDepth = targetDepth + 0.10; // 3.45m
+        const plinthWidth = targetWidth + 0.08; // 3.66m
+        const plinthDepth = targetDepth + 0.08; // 3.48m
         const foundationPlinth = new THREE.Mesh(
           new THREE.BoxGeometry(plinthWidth, 0.05, plinthDepth),
           new THREE.MeshStandardMaterial({
@@ -2040,21 +2038,21 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         // Dedicated Atmospheric Lighting:
         // 1. High Editorial Spotlight on the Dior Paris Map Backdrop & Runway Accessories
         const backdropSpotlight = new THREE.SpotLight('#ffffff', 3.4, 8.5, Math.PI / 3.4, 0.35);
-        backdropSpotlight.position.set(showcasePos.x, 4.5, -2.4);
-        backdropSpotlight.target.position.set(showcasePos.x, 1.8, -4.1);
+        backdropSpotlight.position.set(showcasePos.x, 4.6, -2.2);
+        backdropSpotlight.target.position.set(showcasePos.x, 2.0, showcasePos.z);
         womenGroup.add(backdropSpotlight);
         womenGroup.add(backdropSpotlight.target);
 
         // 2. Focused Spotlight on the 3D Dior Letters and Platform Runway Floor
         const lettersSpotlight = new THREE.SpotLight('#fffbeb', 2.8, 6.5, Math.PI / 3.2, 0.4);
-        lettersSpotlight.position.set(showcasePos.x, 3.6, -0.6);
-        lettersSpotlight.target.position.set(showcasePos.x, 0.3, -1.8);
+        lettersSpotlight.position.set(showcasePos.x, 3.8, -0.2);
+        lettersSpotlight.target.position.set(showcasePos.x, 0.3, -1.5);
         womenGroup.add(lettersSpotlight);
         womenGroup.add(lettersSpotlight.target);
 
         // 3. Warm Ambient Fill for Parisian haute couture mood
         const ambientFill = new THREE.PointLight('#fbcfe8', 1.2, 4.5);
-        ambientFill.position.set(showcasePos.x, 2.2, -2.2);
+        ambientFill.position.set(showcasePos.x, 2.2, -1.8);
         womenGroup.add(ambientFill);
 
         // Animation mixer for conveyor belts
