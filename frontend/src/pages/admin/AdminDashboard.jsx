@@ -1752,6 +1752,9 @@ useEffect(() => {
                     onChange={handleAddFileSelect}
                     className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                   />
+                  <p className="text-[11px] text-emerald-600 mt-1.5 font-medium flex items-center gap-1">
+                    <span>💡 <strong>Khuyên dùng cho AI Virtual Try-On:</strong> Tải ảnh từ máy để tự động lưu lên Cloudinary riêng, đảm bảo AI tải ảnh 100% mượt mà, không bao giờ bị các web ngoài (Farfetch/StockX) chặn bản quyền HTTP 429.</span>
+                  </p>
 
                   {/* Previews of newly chosen files */}
                   {addFilePreviews.length > 0 && (
@@ -2082,6 +2085,9 @@ useEffect(() => {
                     onChange={handleEditFileSelect}
                     className="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
                   />
+                  <p className="text-[11px] text-emerald-600 mt-1.5 font-medium flex items-center gap-1">
+                    <span>💡 <strong>Khuyên dùng cho AI Virtual Try-On:</strong> Tải ảnh từ máy để tự động lưu lên Cloudinary riêng, đảm bảo AI tải ảnh 100% mượt mà, không bao giờ bị các web ngoài (Farfetch/StockX) chặn bản quyền HTTP 429.</span>
+                  </p>
 
                   {/* Previews of newly chosen files */}
                   {editFilePreviews.length > 0 && (
