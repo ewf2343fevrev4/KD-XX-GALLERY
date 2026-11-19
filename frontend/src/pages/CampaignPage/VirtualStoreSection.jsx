@@ -1598,6 +1598,70 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Load Angel King Von Tribute Sculpture on Top of Bape Crate ──
+    gltfLoader.load(
+      '/models/props/king_von.glb',
+      (gltf) => {
+        const vonModel = gltf.scene;
+
+        vonModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false; // Zero shadow-pass penalty for high FPS
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = 0.55;
+              child.material.metalness = 0.15;
+              child.material.envMapIntensity = 1.3;
+            }
+          }
+        });
+
+        vonModel.updateMatrixWorld(true);
+        const vonBox = new THREE.Box3().setFromObject(vonModel);
+        const vonSize = new THREE.Vector3();
+        vonBox.getSize(vonSize);
+        const vonCenter = new THREE.Vector3();
+        vonBox.getCenter(vonCenter);
+
+        const vonWrapper = new THREE.Group();
+        vonWrapper.name = 'angelKingVonWrapper';
+
+        // Center on X and Z, align base flush to local Y = 0
+        vonModel.position.set(-vonCenter.x, -vonBox.min.y, -vonCenter.z);
+        vonWrapper.add(vonModel);
+
+        // Scale to heroic sculpture proportion (~1.25m tall, wingspan ~1.70m)
+        const targetVonHeight = 1.25;
+        const scaleVal = targetVonHeight / (vonSize.y || 1);
+        vonWrapper.scale.setScalar(scaleVal);
+
+        // Positioned flush on top of Bape wooden crate (crate top is at Y = 1.35m at x = -5.10, z = -2.85)
+        const vonPos = { x: -5.10, y: 1.35, z: -2.85 };
+        vonWrapper.position.set(vonPos.x, vonPos.y, vonPos.z);
+        // Rotate to face camera & center runway, matching crate angle
+        vonWrapper.rotation.y = -Math.PI / 2 + 0.28;
+
+        menGroup.add(vonWrapper);
+
+        // Dedicated accent spotlight for Angel King Von sculpture
+        const vonSpotlight = new THREE.SpotLight('#ffffff', 3.8, 9.0, Math.PI / 3.5, 0.4);
+        vonSpotlight.position.set(vonPos.x + 0.3, 4.5, vonPos.z + 1.6);
+        vonSpotlight.target.position.set(vonPos.x, vonPos.y + 0.65, vonPos.z);
+        vonSpotlight.castShadow = false;
+        menGroup.add(vonSpotlight);
+        menGroup.add(vonSpotlight.target);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load Angel King Von model:', err);
+      }
+    );
+
     // ── 5. CENTER AREA: MIX & MATCH STYLING TABLE ──
     const centerGroup = new THREE.Group();
     scene.add(centerGroup);
