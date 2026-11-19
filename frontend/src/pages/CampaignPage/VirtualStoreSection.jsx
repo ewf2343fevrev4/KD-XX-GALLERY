@@ -1662,6 +1662,172 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
+    const menWallLogosGroup = new THREE.Group();
+    menWallLogosGroup.name = 'menWallLogosGroup';
+    menGroup.add(menWallLogosGroup);
+
+    // 1. NLE Choppa Chrome Typography Marquee (Upper Tier Header Banner across the bay)
+    gltfLoader.load(
+      '/models/logos/nle_choppa_logo.glb',
+      (gltf) => {
+        const nleModel = gltf.scene;
+        nleModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              if (child.material.normalMap) {
+                child.material.normalScale.set(1.2, 1.2);
+              }
+              child.material.color = new THREE.Color('#ffffff');
+              child.material.roughness = 0.08;
+              child.material.metalness = 0.92;
+              child.material.envMapIntensity = 2.4;
+            }
+          }
+        });
+
+        nleModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(nleModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const nleWrapper = new THREE.Group();
+        nleWrapper.name = 'nleChoppaLogoWrapper';
+        // Center geometry around (0, 0, 0)
+        nleModel.position.set(-center.x, -center.y, -center.z);
+        nleWrapper.add(nleModel);
+
+        // Scale to bold, prominent width (~2.15m wide, ~1.00m high)
+        const targetWidth = 2.15;
+        const scaleVal = targetWidth / (size.x || 1);
+        nleWrapper.scale.setScalar(scaleVal);
+
+        // Mounted flush on the upper back brick wall centered above the men's bay
+        nleWrapper.position.set(-4.85, 4.45, -4.13);
+        menWallLogosGroup.add(nleWrapper);
+
+        // Subtle ice-cyan neon backlight illuminating the brick wall around the chrome logo
+        const nleGlow = new THREE.PointLight('#38bdf8', 2.0, 3.8);
+        nleGlow.position.set(-4.85, 4.45, -3.95);
+        nleGlow.castShadow = false;
+        menWallLogosGroup.add(nleGlow);
+      },
+      undefined,
+      (err) => console.warn('Could not load NLE Choppa logo GLB:', err)
+    );
+
+    // 2. XXXTentacion Platinum Broken Heart Emblem (Lower Tier, Left Side above King Von's crate)
+    gltfLoader.load(
+      '/models/logos/xxxtentacion_broken_heart.glb',
+      (gltf) => {
+        const xxxModel = gltf.scene;
+        xxxModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              child.material.color = new THREE.Color('#f1f5f9');
+              child.material.roughness = 0.18;
+              child.material.metalness = 0.82;
+              child.material.envMapIntensity = 2.0;
+            }
+          }
+        });
+
+        xxxModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(xxxModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const xxxWrapper = new THREE.Group();
+        xxxWrapper.name = 'xxxtentacionLogoWrapper';
+        // Center geometry around (0, 0, 0)
+        xxxModel.position.set(-center.x, -center.y, -center.z);
+        xxxWrapper.add(xxxModel);
+
+        // Scale to prominent ~1.15m height (~0.86m wide)
+        const targetHeight = 1.15;
+        const scaleVal = targetHeight / (size.y || 1);
+        xxxWrapper.scale.setScalar(scaleVal);
+
+        // Mounted flush on the back wall at left side (clear above King Von statue)
+        xxxWrapper.position.set(-5.60, 3.20, -4.13);
+        menWallLogosGroup.add(xxxWrapper);
+
+        // Subtle electric purple halo backlight on the brick wall
+        const xxxGlow = new THREE.PointLight('#c084fc', 1.8, 3.2);
+        xxxGlow.position.set(-5.60, 3.20, -3.95);
+        xxxGlow.castShadow = false;
+        menWallLogosGroup.add(xxxGlow);
+      },
+      undefined,
+      (err) => console.warn('Could not load XXXTentacion logo GLB:', err)
+    );
+
+    // 3. Cactus Jack Luminous Neon Sign (Lower Tier, Right Side)
+    gltfLoader.load(
+      '/models/logos/cactus_jack_logo.glb',
+      (gltf) => {
+        const cjModel = gltf.scene;
+        cjModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              child.material.emissive = new THREE.Color('#ffffff');
+              child.material.emissiveIntensity = 0.85;
+              child.material.color = new THREE.Color('#ffffff');
+              child.material.roughness = 0.2;
+              child.material.metalness = 0.1;
+            }
+          }
+        });
+
+        cjModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(cjModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const cjWrapper = new THREE.Group();
+        cjWrapper.name = 'cactusJackLogoWrapper';
+        // Center geometry around (0, 0, 0)
+        cjModel.position.set(-center.x, -center.y, -center.z);
+        cjWrapper.add(cjModel);
+
+        // Scale to prominent ~1.20m height (~0.54m wide)
+        const targetHeight = 1.20;
+        const scaleVal = targetHeight / (size.y || 1);
+        cjWrapper.scale.setScalar(scaleVal);
+
+        // Mounted flush on the back wall at right side
+        cjWrapper.position.set(-4.10, 3.20, -4.16);
+        menWallLogosGroup.add(cjWrapper);
+
+        // Warm luminous amber/gold aura on the brick wall
+        const cjGlow = new THREE.PointLight('#fef08a', 2.0, 3.2);
+        cjGlow.position.set(-4.10, 3.20, -3.95);
+        cjGlow.castShadow = false;
+        menWallLogosGroup.add(cjGlow);
+      },
+      undefined,
+      (err) => console.warn('Could not load Cactus Jack logo GLB:', err)
+    );
+
     // ── 5. CENTER AREA: MIX & MATCH STYLING TABLE ──
     const centerGroup = new THREE.Group();
     scene.add(centerGroup);
