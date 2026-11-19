@@ -34,7 +34,7 @@ const HOTSPOT_ANCHORS = {
   men: new THREE.Vector3(-4.55, 3.05, -1.3),
   center: new THREE.Vector3(0, 2.55, -0.7),
   women: new THREE.Vector3(4.15, 4.65, -1.8),
-  accessories: new THREE.Vector3(7.40, 4.35, -0.35),
+  accessories: new THREE.Vector3(7.42, 3.68, -0.38),
 };
 
 // ── Procedural Brick Texture Generator ──
