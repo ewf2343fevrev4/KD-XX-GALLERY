@@ -31,7 +31,7 @@ const CAMERA_PRESETS = {
 
 // ── 3D World positions for the projected floating hotspot markers ──
 const HOTSPOT_ANCHORS = {
-  men: new THREE.Vector3(-4.55, 3.05, -1.3),
+  men: new THREE.Vector3(-4.15, 4.65, -1.8),
   center: new THREE.Vector3(0, 2.55, -0.7),
   women: new THREE.Vector3(4.15, 4.65, -1.8),
   accessories: new THREE.Vector3(7.42, 3.68, -0.38),
@@ -1365,170 +1365,30 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     rightCeilingLed.position.set(4.6, 5.5, -1.5);
     scene.add(rightCeilingLed);
 
-    // ── 4. LEFT AREA: MEN'S CLOTHING & SNEAKER DISPLAYS ──
+    // ── 4. LEFT AREA: MEN'S DISPLAY ──
     const menGroup = new THREE.Group();
     scene.add(menGroup);
 
-    // Men's Neon Sign on upper left wall
+    // Men's Neon Sign mounted flush on the angled left wall (Symmetric to Women's sign on right wall)
     const menSignTex = createNeonSignTexture({
       title: "MEN'S",
       subtitle: 'STREETWEAR & SNEAKERS',
       primaryColor: '#38bdf8',
-      secondaryColor: '#a855f7',
+      secondaryColor: '#c084fc',
     });
     const menSign = new THREE.Mesh(
       new THREE.PlaneGeometry(2.9, 1.08),
       new THREE.MeshBasicMaterial({ map: menSignTex, transparent: true })
     );
-    menSign.position.set(-4.85, 4.15, -3.7);
-    menSign.rotation.y = 0.18;
+    // Positioned symmetrically on leftWall matching womenSign on rightWall
+    menSign.position.set(-7.195, 4.88, -2.048);
+    menSign.rotation.y = Math.PI / 2.35; // EXACT angle of leftWall so it sits 100% flush!
     menGroup.add(menSign);
 
-    // Backlit Sneaker Display Unit (4 glowing shelves with 3D sneakers)
-    const sneakerUnitBack = new THREE.Mesh(
-      new THREE.BoxGeometry(2.6, 2.9, 0.18),
-      new THREE.MeshStandardMaterial({
-        color: '#100d19',
-        roughness: 0.4,
-        metalness: 0.6,
-      })
-    );
-    sneakerUnitBack.position.set(-5.75, 1.85, -2.55);
-    sneakerUnitBack.rotation.y = 0.35;
-    menGroup.add(sneakerUnitBack);
-
-    const sneakerColors = ['#f8fafc', '#38bdf8', '#a855f7', '#1e1b2e'];
-    for (let s = 0; s < 4; s++) {
-      const shelfY = 0.85 + s * 0.62;
-      const shelfGroup = new THREE.Group();
-      shelfGroup.position.set(-5.75, shelfY, -2.55);
-      shelfGroup.rotation.y = 0.35;
-
-      // Metal shelf
-      const shelf = new THREE.Mesh(
-        new THREE.BoxGeometry(2.4, 0.05, 0.48),
-        chromeMat
-      );
-      shelf.position.set(0, 0, 0.22);
-      shelfGroup.add(shelf);
-
-      // Glowing cyan/purple LED strip under shelf
-      const strip = new THREE.Mesh(
-        new THREE.BoxGeometry(2.3, 0.025, 0.04),
-        s % 2 === 0 ? ledBlueMat : ledPurpleMat
-      );
-      strip.position.set(0, 0.03, 0.42);
-      shelfGroup.add(strip);
-
-      // 3 stylized 3D sneakers per shelf
-      for (let k = -1; k <= 1; k++) {
-        const shoe = new THREE.Group();
-        shoe.position.set(k * 0.72, 0.09, 0.22);
-        shoe.rotation.y = -0.25;
-
-        // White/contrast rubber outsole
-        const sole = new THREE.Mesh(
-          new THREE.BoxGeometry(0.34, 0.05, 0.15),
-          new THREE.MeshStandardMaterial({ color: '#f1f5f9', roughness: 0.3 })
-        );
-        shoe.add(sole);
-
-        // Sneaker upper body
-        const upper = new THREE.Mesh(
-          new THREE.BoxGeometry(0.3, 0.11, 0.14),
-          new THREE.MeshStandardMaterial({
-            color: sneakerColors[(s + k + 1) % sneakerColors.length],
-            roughness: 0.4,
-            metalness: 0.2,
-          })
-        );
-        upper.position.set(-0.01, 0.07, 0);
-        shoe.add(upper);
-
-        // High-top collar
-        const collar = new THREE.Mesh(
-          new THREE.BoxGeometry(0.13, 0.09, 0.13),
-          new THREE.MeshStandardMaterial({ color: '#0f172a', roughness: 0.5 })
-        );
-        collar.position.set(-0.08, 0.14, 0);
-        shoe.add(collar);
-
-        shelfGroup.add(shoe);
-      }
-
-      menGroup.add(shelfGroup);
-    }
-
-    // Men's Industrial Metal Clothing Rack
-    const menRackGroup = new THREE.Group();
-    menRackGroup.position.set(-3.75, 0, -1.45);
-    menRackGroup.rotation.y = 0.22;
-
-    // Rack base & uprights
-    const rackBase = new THREE.Mesh(
-      new THREE.BoxGeometry(2.2, 0.08, 0.75),
-      darkSteelMat
-    );
-    rackBase.position.y = 0.04;
-    menRackGroup.add(rackBase);
-
-    [-1.0, 1.0].forEach((rx) => {
-      const upright = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.035, 0.035, 2.25, 12),
-        chromeMat
-      );
-      upright.position.set(rx, 1.15, 0);
-      menRackGroup.add(upright);
-    });
-
-    const crossbar = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.03, 0.03, 2.05, 12),
-      chromeMat
-    );
-    crossbar.rotation.z = Math.PI / 2;
-    crossbar.position.set(0, 2.25, 0);
-    menRackGroup.add(crossbar);
-
-    // Realistic Hanging Men's Clothes (Oversized Hoodies, Varsity, Moto Leather, Denim Jacket)
-    const menGarmentsConfig = [
-      { type: 'hoodie', color: '#111827', secondary: '#f8fafc', accent: '#38bdf8' },
-      { type: 'varsity', color: '#1e1b4b', secondary: '#f8fafc', accent: '#c084fc' },
-      { type: 'leather', color: '#0a0a0c', secondary: '#d4d4dc', accent: '#ffffff' },
-      { type: 'hoodie', color: '#2e1065', secondary: '#38bdf8', accent: '#a855f7' },
-      { type: 'denim', color: '#1e293b', secondary: '#334155', accent: '#f59e0b' },
-      { type: 'hoodie', color: '#f8fafc', secondary: '#0f172a', accent: '#38bdf8' },
-      { type: 'varsity', color: '#311042', secondary: '#e2e8f0', accent: '#ec4899' },
-    ];
-
-    menGarmentsConfig.forEach((cfg, idx) => {
-      const gx = -0.78 + idx * 0.26;
-      const piece = createDetailedMenGarment({
-        type: cfg.type,
-        color: cfg.color,
-        secondaryColor: cfg.secondary,
-        accentColor: cfg.accent,
-        chromeMat,
-        darkSteelMat,
-      });
-      piece.position.set(gx, 2.24, 0);
-      // Gentle natural rack angle
-      piece.rotation.y = 0.08 + (idx % 2 === 0 ? 0.04 : -0.04);
-      menRackGroup.add(piece);
-    });
-
-    menGroup.add(menRackGroup);
-
-    // Styled Men's Display Mannequin on Chrome Stand (Placeholder while user GLB loads)
-    const menMannequin = createMannequin({
-      gender: 'men',
-      outfitColor: '#111827',
-      accentColor: '#f8fafc',
-      chromeMat,
-      darkSteelMat,
-    });
-    menMannequin.position.set(-2.3, 0, -1.05);
-    menMannequin.rotation.y = 0.35;
-    menGroup.add(menMannequin);
+    // Soft cyan neon ambient glow on the angled left wall around the sign
+    const menSignGlow = new THREE.PointLight('#38bdf8', 2.2, 4.0);
+    menSignGlow.position.set(-6.95, 4.88, -1.95);
+    menGroup.add(menSignGlow);
 
     // ── Load User's AI-Generated 3D Mannequin Model ──
     const gltfLoader = new GLTFLoader();
