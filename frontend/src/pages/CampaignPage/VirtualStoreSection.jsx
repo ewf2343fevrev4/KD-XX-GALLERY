@@ -1662,6 +1662,174 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Supreme Streetwear Accessories on Floor in Front of Bape Crate ──
+    const supremePropsGroup = new THREE.Group();
+    supremePropsGroup.name = 'supremePropsGroup';
+    menGroup.add(supremePropsGroup);
+
+    // 1. Supreme Ginger Jar / Urn (Placed standing on floor at front-left corner of crate)
+    gltfLoader.load(
+      '/models/props/supreme_urn.glb',
+      (gltf) => {
+        const urnModel = gltf.scene;
+        urnModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = 0.22;
+              child.material.metalness = 0.05;
+              child.material.envMapIntensity = 1.6;
+            }
+          }
+        });
+
+        urnModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(urnModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const urnWrapper = new THREE.Group();
+        urnWrapper.name = 'supremeUrnWrapper';
+        // Center on X and Z, align bottom flush to Y = 0
+        urnModel.position.set(-center.x, -box.min.y, -center.z);
+        urnWrapper.add(urnModel);
+
+        // Scale to realistic collectible ginger jar height (~0.36m, ~0.21m diameter)
+        const targetHeight = 0.36;
+        const scaleVal = targetHeight / (size.y || 1);
+        urnWrapper.scale.setScalar(scaleVal);
+
+        // Position on the floor at the front-left corner of the Bape crate
+        urnWrapper.position.set(-5.40, 0.0, -1.85);
+        urnWrapper.rotation.y = 0.45; // Turned slightly toward camera to showcase graphics
+        supremePropsGroup.add(urnWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Supreme Urn GLB:', err)
+    );
+
+    // 2. Supreme Cash Cannon / Money Gun (Placed standing upright on floor in front-center-right)
+    gltfLoader.load(
+      '/models/props/supreme_money_gun.glb',
+      (gltf) => {
+        const gunModel = gltf.scene;
+        gunModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = 0.32;
+              child.material.metalness = 0.1;
+              child.material.envMapIntensity = 1.3;
+            }
+          }
+        });
+
+        gunModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(gunModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const gunWrapper = new THREE.Group();
+        gunWrapper.name = 'supremeMoneyGunWrapper';
+        // Center on X and Z, align bottom to Y = 0 (stands on grip base)
+        gunModel.position.set(-center.x, -box.min.y, -center.z);
+        gunWrapper.add(gunModel);
+
+        // Scale to authentic collectible money gun length (~0.22m long, ~0.18m high)
+        const targetLength = 0.22;
+        const scaleVal = targetLength / (size.x || 1);
+        gunWrapper.scale.setScalar(scaleVal);
+
+        // Position on floor in front of the crate, low profile (does not obstruct Bape logo)
+        gunWrapper.position.set(-4.88, 0.0, -1.80);
+        gunWrapper.rotation.y = 0.35; // Angled dynamically toward the runway
+        supremePropsGroup.add(gunWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Supreme Money Gun GLB:', err)
+    );
+
+    // 3. Supreme Microphone (Lying casually on floor at front-right of crate)
+    gltfLoader.load(
+      '/models/props/supreme_mic.glb',
+      (gltf) => {
+        const micModel = gltf.scene;
+        micModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = 0.28;
+              child.material.metalness = 0.55;
+              child.material.envMapIntensity = 1.8;
+            }
+          }
+        });
+
+        micModel.updateMatrixWorld(true);
+        const rawBox = new THREE.Box3().setFromObject(micModel);
+        const rawCenter = new THREE.Vector3();
+        rawBox.getCenter(rawCenter);
+        const rawSize = new THREE.Vector3();
+        rawBox.getSize(rawSize);
+
+        // Pivot group to lay the microphone down horizontally
+        const pivot = new THREE.Group();
+        micModel.position.set(-rawCenter.x, -rawCenter.y, -rawCenter.z);
+        pivot.add(micModel);
+
+        // Scale so raw length (size.y = 25.307) becomes ~0.22m
+        const targetMicLength = 0.22;
+        const scaleVal = targetMicLength / (rawSize.y || 1);
+        pivot.scale.setScalar(scaleVal);
+
+        // Rotate to lie horizontally on the floor, angled casually toward center
+        pivot.rotation.z = Math.PI / 2;
+        pivot.rotation.y = 0.45;
+        pivot.updateMatrixWorld(true);
+
+        const rotatedBox = new THREE.Box3().setFromObject(pivot);
+
+        const micWrapper = new THREE.Group();
+        micWrapper.name = 'supremeMicWrapper';
+        pivot.position.y = -rotatedBox.min.y; // Ensure lowest vertex rests flush on Y = 0
+        micWrapper.add(pivot);
+
+        // Position on floor in front-right of the crate
+        micWrapper.position.set(-4.45, 0.0, -1.98);
+        supremePropsGroup.add(micWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Supreme Mic GLB:', err)
+    );
+
+    // Subtle soft ground floor fill light highlighting the red Supreme collectibles
+    const supremePropsFloorLight = new THREE.PointLight('#ffffff', 1.8, 3.5);
+    supremePropsFloorLight.position.set(-4.90, 0.65, -1.50);
+    supremePropsFloorLight.castShadow = false;
+    supremePropsGroup.add(supremePropsFloorLight);
+
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
     menWallLogosGroup.name = 'menWallLogosGroup';
