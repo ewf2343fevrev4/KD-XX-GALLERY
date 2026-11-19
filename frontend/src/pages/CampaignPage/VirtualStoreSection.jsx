@@ -2176,6 +2176,81 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Load 3D Gucci Sylvie Leather Bag on Top Glass Shelf (Tier 3, Slot 3) ──
+    gltfLoader.load(
+      '/models/products/female_bag/gucci_bag.glb',
+      (gltf) => {
+        const gucciScene = gltf.scene;
+
+        gucciScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              if (child.material.name === 'baobao') {
+                // White luxury calfskin leather with red/blue Web stripe
+                child.material.roughness = 0.38;
+                child.material.metalness = 0.08;
+                child.material.envMapIntensity = 1.3;
+              } else if (child.material.name === 'budai') {
+                // Gold buckle, chain, stars, lion head and ribbon
+                child.material.roughness = 0.22;
+                child.material.metalness = 0.88;
+                child.material.envMapIntensity = 1.8;
+              } else if (child.material.name === 'daizi') {
+                // Leather strap and handle
+                child.material.roughness = 0.42;
+                child.material.metalness = 0.15;
+              }
+            }
+          }
+        });
+
+        const gucciBBox = new THREE.Box3().setFromObject(gucciScene);
+        const gucciSize = new THREE.Vector3();
+        gucciBBox.getSize(gucciSize);
+        const gucciCenter = new THREE.Vector3();
+        gucciBBox.getCenter(gucciCenter);
+
+        // Desired luxury handbag height ~0.23m (~24cm wide, 23cm high, matching the display)
+        const gucciTargetHeight = 0.23;
+        const gucciScale = gucciTargetHeight / (gucciSize.y || 1);
+
+        const topTierY = 0.52;
+        const slot3X = 0.32;
+
+        const gucciClone = gucciScene.clone(true);
+        gucciClone.scale.setScalar(gucciScale);
+        gucciClone.position.set(
+          -gucciCenter.x * gucciScale,
+          -gucciBBox.min.y * gucciScale,
+          -gucciCenter.z * gucciScale
+        );
+
+        const gucciWrapper = new THREE.Group();
+        gucciWrapper.name = 'topTier_product_slot3';
+        gucciWrapper.position.set(
+          slot3X,
+          topTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        gucciWrapper.rotation.y = Math.PI - 0.08; // Front buckle faces viewer with subtle inward gallery angle
+
+        gucciWrapper.add(gucciClone);
+        shelfGroup.add(gucciWrapper);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load user Gucci bag GLB:', err);
+      }
+    );
+
     // 3. Dedicated Gallery Lighting for the 3.0m Wide Shelf Unit
     // Dual overhead focused spotlights evenly illuminating the 4 display slots across the 3.0m span
     [-0.60, 0.60].forEach((spX) => {
