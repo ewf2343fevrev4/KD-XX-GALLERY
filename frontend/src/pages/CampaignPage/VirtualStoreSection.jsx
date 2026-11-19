@@ -2064,34 +2064,32 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const bagScale = targetHeight / (bagSize.y || 1);
 
         // Display slots on Tier 3 (top tier: yPos = 0.52)
+        // 4 slots: [-0.95, -0.32, 0.32, 0.95]
         const topTierY = 0.52;
-        const topSlotXs = [-0.95, -0.32, 0.32, 0.95];
-        // Curated high-fashion gallery angles (slight inward turn facing the shopper)
-        const topSlotRotations = [0.28, 0.08, -0.08, -0.28];
+        const slot1X = -0.95;
 
-        topSlotXs.forEach((slotX, idx) => {
-          const bagClone = lvBagScene.clone(true);
-          bagClone.scale.setScalar(bagScale);
-          // Center the bag on its base so bottom sits exactly at y = 0
-          bagClone.position.set(
-            -bagCenter.x * bagScale,
-            -bagBBox.min.y * bagScale,
-            -bagCenter.z * bagScale
-          );
+        // Place ONLY 1 bag at slot 1 (left-most position), keeping slots 2, 3, 4 ready for upcoming distinct items
+        const bagClone = lvBagScene.clone(true);
+        bagClone.scale.setScalar(bagScale);
+        // Center the bag on its base so bottom sits exactly on top of the velvet riser
+        bagClone.position.set(
+          -bagCenter.x * bagScale,
+          -bagBBox.min.y * bagScale,
+          -bagCenter.z * bagScale
+        );
 
-          const bagWrapper = new THREE.Group();
-          bagWrapper.name = `lvBag_topTier_slot${idx + 1}`;
-          // Position directly on top of the velvet riser: y = topTierY + shelfThick / 2 + 0.016
-          bagWrapper.position.set(
-            slotX,
-            topTierY + shelfThick / 2 + 0.016,
-            shelfDepth / 2 + 0.025
-          );
-          bagWrapper.rotation.y = topSlotRotations[idx];
+        const bagWrapper = new THREE.Group();
+        bagWrapper.name = 'topTier_product_slot1';
+        // Position directly on top of the velvet riser: y = topTierY + shelfThick / 2 + 0.016
+        bagWrapper.position.set(
+          slot1X,
+          topTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        bagWrapper.rotation.y = 0.28; // Elegant inward boutique angle facing the shopper
 
-          bagWrapper.add(bagClone);
-          shelfGroup.add(bagWrapper);
-        });
+        bagWrapper.add(bagClone);
+        shelfGroup.add(bagWrapper);
       },
       undefined,
       (err) => {
