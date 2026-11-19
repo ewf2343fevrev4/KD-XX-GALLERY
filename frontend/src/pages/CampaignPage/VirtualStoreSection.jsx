@@ -3304,6 +3304,110 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Load User's MetaRetail Runway Mannequin (Positioned between Mix & Match and Dior Showcase) ──
+    gltfLoader.load(
+      '/models/mannequin/mannequin_metaretail.glb',
+      (gltf) => {
+        const metaModel = gltf.scene;
+
+        metaModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = 0.42;
+              child.material.metalness = 0.15;
+              child.material.envMapIntensity = 1.6;
+            }
+          }
+        });
+
+        metaModel.updateMatrixWorld(true);
+        const metaBox = new THREE.Box3().setFromObject(metaModel);
+        const metaSize = new THREE.Vector3();
+        metaBox.getSize(metaSize);
+        const metaCenter = new THREE.Vector3();
+        metaBox.getCenter(metaCenter);
+
+        const metaWrapper = new THREE.Group();
+        metaWrapper.name = 'metaRetailMannequinWrapper';
+
+        // Center on X and Z, align bottom to Y = 0
+        metaModel.position.set(-metaCenter.x, -metaBox.min.y, -metaCenter.z);
+        metaWrapper.add(metaModel);
+
+        // Scale to lifelike haute couture runway model height (~2.35m)
+        const targetHeight = 2.35;
+        const scaleVal = targetHeight / (metaSize.y || 1);
+        metaWrapper.scale.setScalar(scaleVal);
+
+        // Positioned at the exact red X location (between Mix & Match table corner and Dior showcase plinth)
+        const metaPos = { x: 2.52, y: 0.04, z: 0.22 };
+        metaWrapper.position.set(metaPos.x, metaPos.y, metaPos.z);
+        // Front faces forward with an elegant inward turn toward the center styling table
+        metaWrapper.rotation.y = -Math.PI / 2 + 0.32;
+
+        // Gallery Podium with polished chrome trim and Neon Purple underglow (matching Mix & Match color theme)
+        const podiumGroupMeta = new THREE.Group();
+        podiumGroupMeta.position.set(metaPos.x, 0, metaPos.z);
+
+        const podiumBaseMeta = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.40, 0.44, 0.04, 32),
+          new THREE.MeshStandardMaterial({
+            color: '#14121d',
+            roughness: 0.4,
+            metalness: 0.7,
+          })
+        );
+        podiumBaseMeta.position.y = 0.02;
+        podiumBaseMeta.receiveShadow = true;
+        podiumGroupMeta.add(podiumBaseMeta);
+
+        const chromeRimMeta = new THREE.Mesh(
+          new THREE.TorusGeometry(0.40, 0.012, 12, 32),
+          chromeMat
+        );
+        chromeRimMeta.rotation.x = Math.PI / 2;
+        chromeRimMeta.position.y = 0.04;
+        podiumGroupMeta.add(chromeRimMeta);
+
+        // Neon Purple Underglow Ring (#c084fc)
+        const baseNeonRingMeta = new THREE.Mesh(
+          new THREE.TorusGeometry(0.442, 0.014, 12, 48),
+          new THREE.MeshBasicMaterial({ color: '#c084fc' })
+        );
+        baseNeonRingMeta.rotation.x = Math.PI / 2;
+        baseNeonRingMeta.position.y = 0.01;
+        podiumGroupMeta.add(baseNeonRingMeta);
+
+        // Floor glow pool beneath podium
+        const baseGlowLightMeta = new THREE.PointLight('#c084fc', 2.8, 2.8);
+        baseGlowLightMeta.position.set(0, 0.025, 0);
+        podiumGroupMeta.add(baseGlowLightMeta);
+
+        scene.add(podiumGroupMeta);
+
+        // Dedicated Focused Overhead Spotlight for this runway mannequin
+        const spotLightMeta = new THREE.SpotLight(0xffffff, 4.2, 12, Math.PI / 4, 0.35);
+        spotLightMeta.position.set(metaPos.x - 0.3, 5.2, metaPos.z + 1.2);
+        spotLightMeta.target.position.set(metaPos.x, 1.3, metaPos.z);
+        spotLightMeta.castShadow = true;
+        scene.add(spotLightMeta);
+        scene.add(spotLightMeta.target);
+
+        scene.add(metaWrapper);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load user metaretail mannequin GLB:', err);
+      }
+    );
+
     // ── 7. Raycast Hitboxes for Direct 3D Clicking & Hovering ──
     const hitboxMat = new THREE.MeshBasicMaterial({
       transparent: true,
