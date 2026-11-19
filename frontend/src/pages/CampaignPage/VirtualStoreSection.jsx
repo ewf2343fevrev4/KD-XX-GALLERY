@@ -2626,6 +2626,328 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       (err) => console.warn('Could not load Womens Bag GLB:', err)
     );
 
+    // ══════════════════════════════════════════════════════════════════════════════
+    // ── BOTTOM GLASS SHELF (TIER 1 / KỆ 3, yPos = -0.52): 4 DESIGNER SUNGLASSES ──
+    // ══════════════════════════════════════════════════════════════════════════════
+    const bottomTierY = -0.52;
+    const tier1Slot1X = -0.95;
+    const tier1Slot2X = -0.32;
+    const tier1Slot3X = 0.32;
+    const tier1Slot4X = 0.95;
+
+    // Eyewear acrylic pedestal material (minimalist gallery stand for sunglasses)
+    const acrylicStandMat = new THREE.MeshPhysicalMaterial({
+      color: '#ffffff',
+      transmission: 0.92,
+      opacity: 0.85,
+      transparent: true,
+      roughness: 0.08,
+      ior: 1.48,
+      envMapIntensity: 2.2,
+    });
+
+    const createEyewearStand = () => {
+      const standGroup = new THREE.Group();
+      // Angled clear crystal riser block
+      const standBase = new THREE.Mesh(
+        new THREE.BoxGeometry(0.16, 0.018, 0.14),
+        acrylicStandMat
+      );
+      standBase.position.y = 0.009;
+      standBase.receiveShadow = true;
+      standGroup.add(standBase);
+
+      // Slender chrome resting pegs
+      [-0.045, 0.045].forEach((px) => {
+        const peg = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.003, 0.003, 0.018, 12),
+          chromeMat
+        );
+        peg.position.set(px, 0.024, 0.035);
+        standGroup.add(peg);
+      });
+      return standGroup;
+    };
+
+    // ── 1. Oakley 24K Double X XX Juliet Sunglasses (Tier 1, Slot 1) ──
+    gltfLoader.load(
+      '/models/products/glasses/oakley_juliet.glb',
+      (gltf) => {
+        const oakleyScene = gltf.scene;
+        oakleyScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              // Signature 24K Gold titanium frame & mirror flash lenses
+              if (child.name === 'Retopo_Cylinder003' || (child.material.name && child.material.name.includes('Material.006'))) {
+                // Polarized gold mirror lens
+                child.material.roughness = 0.05;
+                child.material.metalness = 0.98;
+                child.material.color = new THREE.Color('#fbbf24');
+                child.material.envMapIntensity = 3.0;
+              } else if (child.material.name && (child.material.name.includes('Material.001') || child.material.name.includes('Material.002') || child.material.name.includes('Material.004'))) {
+                // Polished 24K gold frame
+                child.material.roughness = 0.15;
+                child.material.metalness = 0.95;
+                child.material.color = new THREE.Color('#eab308');
+                child.material.envMapIntensity = 2.6;
+              } else if (child.material.name && (child.material.name.includes('Material.003') || child.material.name.includes('Material.005'))) {
+                // Matte rubber ear socks
+                child.material.roughness = 0.85;
+                child.material.metalness = 0.02;
+              }
+            }
+          }
+        });
+
+        const oakleyWrapper = new THREE.Group();
+        oakleyWrapper.name = 'bottomTier_product_slot1';
+        oakleyWrapper.position.set(
+          tier1Slot1X,
+          bottomTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        oakleyWrapper.rotation.y = 0.22; // Inward angle facing shopper
+        oakleyWrapper.add(createEyewearStand());
+
+        const oakleyInner = new THREE.Group();
+        const oakleyModel = oakleyScene.clone(true);
+        oakleyModel.rotation.x = -0.16; // Subtle upward tilt to showcase lenses
+        oakleyInner.add(oakleyModel);
+        oakleyInner.updateMatrixWorld(true);
+
+        const oakleyBBox = new THREE.Box3().setFromObject(oakleyInner);
+        const oakleySize = new THREE.Vector3();
+        oakleyBBox.getSize(oakleySize);
+        const oakleyCenter = new THREE.Vector3();
+        oakleyBBox.getCenter(oakleyCenter);
+
+        const oakleyTargetWidth = 0.20;
+        const oakleyScale = oakleyTargetWidth / (oakleySize.x || 1);
+        oakleyInner.scale.setScalar(oakleyScale);
+        oakleyInner.position.set(
+          -oakleyCenter.x * oakleyScale,
+          -oakleyBBox.min.y * oakleyScale + 0.022,
+          -oakleyCenter.z * oakleyScale
+        );
+
+        oakleyWrapper.add(oakleyInner);
+        shelfGroup.add(oakleyWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Oakley Juliet glasses GLB:', err)
+    );
+
+    // ── 2. Prada Vintage Star Glasses (Tier 1, Slot 2) ──
+    gltfLoader.load(
+      '/models/products/glasses/prada_star.glb',
+      (gltf) => {
+        const pradaScene = gltf.scene;
+        pradaScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              // Chrome star temples & tinted gradient lenses
+              if (child.name === 'Object_5' || child.name === 'Object_6' || child.name === 'Object_7') {
+                child.material.roughness = 0.12;
+                child.material.metalness = 0.96;
+                child.material.color = new THREE.Color('#e2e8f0');
+                child.material.envMapIntensity = 2.8;
+              } else if (child.name === 'Object_4') {
+                child.material.roughness = 0.08;
+                child.material.metalness = 0.1;
+                child.material.opacity = 0.85;
+                child.material.transparent = true;
+                child.material.envMapIntensity = 1.8;
+              }
+            }
+          }
+        });
+
+        const pradaWrapper = new THREE.Group();
+        pradaWrapper.name = 'bottomTier_product_slot2';
+        pradaWrapper.position.set(
+          tier1Slot2X,
+          bottomTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        pradaWrapper.rotation.y = 0.08; // Subtle inward angle
+        pradaWrapper.add(createEyewearStand());
+
+        const pradaInner = new THREE.Group();
+        const pradaModel = pradaScene.clone(true);
+        pradaModel.rotation.x = -0.16;
+        pradaInner.add(pradaModel);
+        pradaInner.updateMatrixWorld(true);
+
+        const pradaBBox = new THREE.Box3().setFromObject(pradaInner);
+        const pradaSize = new THREE.Vector3();
+        pradaBBox.getSize(pradaSize);
+        const pradaCenter = new THREE.Vector3();
+        pradaBBox.getCenter(pradaCenter);
+
+        const pradaTargetWidth = 0.20;
+        const pradaScale = pradaTargetWidth / (pradaSize.x || 1);
+        pradaInner.scale.setScalar(pradaScale);
+        pradaInner.position.set(
+          -pradaCenter.x * pradaScale,
+          -pradaBBox.min.y * pradaScale + 0.022,
+          -pradaCenter.z * pradaScale
+        );
+
+        pradaWrapper.add(pradaInner);
+        shelfGroup.add(pradaWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Prada Star glasses GLB:', err)
+    );
+
+    // ── 3. Pervert Glasses 3 (Tier 1, Slot 3) ──
+    gltfLoader.load(
+      '/models/products/glasses/pervert_glasses.glb',
+      (gltf) => {
+        const pervertScene = gltf.scene;
+        pervertScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              // Gold metal accents & glossy acetate frame
+              if (child.material.name && (child.material.name.includes('Gold') || child.material.name.includes('logoBacking') || child.material.name.includes('StandardMetal'))) {
+                child.material.roughness = 0.16;
+                child.material.metalness = 0.94;
+                child.material.color = new THREE.Color('#f59e0b');
+                child.material.envMapIntensity = 2.4;
+              } else if (child.material.name && child.material.name.includes('Glass_Lenses')) {
+                child.material.roughness = 0.06;
+                child.material.metalness = 0.15;
+                child.material.opacity = 0.88;
+                child.material.transparent = true;
+                child.material.envMapIntensity = 2.0;
+              } else if (child.material.name && child.material.name.includes('Frame_ShinyBlack')) {
+                child.material.roughness = 0.12;
+                child.material.metalness = 0.08;
+                child.material.envMapIntensity = 1.6;
+              }
+            }
+          }
+        });
+
+        const pervertWrapper = new THREE.Group();
+        pervertWrapper.name = 'bottomTier_product_slot3';
+        pervertWrapper.position.set(
+          tier1Slot3X,
+          bottomTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        pervertWrapper.rotation.y = -0.08; // Subtle inward angle
+        pervertWrapper.add(createEyewearStand());
+
+        const pervertInner = new THREE.Group();
+        const pervertModel = pervertScene.clone(true);
+        pervertModel.rotation.x = -0.16;
+        pervertInner.add(pervertModel);
+        pervertInner.updateMatrixWorld(true);
+
+        const pervertBBox = new THREE.Box3().setFromObject(pervertInner);
+        const pervertSize = new THREE.Vector3();
+        pervertBBox.getSize(pervertSize);
+        const pervertCenter = new THREE.Vector3();
+        pervertBBox.getCenter(pervertCenter);
+
+        const pervertTargetWidth = 0.20;
+        const pervertScale = pervertTargetWidth / (pervertSize.x || 1);
+        pervertInner.scale.setScalar(pervertScale);
+        pervertInner.position.set(
+          -pervertCenter.x * pervertScale,
+          -pervertBBox.min.y * pervertScale + 0.022,
+          -pervertCenter.z * pervertScale
+        );
+
+        pervertWrapper.add(pervertInner);
+        shelfGroup.add(pervertWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Pervert glasses GLB:', err)
+    );
+
+    // ── 4. Fuel Glasses Nice Guy Eddie (Tier 1, Slot 4) ──
+    gltfLoader.load(
+      '/models/products/glasses/fuel_glasses.glb',
+      (gltf) => {
+        const fuelScene = gltf.scene;
+        fuelScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = 0.15;
+              child.material.metalness = 0.2;
+              child.material.envMapIntensity = 2.0;
+            }
+          }
+        });
+
+        const fuelWrapper = new THREE.Group();
+        fuelWrapper.name = 'bottomTier_product_slot4';
+        fuelWrapper.position.set(
+          tier1Slot4X,
+          bottomTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        fuelWrapper.rotation.y = -0.22; // Inward angle facing shopper
+        fuelWrapper.add(createEyewearStand());
+
+        const fuelInner = new THREE.Group();
+        const fuelModel = fuelScene.clone(true);
+        fuelModel.rotation.x = -0.16;
+        fuelInner.add(fuelModel);
+        fuelInner.updateMatrixWorld(true);
+
+        const fuelBBox = new THREE.Box3().setFromObject(fuelInner);
+        const fuelSize = new THREE.Vector3();
+        fuelBBox.getSize(fuelSize);
+        const fuelCenter = new THREE.Vector3();
+        fuelBBox.getCenter(fuelCenter);
+
+        const fuelTargetWidth = 0.20;
+        const fuelScale = fuelTargetWidth / (fuelSize.x || 1);
+        fuelInner.scale.setScalar(fuelScale);
+        fuelInner.position.set(
+          -fuelCenter.x * fuelScale,
+          -fuelBBox.min.y * fuelScale + 0.022,
+          -fuelCenter.z * fuelScale
+        );
+
+        fuelWrapper.add(fuelInner);
+        shelfGroup.add(fuelWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Fuel glasses GLB:', err)
+    );
+
     // 3. Dedicated Gallery Lighting for the 3.0m Wide Shelf Unit
     // Dual overhead focused spotlights evenly illuminating the 4 display slots across the 3.0m span
     [-0.60, 0.60].forEach((spX) => {
