@@ -2097,6 +2097,85 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Load 3D Louis Vuitton Trunk Briefcase on Top Glass Shelf (Tier 3, Slot 2) ──
+    gltfLoader.load(
+      '/models/products/maletin_luvi/maletin_lv.glb',
+      (gltf) => {
+        const maletinScene = gltf.scene;
+
+        maletinScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              // Gold LV logo tag
+              if (child.name === 'Plane.001' || (child.material.name && child.material.name.includes('Material.002'))) {
+                child.material.roughness = 0.18;
+                child.material.metalness = 0.95;
+                if (child.material.emissive) {
+                  child.material.emissive.set('#856404');
+                  child.material.emissiveIntensity = 0.2;
+                }
+              } else if (child.name === 'Mesh_0.008' || (child.material.name && child.material.name.includes('92f10684'))) {
+                // Gold hardware (locks, hinges, buckles)
+                child.material.roughness = 0.2;
+                child.material.metalness = 0.92;
+                child.material.envMapIntensity = 2.0;
+              } else {
+                // Trunk leather body & handle
+                child.material.roughness = 0.45;
+                child.material.metalness = 0.1;
+                child.material.envMapIntensity = 1.3;
+              }
+            }
+          }
+        });
+
+        const maletinBBox = new THREE.Box3().setFromObject(maletinScene);
+        const maletinSize = new THREE.Vector3();
+        maletinBBox.getSize(maletinSize);
+        const maletinCenter = new THREE.Vector3();
+        maletinBBox.getCenter(maletinCenter);
+
+        // Desired luxury trunk height: ~0.22m (~40cm wide, 22cm high, true proportions)
+        const maletinTargetHeight = 0.22;
+        const maletinScale = maletinTargetHeight / (maletinSize.y || 1);
+
+        const topTierY = 0.52;
+        const slot2X = -0.32;
+
+        const maletinClone = maletinScene.clone(true);
+        maletinClone.scale.setScalar(maletinScale);
+        maletinClone.position.set(
+          -maletinCenter.x * maletinScale,
+          -maletinBBox.min.y * maletinScale,
+          -maletinCenter.z * maletinScale
+        );
+
+        const maletinWrapper = new THREE.Group();
+        maletinWrapper.name = 'topTier_product_slot2';
+        maletinWrapper.position.set(
+          slot2X,
+          topTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        maletinWrapper.rotation.y = 0.08; // Subtle inward gallery angle
+
+        maletinWrapper.add(maletinClone);
+        shelfGroup.add(maletinWrapper);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load user maletin LV GLB:', err);
+      }
+    );
+
     // 3. Dedicated Gallery Lighting for the 3.0m Wide Shelf Unit
     // Dual overhead focused spotlights evenly illuminating the 4 display slots across the 3.0m span
     [-0.60, 0.60].forEach((spX) => {
