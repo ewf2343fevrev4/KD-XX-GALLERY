@@ -2354,6 +2354,278 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ══════════════════════════════════════════════════════════════════════════════
+    // ── MIDDLE GLASS SHELF (TIER 2, yPos = 0.0): 4 DISTINCT LUXURY HANDBAGS ──
+    // ══════════════════════════════════════════════════════════════════════════════
+    const midTierY = 0.0;
+    const tier2Slot1X = -0.95;
+    const tier2Slot2X = -0.32;
+    const tier2Slot3X = 0.32;
+    const tier2Slot4X = 0.95;
+
+    // ── 1. YSL 5 à 7 Hobo Bag (Tier 2, Slot 1) ──
+    gltfLoader.load(
+      '/models/products/ysl_bag/ysl_bag.glb',
+      (gltf) => {
+        const yslScene = gltf.scene;
+        yslScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              // Gold Cassandre YSL monogram logo and strap hardware
+              if (
+                child.name === 'Object_10' ||
+                child.name === 'Object_12' ||
+                (child.material.name && child.material.name.includes('0C_Copper'))
+              ) {
+                child.material.roughness = 0.16;
+                child.material.metalness = 0.96;
+                child.material.color = new THREE.Color('#fbbf24');
+                child.material.envMapIntensity = 2.6;
+              } else {
+                // White luxury leather bag body and strap
+                child.material.roughness = 0.4;
+                child.material.metalness = 0.06;
+                child.material.envMapIntensity = 1.4;
+              }
+            }
+          }
+        });
+
+        const yslBBox = new THREE.Box3().setFromObject(yslScene);
+        const yslSize = new THREE.Vector3();
+        yslBBox.getSize(yslSize);
+        const yslCenter = new THREE.Vector3();
+        yslBBox.getCenter(yslCenter);
+
+        // Desired luxury hobo bag height: ~0.23m
+        const yslTargetHeight = 0.23;
+        const yslScale = yslTargetHeight / (yslSize.y || 1);
+
+        const yslClone = yslScene.clone(true);
+        yslClone.scale.setScalar(yslScale);
+        yslClone.position.set(
+          -yslCenter.x * yslScale,
+          -yslBBox.min.y * yslScale,
+          -yslCenter.z * yslScale
+        );
+
+        const yslWrapper = new THREE.Group();
+        yslWrapper.name = 'midTier_product_slot1';
+        yslWrapper.position.set(
+          tier2Slot1X,
+          midTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        // Gold YSL monogram faces shopper with elegant inward boutique angle
+        yslWrapper.rotation.y = -Math.PI / 2 + 0.28;
+
+        yslWrapper.add(yslClone);
+        shelfGroup.add(yslWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load YSL Hobo bag GLB:', err)
+    );
+
+    // ── 2. Chanel Bag Low Madera (Tier 2, Slot 2) ──
+    gltfLoader.load(
+      '/models/products/chanel_madera/chanel_madera.glb',
+      (gltf) => {
+        const maderaScene = gltf.scene;
+        maderaScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              // Golden metal hardware & CC chain
+              if (
+                child.name === 'Mesh_0_1' ||
+                (child.material.name && child.material.name.includes('Material.003'))
+              ) {
+                child.material.roughness = 0.18;
+                child.material.metalness = 0.94;
+                child.material.color = new THREE.Color('#f59e0b');
+                child.material.envMapIntensity = 2.4;
+              } else if (child.name.startsWith('path')) {
+                // Chanel embossed lettering
+                child.material.roughness = 0.25;
+                child.material.metalness = 0.4;
+                child.material.color = new THREE.Color('#ffffff');
+              } else {
+                child.material.roughness = 0.48;
+                child.material.metalness = 0.05;
+                child.material.envMapIntensity = 1.3;
+              }
+            }
+          }
+        });
+
+        const maderaBBox = new THREE.Box3().setFromObject(maderaScene);
+        const maderaSize = new THREE.Vector3();
+        maderaBBox.getSize(maderaSize);
+        const maderaCenter = new THREE.Vector3();
+        maderaBBox.getCenter(maderaCenter);
+
+        // Desired luxury bag height: ~0.21m
+        const maderaTargetHeight = 0.21;
+        const maderaScale = maderaTargetHeight / (maderaSize.y || 1);
+
+        const maderaClone = maderaScene.clone(true);
+        maderaClone.scale.setScalar(maderaScale);
+        maderaClone.position.set(
+          -maderaCenter.x * maderaScale,
+          -maderaBBox.min.y * maderaScale,
+          -maderaCenter.z * maderaScale
+        );
+
+        const maderaWrapper = new THREE.Group();
+        maderaWrapper.name = 'midTier_product_slot2';
+        maderaWrapper.position.set(
+          tier2Slot2X,
+          midTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        maderaWrapper.rotation.y = 0.08; // Subtle inward gallery angle
+
+        maderaWrapper.add(maderaClone);
+        shelfGroup.add(maderaWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Chanel Madera bag GLB:', err)
+    );
+
+    // ── 3. Chanel Leather Bag For Women (Tier 2, Slot 3) ──
+    gltfLoader.load(
+      '/models/products/chanel_leather/chanel_leather_bag.glb',
+      (gltf) => {
+        const chanelScene = gltf.scene;
+        chanelScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              // Quilted caviar leather finish & gold CC clasp
+              if (child.name === 'Object_3') {
+                // Gold CC clasp lock hardware
+                child.material.roughness = 0.2;
+                child.material.metalness = 0.92;
+                child.material.envMapIntensity = 2.4;
+              } else {
+                // Quilted black/dark leather
+                child.material.roughness = 0.38;
+                child.material.metalness = 0.12;
+                child.material.envMapIntensity = 1.5;
+              }
+            }
+          }
+        });
+
+        const chanelBBox = new THREE.Box3().setFromObject(chanelScene);
+        const chanelSize = new THREE.Vector3();
+        chanelBBox.getSize(chanelSize);
+        const chanelCenter = new THREE.Vector3();
+        chanelBBox.getCenter(chanelCenter);
+
+        // Desired luxury flap bag height: ~0.22m
+        const chanelTargetHeight = 0.22;
+        const chanelScale = chanelTargetHeight / (chanelSize.y || 1);
+
+        const chanelClone = chanelScene.clone(true);
+        chanelClone.scale.setScalar(chanelScale);
+        chanelClone.position.set(
+          -chanelCenter.x * chanelScale,
+          -chanelBBox.min.y * chanelScale,
+          -chanelCenter.z * chanelScale
+        );
+
+        const chanelWrapper = new THREE.Group();
+        chanelWrapper.name = 'midTier_product_slot3';
+        chanelWrapper.position.set(
+          tier2Slot3X,
+          midTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        chanelWrapper.rotation.y = -0.08; // Subtle inward gallery angle
+
+        chanelWrapper.add(chanelClone);
+        shelfGroup.add(chanelWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Chanel Leather bag GLB:', err)
+    );
+
+    // ── 4. Womens Structured Tote Bag (Tier 2, Slot 4) ──
+    gltfLoader.load(
+      '/models/products/womens_bag/womens_bag.glb',
+      (gltf) => {
+        const womensScene = gltf.scene;
+        womensScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = 0.42;
+              child.material.metalness = 0.1;
+              child.material.envMapIntensity = 1.4;
+            }
+          }
+        });
+
+        const womensBBox = new THREE.Box3().setFromObject(womensScene);
+        const womensSize = new THREE.Vector3();
+        womensBBox.getSize(womensSize);
+        const womensCenter = new THREE.Vector3();
+        womensBBox.getCenter(womensCenter);
+
+        // Desired luxury tote bag height: ~0.23m
+        const womensTargetHeight = 0.23;
+        const womensScale = womensTargetHeight / (womensSize.y || 1);
+
+        const womensClone = womensScene.clone(true);
+        womensClone.scale.setScalar(womensScale);
+        womensClone.position.set(
+          -womensCenter.x * womensScale,
+          -womensBBox.min.y * womensScale,
+          -womensCenter.z * womensScale
+        );
+
+        const womensWrapper = new THREE.Group();
+        womensWrapper.name = 'midTier_product_slot4';
+        womensWrapper.position.set(
+          tier2Slot4X,
+          midTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        womensWrapper.rotation.y = -0.25; // Inward angle facing shopper
+
+        womensWrapper.add(womensClone);
+        shelfGroup.add(womensWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Womens Bag GLB:', err)
+    );
+
     // 3. Dedicated Gallery Lighting for the 3.0m Wide Shelf Unit
     // Dual overhead focused spotlights evenly illuminating the 4 display slots across the 3.0m span
     [-0.60, 0.60].forEach((spX) => {
