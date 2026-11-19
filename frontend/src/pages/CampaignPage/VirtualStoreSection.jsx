@@ -3346,18 +3346,18 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const scaleVal = targetHeight / (metaSize.y || 1);
         metaWrapper.scale.setScalar(scaleVal);
 
-        // Positioned at the exact red X location (between Mix & Match table corner and Dior showcase plinth)
-        const metaPos = { x: 2.52, y: 0.04, z: 0.22 };
+        // Positioned shifted slightly to the right with clean clearance from Mix & Match platform corner
+        const metaPos = { x: 2.70, y: 0.04, z: 0.22 };
         metaWrapper.position.set(metaPos.x, metaPos.y, metaPos.z);
-        // Front faces forward with an elegant inward turn toward the center styling table
-        metaWrapper.rotation.y = -Math.PI / 2 + 0.32;
+        // Face straight forward towards the camera
+        metaWrapper.rotation.y = -Math.PI / 2;
 
         // Gallery Podium with polished chrome trim and Neon Purple underglow (matching Mix & Match color theme)
         const podiumGroupMeta = new THREE.Group();
         podiumGroupMeta.position.set(metaPos.x, 0, metaPos.z);
 
         const podiumBaseMeta = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.40, 0.44, 0.04, 32),
+          new THREE.CylinderGeometry(0.38, 0.42, 0.04, 32),
           new THREE.MeshStandardMaterial({
             color: '#14121d',
             roughness: 0.4,
@@ -3369,7 +3369,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         podiumGroupMeta.add(podiumBaseMeta);
 
         const chromeRimMeta = new THREE.Mesh(
-          new THREE.TorusGeometry(0.40, 0.012, 12, 32),
+          new THREE.TorusGeometry(0.38, 0.012, 12, 32),
           chromeMat
         );
         chromeRimMeta.rotation.x = Math.PI / 2;
@@ -3378,7 +3378,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         // Neon Purple Underglow Ring (#c084fc)
         const baseNeonRingMeta = new THREE.Mesh(
-          new THREE.TorusGeometry(0.442, 0.014, 12, 48),
+          new THREE.TorusGeometry(0.422, 0.014, 12, 48),
           new THREE.MeshBasicMaterial({ color: '#c084fc' })
         );
         baseNeonRingMeta.rotation.x = Math.PI / 2;
