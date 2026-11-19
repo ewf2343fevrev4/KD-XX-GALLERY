@@ -34,7 +34,7 @@ const HOTSPOT_ANCHORS = {
   men: new THREE.Vector3(-4.55, 3.05, -1.3),
   center: new THREE.Vector3(0, 2.55, -0.7),
   women: new THREE.Vector3(4.15, 4.65, -1.8),
-  accessories: new THREE.Vector3(7.15, 3.25, -0.6),
+  accessories: new THREE.Vector3(7.40, 4.35, -0.35),
 };
 
 // ── Procedural Brick Texture Generator ──
@@ -2278,19 +2278,21 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
     const dieselBaseColor = textureLoader.load('/models/products/diesel_bag/bag_Material.001_BaseColor.png');
     dieselBaseColor.colorSpace = THREE.SRGBColorSpace;
-    const dieselRoughness = textureLoader.load('/models/products/diesel_bag/bag_Material.001_Roughness.png');
-    const dieselMetallic = textureLoader.load('/models/products/diesel_bag/bag_Material.001_Metallic.png');
+    const dieselArmPacked = textureLoader.load('/models/products/diesel_bag/diesel_arm_packed.png');
     const dieselNormal = textureLoader.load('/models/products/diesel_bag/bag_Material.001_Normal.png');
 
+    // High-gloss mirror metallic silver chrome PBR material matching authentic Diesel 1DR (Photo 2)
     const dieselPBRMaterial = new THREE.MeshStandardMaterial({
+      color: new THREE.Color('#f8fafc'),
       map: dieselBaseColor,
-      roughnessMap: dieselRoughness,
-      metalnessMap: dieselMetallic,
+      roughnessMap: dieselArmPacked,
+      metalnessMap: dieselArmPacked,
       normalMap: dieselNormal,
-      roughness: 0.42,
-      metalness: 0.82,
+      normalScale: new THREE.Vector2(1.2, 1.2),
+      roughness: 0.85, // Multiplied by green channel (~0.13) gives mirror chrome ~0.11
+      metalness: 1.0,  // Multiplied by blue channel (~1.0) gives 100% pure metallic silver
       side: THREE.DoubleSide,
-      envMapIntensity: 1.8,
+      envMapIntensity: 2.8,
     });
 
     fbxLoader.load(
@@ -2304,27 +2306,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           }
         });
 
-        // Compute natural bounding box
-        const dieselBBox = new THREE.Box3().setFromObject(fbxScene);
-        const dieselSize = new THREE.Vector3();
-        dieselBBox.getSize(dieselSize);
-        const dieselCenter = new THREE.Vector3();
-        dieselBBox.getCenter(dieselCenter);
-
-        // Desired luxury handbag height: ~0.24m (height of bag including arched shoulder handle)
-        const dieselTargetHeight = 0.24;
-        const dieselScale = dieselTargetHeight / (dieselSize.y || 1);
-
         const topTierY = 0.52;
         const slot4X = 0.95;
-
-        const dieselClone = fbxScene.clone(true);
-        dieselClone.scale.setScalar(dieselScale);
-        dieselClone.position.set(
-          -dieselCenter.x * dieselScale,
-          -dieselBBox.min.y * dieselScale,
-          -dieselCenter.z * dieselScale
-        );
 
         const dieselWrapper = new THREE.Group();
         dieselWrapper.name = 'topTier_product_slot4';
@@ -2333,10 +2316,36 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           topTierY + shelfThick / 2 + 0.016,
           shelfDepth / 2 + 0.025
         );
-        // Front chrome D emblem faces viewer, angled inward toward shelf center
-        dieselWrapper.rotation.y = -Math.PI / 2 - 0.28;
+        // Front chrome D emblem faces viewer, angled subtly inward toward shelf center
+        dieselWrapper.rotation.y = -Math.PI / 2 + 0.18;
 
-        dieselWrapper.add(dieselClone);
+        const dieselInner = new THREE.Group();
+        const dieselModel = fbxScene.clone(true);
+        // Correct upright orientation: handle arches gracefully over top, body & D-logo upright at bottom
+        dieselModel.rotation.z = Math.PI;
+
+        dieselInner.add(dieselModel);
+        dieselInner.updateMatrixWorld(true);
+
+        const dieselBBox = new THREE.Box3().setFromObject(dieselInner);
+        const dieselSize = new THREE.Vector3();
+        dieselBBox.getSize(dieselSize);
+        const dieselCenter = new THREE.Vector3();
+        dieselBBox.getCenter(dieselCenter);
+
+        // Desired luxury handbag height: ~0.24m (height of bag including arched shoulder handle)
+        const dieselTargetHeight = 0.24;
+        const dieselScale = dieselTargetHeight / (dieselSize.y || 1);
+        dieselInner.scale.setScalar(dieselScale);
+
+        // Center on velvet riser base so bottom sits flush at y = 0
+        dieselInner.position.set(
+          -dieselCenter.x * dieselScale,
+          -dieselBBox.min.y * dieselScale,
+          -dieselCenter.z * dieselScale
+        );
+
+        dieselWrapper.add(dieselInner);
         shelfGroup.add(dieselWrapper);
       },
       undefined,
