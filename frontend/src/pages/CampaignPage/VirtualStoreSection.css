@@ -160,6 +160,13 @@
     0 0 20px rgba(244, 114, 182, 0.22);
 }
 
+.campaign-store-hotspot--accessories {
+  border-color: rgba(251, 191, 36, 0.65);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.65),
+    0 0 22px rgba(251, 191, 36, 0.3);
+}
+
 .campaign-store-hotspot:hover,
 .campaign-store-hotspot.is-hovered {
   transform: translate(-50%, -56%) scale(1.06);
@@ -188,6 +195,13 @@
     0 0 28px rgba(244, 114, 182, 0.55);
 }
 
+.campaign-store-hotspot--accessories:hover,
+.campaign-store-hotspot--accessories.is-hovered {
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(251, 191, 36, 0.65);
+}
+
 .campaign-store-hotspot.is-disabled {
   opacity: 0;
   pointer-events: none;
@@ -214,6 +228,11 @@
 .campaign-store-hotspot--women .campaign-store-hotspot__dot {
   background: #f472b6;
   box-shadow: 0 0 10px #f472b6;
+}
+
+.campaign-store-hotspot--accessories .campaign-store-hotspot__dot {
+  background: #fbbf24;
+  box-shadow: 0 0 10px #fbbf24;
 }
 
 .campaign-store-hotspot__dot::after {

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import './VirtualStoreSection.css';
 
@@ -22,6 +23,10 @@ const CAMERA_PRESETS = {
     pos: new THREE.Vector3(3.2, 2.15, 3.2),
     lookAt: new THREE.Vector3(4.8, 1.75, -1.6),
   },
+  accessories: {
+    pos: new THREE.Vector3(4.8, 2.3, 1.6),
+    lookAt: new THREE.Vector3(7.4, 2.15, -0.4),
+  },
 };
 
 // ── 3D World positions for the projected floating hotspot markers ──
@@ -29,6 +34,7 @@ const HOTSPOT_ANCHORS = {
   men: new THREE.Vector3(-4.55, 3.05, -1.3),
   center: new THREE.Vector3(0, 2.55, -0.7),
   women: new THREE.Vector3(4.15, 4.65, -1.8),
+  accessories: new THREE.Vector3(7.15, 3.25, -0.6),
 };
 
 // ── Procedural Brick Texture Generator ──
@@ -1086,6 +1092,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     men: null,
     center: null,
     women: null,
+    accessories: null,
   });
 
   const [hoveredZone, setHoveredZone] = useState(null);
@@ -1142,7 +1149,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       st.animDuration = 1150; // ~1.15s restrained camera animation
       st.isAnimatingCamera = true;
 
-      if (zoneKey === 'men' || zoneKey === 'women') {
+      if (zoneKey === 'men' || zoneKey === 'women' || zoneKey === 'accessories') {
         // Start brief smooth fade near the end of the camera move
         const fadeTimer = setTimeout(() => {
           setIsFading(true);
@@ -1174,6 +1181,20 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     },
     [onSelectCategory, onNavigateMixAndMatch]
   );
+
+  // Listen for global navbar navigation events (e.g. clicking ACCESSORIES in header)
+  useEffect(() => {
+    const handleFocusEvent = (e) => {
+      const targetZone = e.detail;
+      if (targetZone && !animStateRef.current.isTransitioning) {
+        triggerZoneSelection(targetZone);
+      }
+    };
+    window.addEventListener('focusBoutiqueZone', handleFocusEvent);
+    return () => {
+      window.removeEventListener('focusBoutiqueZone', handleFocusEvent);
+    };
+  }, [triggerZoneSelection]);
 
   // Return camera from Mix & Match table back to store overview
   const handleResetToOverview = useCallback(() => {
@@ -2251,6 +2272,79 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Load 3D Diesel 1DR Shoulder Handbag on Top Glass Shelf (Tier 3, Slot 4) ──
+    const fbxLoader = new FBXLoader();
+    const textureLoader = new THREE.TextureLoader();
+
+    const dieselBaseColor = textureLoader.load('/models/products/diesel_bag/bag_Material.001_BaseColor.png');
+    dieselBaseColor.colorSpace = THREE.SRGBColorSpace;
+    const dieselRoughness = textureLoader.load('/models/products/diesel_bag/bag_Material.001_Roughness.png');
+    const dieselMetallic = textureLoader.load('/models/products/diesel_bag/bag_Material.001_Metallic.png');
+    const dieselNormal = textureLoader.load('/models/products/diesel_bag/bag_Material.001_Normal.png');
+
+    const dieselPBRMaterial = new THREE.MeshStandardMaterial({
+      map: dieselBaseColor,
+      roughnessMap: dieselRoughness,
+      metalnessMap: dieselMetallic,
+      normalMap: dieselNormal,
+      roughness: 0.42,
+      metalness: 0.82,
+      side: THREE.DoubleSide,
+      envMapIntensity: 1.8,
+    });
+
+    fbxLoader.load(
+      '/models/products/diesel_bag/dieselbagfinal.fbx',
+      (fbxScene) => {
+        fbxScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            child.material = dieselPBRMaterial;
+          }
+        });
+
+        // Compute natural bounding box
+        const dieselBBox = new THREE.Box3().setFromObject(fbxScene);
+        const dieselSize = new THREE.Vector3();
+        dieselBBox.getSize(dieselSize);
+        const dieselCenter = new THREE.Vector3();
+        dieselBBox.getCenter(dieselCenter);
+
+        // Desired luxury handbag height: ~0.24m (height of bag including arched shoulder handle)
+        const dieselTargetHeight = 0.24;
+        const dieselScale = dieselTargetHeight / (dieselSize.y || 1);
+
+        const topTierY = 0.52;
+        const slot4X = 0.95;
+
+        const dieselClone = fbxScene.clone(true);
+        dieselClone.scale.setScalar(dieselScale);
+        dieselClone.position.set(
+          -dieselCenter.x * dieselScale,
+          -dieselBBox.min.y * dieselScale,
+          -dieselCenter.z * dieselScale
+        );
+
+        const dieselWrapper = new THREE.Group();
+        dieselWrapper.name = 'topTier_product_slot4';
+        dieselWrapper.position.set(
+          slot4X,
+          topTierY + shelfThick / 2 + 0.016,
+          shelfDepth / 2 + 0.025
+        );
+        // Front chrome D emblem faces viewer, angled inward toward shelf center
+        dieselWrapper.rotation.y = -Math.PI / 2 - 0.28;
+
+        dieselWrapper.add(dieselClone);
+        shelfGroup.add(dieselWrapper);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load user Diesel 1DR bag FBX:', err);
+      }
+    );
+
     // 3. Dedicated Gallery Lighting for the 3.0m Wide Shelf Unit
     // Dual overhead focused spotlights evenly illuminating the 4 display slots across the 3.0m span
     [-0.60, 0.60].forEach((spX) => {
@@ -2638,7 +2732,17 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     womenHitbox.userData = { zone: 'women' };
     scene.add(womenHitbox);
 
-    const hitboxes = [menHitbox, centerHitbox, womenHitbox];
+    const accessoriesHitbox = new THREE.Mesh(
+      new THREE.BoxGeometry(3.2, 2.2, 1.2),
+      hitboxMat
+    );
+    // Positioned over the 3-tier luxury handbag shelves on the angled right wall
+    accessoriesHitbox.position.set(7.58, 2.15, -0.56);
+    accessoriesHitbox.rotation.y = -Math.PI / 2.35;
+    accessoriesHitbox.userData = { zone: 'accessories' };
+    scene.add(accessoriesHitbox);
+
+    const hitboxes = [menHitbox, centerHitbox, womenHitbox, accessoriesHitbox];
 
     // ── 8. Boutique Lighting Setup ──
     const ambientLight = new THREE.AmbientLight('#3b2c56', 1.85);
@@ -2816,7 +2920,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       const width = container.clientWidth;
       const height = container.clientHeight;
 
-      ['men', 'center', 'women'].forEach((key) => {
+      ['men', 'center', 'women', 'accessories'].forEach((key) => {
         const el = hotspotRefs.current[key];
         if (!el) return;
         tempVec.copy(HOTSPOT_ANCHORS[key]);
@@ -2942,6 +3046,29 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             </span>
           </span>
         </button>
+
+        {/* FAR RIGHT: ACCESSORIES (3-TIER HANDBAGS SHELF) */}
+        <button
+          type="button"
+          ref={(el) => {
+            hotspotRefs.current.accessories = el;
+          }}
+          className={`campaign-store-hotspot campaign-store-hotspot--accessories ${
+            hoveredZone === 'accessories' ? 'is-hovered' : ''
+          } ${isTransitioning ? 'is-disabled' : ''}`}
+          onMouseEnter={() => !isTransitioning && setHoveredZone('accessories')}
+          onMouseLeave={() => !isTransitioning && setHoveredZone(null)}
+          onClick={() => triggerZoneSelection('accessories')}
+          disabled={isTransitioning}
+        >
+          <span className="campaign-store-hotspot__dot" />
+          <span className="campaign-store-hotspot__info">
+            <span className="campaign-store-hotspot__label">ACCESSORIES</span>
+            <span className="campaign-store-hotspot__action">
+              Luxury Handbags &amp; Leather →
+            </span>
+          </span>
+        </button>
       </div>
 
       {/* Bottom Quick-Select Zone Dock */}
@@ -2992,6 +3119,22 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         >
           <span className="campaign-store-dock-btn__index">03</span>
           <span>WOMEN&apos;S SHOWCASE</span>
+        </button>
+
+        <button
+          type="button"
+          className={`campaign-store-dock-btn ${
+            hoveredZone === 'accessories' || activeZone === 'accessories'
+              ? 'is-active'
+              : ''
+          }`}
+          onMouseEnter={() => !isTransitioning && setHoveredZone('accessories')}
+          onMouseLeave={() => !isTransitioning && setHoveredZone(null)}
+          onClick={() => triggerZoneSelection('accessories')}
+          disabled={isTransitioning}
+        >
+          <span className="campaign-store-dock-btn__index">04</span>
+          <span>ACCESSORIES (BAGS)</span>
         </button>
       </div>
 

@@ -4,7 +4,6 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { getAllProducts, getCampaignMedia } from '../../services/api';
 import VirtualStoreSection from './VirtualStoreSection';
-import AccessoriesVaultSection from './AccessoriesVaultSection';
 import CampaignVideoSection from './CampaignVideoSection';
 import EditorialShowcaseSection from './EditorialShowcaseSection';
 import './CampaignPage.css';
@@ -90,6 +89,17 @@ const CampaignPage = ({
   };
 
   const handleCategoryChange = (category) => {
+    if (category === 'accessories') {
+      const storeEl = document.getElementById('campaign-virtual-store');
+      if (storeEl) {
+        storeEl.scrollIntoView({ behavior: 'smooth' });
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('focusBoutiqueZone', { detail: 'accessories' }));
+        }, 350);
+        return;
+      }
+    }
+
     if (onCategoryChange) {
       onCategoryChange(category);
     }
@@ -125,15 +135,6 @@ const CampaignPage = ({
     },
     [navigate, onCategoryChange]
   );
-
-  // Handler used by the 3D Accessories Vault after lid open + camera zoom + fade completes
-  const handleAccessoriesNavigate = useCallback(() => {
-    if (onCategoryChange) {
-      onCategoryChange('accessories');
-    }
-    navigate('/home');
-    scrollToProductsSection();
-  }, [navigate, onCategoryChange]);
 
   // Handler used by the 3D Virtual Boutique Mix & Match center table to transition directly to Fit Lab
   const handleNavigateMixAndMatch = useCallback(() => {
@@ -200,11 +201,6 @@ const CampaignPage = ({
         showcaseLeft={campaignMedia?.showcaseLeft}
         showcaseRight={campaignMedia?.showcaseRight}
       />
-
-      {/* ── 5. Interactive 3D Accessories Vault Section ── */}
-      <AccessoriesVaultSection onNavigateAccessories={handleAccessoriesNavigate} />
-
-      {/* ── 4. Future Campaign Sections Placeholder ── */}
 
       <Footer />
     </div>
