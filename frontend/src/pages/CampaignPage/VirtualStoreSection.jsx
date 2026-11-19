@@ -1235,9 +1235,12 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
       powerPreference: 'high-performance',
+      stencil: false,
+      depth: true,
     });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Capped to 1.25 to prevent 4K/Retina fill-rate choking while keeping visuals sharp
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1399,7 +1402,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         userModel.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -1508,7 +1511,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const keyLight = new THREE.SpotLight(0xffffff, 7.5, 18, Math.PI / 4, 0.35);
         keyLight.position.set(-3.6, 5.0, 3.4);
         keyLight.target.position.set(flexPos.x, 1.5, flexPos.z);
-        keyLight.castShadow = true;
+        keyLight.castShadow = false;
         menGroup.add(keyLight);
         menGroup.add(keyLight.target);
 
@@ -1906,7 +1909,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         // Traverse to tune materials for high-end boutique realism
         lvBagScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
 
             if (child.material) {
@@ -1986,7 +1989,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         maletinScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
 
             if (child.material) {
@@ -2065,7 +2068,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         gucciScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
 
             if (child.material) {
@@ -2160,7 +2163,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       (fbxScene) => {
         fbxScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             child.material = dieselPBRMaterial;
           }
@@ -2230,7 +2233,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const yslScene = gltf.scene;
         yslScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -2300,7 +2303,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const maderaScene = gltf.scene;
         maderaScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -2372,7 +2375,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const chanelScene = gltf.scene;
         chanelScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -2437,7 +2440,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const womensScene = gltf.scene;
         womensScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -2536,7 +2539,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const oakleyScene = gltf.scene;
         oakleyScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -2611,7 +2614,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const pradaScene = gltf.scene;
         pradaScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -2681,7 +2684,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const pervertScene = gltf.scene;
         pervertScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -2755,7 +2758,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const fuelScene = gltf.scene;
         fuelScene.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -2840,7 +2843,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         ss24Model.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
 
             if (child.material) {
@@ -3047,7 +3050,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         femaleModel.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -3143,7 +3146,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const keyLightFemale = new THREE.SpotLight(0xffffff, 7.5, 18, Math.PI / 4, 0.35);
         keyLightFemale.position.set(3.6, 5.0, 3.4);
         keyLightFemale.target.position.set(flexPosFemale.x, 1.5, flexPosFemale.z);
-        keyLightFemale.castShadow = true;
+        keyLightFemale.castShadow = false;
         womenGroup.add(keyLightFemale);
         womenGroup.add(keyLightFemale.target);
 
@@ -3172,7 +3175,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         metaModel.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -3256,7 +3259,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const spotLightMeta = new THREE.SpotLight(0xffffff, 4.2, 12, Math.PI / 4, 0.35);
         spotLightMeta.position.set(metaPos.x - 0.3, 5.2, metaPos.z + 1.2);
         spotLightMeta.target.position.set(metaPos.x, 1.3, metaPos.z);
-        spotLightMeta.castShadow = true;
+        spotLightMeta.castShadow = false;
         scene.add(spotLightMeta);
         scene.add(spotLightMeta.target);
 
@@ -3276,7 +3279,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         metaMenModel.traverse((child) => {
           if (child.isMesh) {
-            child.castShadow = true;
+            child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
               child.material.side = THREE.DoubleSide;
@@ -3360,7 +3363,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const spotLightMetaMen = new THREE.SpotLight(0xffffff, 4.2, 12, Math.PI / 4, 0.35);
         spotLightMetaMen.position.set(metaMenPos.x + 0.3, 5.2, metaMenPos.z + 1.2);
         spotLightMetaMen.target.position.set(metaMenPos.x, 1.3, metaMenPos.z);
-        spotLightMetaMen.castShadow = true;
+        spotLightMetaMen.castShadow = false;
         scene.add(spotLightMetaMen);
         scene.add(spotLightMetaMen.target);
 
@@ -3444,6 +3447,11 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     centerSpot.position.set(0, 5.4, 0.2);
     centerSpot.target.position.set(0, 0.9, -1.1);
     centerSpot.castShadow = true;
+    centerSpot.shadow.mapSize.width = 1024;
+    centerSpot.shadow.mapSize.height = 1024;
+    centerSpot.shadow.camera.near = 1.0;
+    centerSpot.shadow.camera.far = 10.0;
+    centerSpot.shadow.bias = -0.0006;
     scene.add(centerSpot);
     scene.add(centerSpot.target);
 
@@ -3532,8 +3540,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const animate = (now) => {
       reqId = requestAnimationFrame(animate);
 
-      // Skip rendering and GPU load when section is scrolled out of viewport
-      if (!isVisible) return;
+      // Skip rendering and GPU load when section is scrolled out of viewport or tab is in background
+      if (!isVisible || document.hidden) return;
 
       const delta = Math.min((now - lastFrameTime) / 1000, 0.1);
       lastFrameTime = now;
