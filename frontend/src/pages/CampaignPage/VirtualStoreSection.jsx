@@ -1985,7 +1985,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
       // Minimalist luxury display pedestals / velvet riser blocks on each shelf
       // 4 Display Slots per tier = 12 total dedicated display spots for user .glb products!
-      [-1.12, -0.38, 0.38, 1.12].forEach((slotX, slotIdx) => {
+      // Generously spaced at [-0.95, -0.32, 0.32, 0.95] so each tier comfortably holds 3 to 4 products without crowding
+      [-0.95, -0.32, 0.32, 0.95].forEach((slotX, slotIdx) => {
         const slotGroup = new THREE.Group();
         slotGroup.name = `shelfSlot_tier${tierIdx + 1}_pos${slotIdx + 1}`;
         slotGroup.position.set(slotX, yPos + shelfThick / 2, shelfDepth / 2 + 0.025);
@@ -2015,18 +2016,101 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       });
     });
 
+    // ── Load 3D Louis Vuitton Bag on Top Glass Shelf (Tier 3) ──
+    gltfLoader.load(
+      '/models/products/lv_bag/bolso_lv.glb',
+      (gltf) => {
+        const lvBagScene = gltf.scene;
+
+        // Traverse to tune materials for high-end boutique realism
+        lvBagScene.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              // If this is the gold LV logo plaque (named 'Material.001' or child name 'Plane')
+              if (child.name === 'Plane' || (child.material.name && child.material.name.includes('Material.001'))) {
+                child.material.roughness = 0.18;
+                child.material.metalness = 0.95;
+                if (child.material.emissive) {
+                  child.material.emissive.set('#856404');
+                  child.material.emissiveIntensity = 0.2;
+                }
+              } else {
+                // Monogram leather bag body
+                child.material.roughness = 0.45;
+                child.material.metalness = 0.12;
+                child.material.envMapIntensity = 1.4;
+              }
+            }
+          }
+        });
+
+        // Compute natural bounding box of the unscaled prefab
+        const bagBBox = new THREE.Box3().setFromObject(lvBagScene);
+        const bagSize = new THREE.Vector3();
+        bagBBox.getSize(bagSize);
+        const bagCenter = new THREE.Vector3();
+        bagBBox.getCenter(bagCenter);
+
+        // Target height ~0.235m (around 24cm wide and 23.5cm tall, true luxury handbag proportions)
+        const targetHeight = 0.235;
+        const bagScale = targetHeight / (bagSize.y || 1);
+
+        // Display slots on Tier 3 (top tier: yPos = 0.52)
+        const topTierY = 0.52;
+        const topSlotXs = [-0.95, -0.32, 0.32, 0.95];
+        // Curated high-fashion gallery angles (slight inward turn facing the shopper)
+        const topSlotRotations = [0.28, 0.08, -0.08, -0.28];
+
+        topSlotXs.forEach((slotX, idx) => {
+          const bagClone = lvBagScene.clone(true);
+          bagClone.scale.setScalar(bagScale);
+          // Center the bag on its base so bottom sits exactly at y = 0
+          bagClone.position.set(
+            -bagCenter.x * bagScale,
+            -bagBBox.min.y * bagScale,
+            -bagCenter.z * bagScale
+          );
+
+          const bagWrapper = new THREE.Group();
+          bagWrapper.name = `lvBag_topTier_slot${idx + 1}`;
+          // Position directly on top of the velvet riser: y = topTierY + shelfThick / 2 + 0.016
+          bagWrapper.position.set(
+            slotX,
+            topTierY + shelfThick / 2 + 0.016,
+            shelfDepth / 2 + 0.025
+          );
+          bagWrapper.rotation.y = topSlotRotations[idx];
+
+          bagWrapper.add(bagClone);
+          shelfGroup.add(bagWrapper);
+        });
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load user Louis Vuitton bag GLB:', err);
+      }
+    );
+
     // 3. Dedicated Gallery Lighting for the 3.0m Wide Shelf Unit
-    // Dual overhead focused spotlights evenly illuminating the 3.0m span
-    [-0.75, 0.75].forEach((spX) => {
+    // Dual overhead focused spotlights evenly illuminating the 4 display slots across the 3.0m span
+    [-0.60, 0.60].forEach((spX) => {
       const shelfSpotlight = new THREE.SpotLight(
         '#ffffff',
-        3.5,
+        4.0,
         8.0,
-        Math.PI / 3.4,
+        Math.PI / 3.2,
         0.35
       );
       shelfSpotlight.position.set(spX, 1.8, 0.95);
-      shelfSpotlight.target.position.set(spX, 0, 0.25);
+      shelfSpotlight.target.position.set(spX, 0.2, 0.25);
       shelfGroup.add(shelfSpotlight);
       shelfGroup.add(shelfSpotlight.target);
     });
