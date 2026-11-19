@@ -1534,6 +1534,70 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       }
     );
 
+    // ── Load Bape Streetwear Wooden Cargo Crate in the Back-Left Corner of Men's Area ──
+    gltfLoader.load(
+      '/models/props/bape_crate.glb',
+      (gltf) => {
+        const crateModel = gltf.scene;
+
+        crateModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false; // High FPS performance, no shadow pass overhead
+            child.receiveShadow = true;
+            if (child.material) {
+              child.material.side = THREE.DoubleSide;
+              if (child.material.map) {
+                child.material.map.colorSpace = THREE.SRGBColorSpace;
+                child.material.map.needsUpdate = true;
+              }
+              child.material.roughness = 0.65;
+              child.material.metalness = 0.05;
+              child.material.envMapIntensity = 1.25;
+            }
+          }
+        });
+
+        crateModel.updateMatrixWorld(true);
+        const crateBox = new THREE.Box3().setFromObject(crateModel);
+        const crateSize = new THREE.Vector3();
+        crateBox.getSize(crateSize);
+        const crateCenter = new THREE.Vector3();
+        crateBox.getCenter(crateCenter);
+
+        const crateWrapper = new THREE.Group();
+        crateWrapper.name = 'bapeCrateWrapper';
+
+        // Center on X and Z, align bottom to Y = 0 (flush on the floor)
+        crateModel.position.set(-crateCenter.x, -crateBox.min.y, -crateCenter.z);
+        crateWrapper.add(crateModel);
+
+        // Substantial, imposing streetwear cargo crate scale (1.35m height/width/depth - authentic large pallet crate)
+        const targetCrateHeight = 1.35;
+        const scaleVal = targetCrateHeight / (crateSize.y || 1);
+        crateWrapper.scale.setScalar(scaleVal);
+
+        // Positioned in the spacious back-left corner of the Men's section with ample clearance from walls & mannequins
+        const cratePos = { x: -5.10, y: 0.0, z: -2.85 };
+        crateWrapper.position.set(cratePos.x, cratePos.y, cratePos.z);
+        // Turned slightly at ~16 degrees towards the camera & center runway to show dynamic 3D depth and branding
+        crateWrapper.rotation.y = 0.28;
+
+        menGroup.add(crateWrapper);
+
+        // Subtle dedicated overhead downlight to highlight the crate wood grain and Bape graphic
+        const crateSpotlight = new THREE.SpotLight('#ffffff', 3.2, 8.0, Math.PI / 3.5, 0.45);
+        crateSpotlight.position.set(cratePos.x, 4.4, cratePos.z + 1.2);
+        crateSpotlight.target.position.set(cratePos.x, 0.65, cratePos.z);
+        crateSpotlight.castShadow = false;
+        menGroup.add(crateSpotlight);
+        menGroup.add(crateSpotlight.target);
+      },
+      undefined,
+      (err) => {
+        console.warn('Could not load Bape wooden crate GLB:', err);
+      }
+    );
+
     // ── 5. CENTER AREA: MIX & MATCH STYLING TABLE ──
     const centerGroup = new THREE.Group();
     scene.add(centerGroup);
