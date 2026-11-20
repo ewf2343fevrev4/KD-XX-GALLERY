@@ -2057,23 +2057,40 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           }
         });
 
+        // Pitch the model forward (~18.9°) so front hand, knee, and back foot align onto a single flat ground plane
+        spidermanModel.rotation.x = (18.9 * Math.PI) / 180;
         spidermanModel.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(spidermanModel);
-        const size = new THREE.Vector3();
-        box.getSize(size);
-        const center = new THREE.Vector3();
-        box.getCenter(center);
+
+        // Calculate exact vertex bounds to eliminate GLTF hierarchy rotation box inflation
+        const minVertex = new THREE.Vector3(Infinity, Infinity, Infinity);
+        const maxVertex = new THREE.Vector3(-Infinity, -Infinity, -Infinity);
+        const tmpV = new THREE.Vector3();
+
+        spidermanModel.traverse((child) => {
+          if (child.isMesh && child.geometry && child.geometry.attributes.position) {
+            const posAttr = child.geometry.attributes.position;
+            for (let i = 0; i < posAttr.count; i++) {
+              tmpV.fromBufferAttribute(posAttr, i);
+              tmpV.applyMatrix4(child.matrixWorld);
+              minVertex.min(tmpV);
+              maxVertex.max(tmpV);
+            }
+          }
+        });
+
+        const spiderSize = new THREE.Vector3().subVectors(maxVertex, minVertex);
+        const spiderCenter = new THREE.Vector3().addVectors(minVertex, maxVertex).multiplyScalar(0.5);
 
         const spidermanWrapper = new THREE.Group();
         spidermanWrapper.name = 'spidermanHeroWrapper';
 
-        // Center on X and Z, align lowest feet flush to local Y = 0
-        spidermanModel.position.set(-center.x, -box.min.y, -center.z);
+        // Center on X and Z, align lowest contact points (hand, knee, toe) flush to local Y = 0
+        spidermanModel.position.set(-spiderCenter.x, -minVertex.y, -spiderCenter.z);
         spidermanWrapper.add(spidermanModel);
 
-        // Scale to compact superhero crouching/kneeling height (~1.15m)
-        const targetHeight = 1.15;
-        const scaleVal = targetHeight / (size.y || 1);
+        // Scale to compact superhero crouching/kneeling height (~0.95m)
+        const targetHeight = 0.95;
+        const scaleVal = targetHeight / (spiderSize.y || 1);
         spidermanWrapper.scale.setScalar(scaleVal);
 
         // Positioned flush onto the floor (y: -0.015) at user-approved location (x: -4.75, z: 0.22)
@@ -2082,21 +2099,21 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         // Rotated 90 degrees horizontally sideways facing across the boutique towards the center runway
         spidermanWrapper.rotation.y = Math.PI / 2;
 
-        // Natural soft contact shadow under Spiderman's crouching pose on the floor
+        // Natural soft contact shadow under Spiderman's crouching pose on the floor (oblong footprint)
         const spiderShadowCanvas = document.createElement('canvas');
-        spiderShadowCanvas.width = 128;
+        spiderShadowCanvas.width = 256;
         spiderShadowCanvas.height = 128;
         const spCtx = spiderShadowCanvas.getContext('2d');
-        const spGrad = spCtx.createRadialGradient(64, 64, 10, 64, 64, 64);
+        const spGrad = spCtx.createRadialGradient(128, 64, 15, 128, 64, 64);
         spGrad.addColorStop(0, 'rgba(0, 0, 0, 0.88)');
-        spGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.45)');
+        spGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.42)');
         spGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
         spCtx.fillStyle = spGrad;
-        spCtx.fillRect(0, 0, 128, 128);
+        spCtx.fillRect(0, 0, 256, 128);
         const spiderShadowTex = new THREE.CanvasTexture(spiderShadowCanvas);
 
         const spiderContactShadow = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.95, 0.95),
+          new THREE.PlaneGeometry(1.45, 0.85),
           new THREE.MeshBasicMaterial({
             map: spiderShadowTex,
             transparent: true,
@@ -2110,7 +2127,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         // Studio key spotlight illuminating the iconic suit, textures, and reflective lenses
         const spiderKeyLight = new THREE.SpotLight(0xffffff, 4.5, 12.0, Math.PI / 4.0, 0.35);
         spiderKeyLight.position.set(-3.95, 4.2, 1.8);
-        spiderKeyLight.target.position.set(spidermanPos.x, 0.58, spidermanPos.z);
+        spiderKeyLight.target.position.set(spidermanPos.x, 0.45, spidermanPos.z);
         spiderKeyLight.castShadow = false;
         menGroup.add(spiderKeyLight);
         menGroup.add(spiderKeyLight.target);
