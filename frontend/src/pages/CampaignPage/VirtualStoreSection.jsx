@@ -2121,6 +2121,65 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           action.play();
         }
 
+        // ── Equip Sp5der 555555 Pink Web Graphic Hoodie onto Spiderman ──
+        gltfLoader.load(
+          '/models/props/sp5der_pnk_hoodie.glb',
+          (hoodieGltf) => {
+            const hoodie = hoodieGltf.scene;
+            hoodie.name = 'sp5derPinkHoodie';
+
+            hoodie.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = false;
+                child.receiveShadow = true;
+                if (child.material) {
+                  const mats = Array.isArray(child.material) ? child.material : [child.material];
+                  mats.forEach((mat) => {
+                    mat.side = THREE.DoubleSide;
+                    if (mat.map) {
+                      mat.map.colorSpace = THREE.SRGBColorSpace;
+                      mat.map.needsUpdate = true;
+                    }
+                    mat.roughness = 0.82;
+                    mat.metalness = 0.05;
+                    mat.envMapIntensity = 1.3;
+                  });
+                }
+                // Ensure graphic print decals render cleanly over base fabric without z-fighting
+                if (child.name === 'Object_2') {
+                  child.renderOrder = 1;
+                } else {
+                  child.renderOrder = 2;
+                }
+              }
+            });
+
+            hoodie.updateMatrixWorld(true);
+            const hBox = new THREE.Box3().setFromObject(hoodie);
+            const hCenter = new THREE.Vector3();
+            hBox.getCenter(hCenter);
+
+            const hoodiePivot = new THREE.Group();
+            hoodiePivot.name = 'sp5derPinkHoodiePivot';
+
+            // Center hoodie local mesh so pivot origin aligns with hoodie chest center
+            hoodie.position.set(-hCenter.x, -hCenter.y, -hCenter.z);
+            hoodiePivot.add(hoodie);
+
+            // Tailored oversized streetwear puff hoodie fit over athletic suit
+            const hoodieScale = 1.05;
+            hoodiePivot.scale.set(hoodieScale, hoodieScale, hoodieScale * 1.08);
+
+            // Fitted precisely over Spiderman's torso, shoulders, and framing the masked head
+            hoodiePivot.position.set(-0.095, 1.275, -0.165);
+            hoodiePivot.rotation.set(-0.14, -0.02, 0.02);
+
+            spidermanWrapper.add(hoodiePivot);
+          },
+          undefined,
+          (err) => console.warn('Could not load Sp5der Pink Hoodie GLB:', err)
+        );
+
         menGroup.add(spidermanWrapper);
       },
       undefined,
