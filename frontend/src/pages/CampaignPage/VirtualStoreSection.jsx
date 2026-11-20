@@ -1871,26 +1871,38 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         });
 
         soccerModel.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(soccerModel);
-        const size = new THREE.Vector3();
-        box.getSize(size);
-        const center = new THREE.Vector3();
-        box.getCenter(center);
+
+        // Find exact lowest vertex of shoes to ensure 100% flush contact with the floor (no floating air gap)
+        let lowestShoeY = Infinity;
+        let highestY = -Infinity;
+        const v = new THREE.Vector3();
+        soccerModel.traverse((child) => {
+          if (child.isMesh && child.visible) {
+            const pos = child.geometry.attributes.position;
+            for (let i = 0; i < pos.count; i++) {
+              v.fromBufferAttribute(pos, i);
+              v.applyMatrix4(child.matrixWorld);
+              if (child.name.toLowerCase().includes('shoe') && v.y < lowestShoeY) lowestShoeY = v.y;
+              if (v.y > highestY) highestY = v.y;
+            }
+          }
+        });
+        const trueHeight = (highestY - lowestShoeY) || 1.92;
 
         const soccerWrapper = new THREE.Group();
         soccerWrapper.name = 'balenciagaSoccerMannequinWrapper';
 
-        // Center on X and Z, align bottom of boots to Y = 0
-        soccerModel.position.set(-center.x, -box.min.y, -center.z);
+        // Align soles of shoes precisely to local Y = 0 (eliminates the 13cm unaligned air gap)
+        soccerModel.position.set(0, -lowestShoeY, 0);
         soccerWrapper.add(soccerModel);
 
-        // Haute couture runway statuary proportion (~2.35m tall) naturally aligned with 3D perspective
-        const targetHeight = 2.35;
-        const scaleVal = targetHeight / (size.y || 1);
+        // Haute couture runway statuary proportion (~2.30m tall) naturally aligned with 3D perspective
+        const targetHeight = 2.30;
+        const scaleVal = targetHeight / trueHeight;
         soccerWrapper.scale.setScalar(scaleVal);
 
-        // Positioned standing flush directly on the floor (no podium base as requested)
-        const soccerPos = { x: -2.60, y: 0.0, z: -1.75 };
+        // Positioned standing flush directly on the floor with subtle grounding press (-0.015m)
+        const soccerPos = { x: -2.55, y: -0.015, z: -1.35 };
         soccerWrapper.position.set(soccerPos.x, soccerPos.y, soccerPos.z);
         // Angled naturally towards the central styling table and runway
         soccerWrapper.rotation.y = -0.20;
@@ -1901,15 +1913,15 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         shadowCanvas.height = 128;
         const sCtx = shadowCanvas.getContext('2d');
         const sGrad = sCtx.createRadialGradient(64, 64, 8, 64, 64, 64);
-        sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.75)');
-        sGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.35)');
+        sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
+        sGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0.45)');
         sGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
         sCtx.fillStyle = sGrad;
         sCtx.fillRect(0, 0, 128, 128);
         const shadowTex = new THREE.CanvasTexture(shadowCanvas);
 
         const contactShadow = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.9, 0.9),
+          new THREE.PlaneGeometry(0.85, 0.85),
           new THREE.MeshBasicMaterial({
             map: shadowTex,
             transparent: true,
