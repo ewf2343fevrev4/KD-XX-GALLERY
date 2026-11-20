@@ -1971,6 +1971,52 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           (err) => console.warn('Could not load Fox x Supreme helmet GLB:', err)
         );
 
+        // ── Supreme Backpack Held in Left Hand of Balenciaga Soccer Mannequin ──
+        gltfLoader.load(
+          '/models/props/supreme_backpack.glb',
+          (backpackGltf) => {
+            const backpack = backpackGltf.scene;
+            backpack.name = 'supremeBackpack';
+
+            backpack.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = false;
+                child.receiveShadow = false;
+                if (child.material) {
+                  const mats = Array.isArray(child.material) ? child.material : [child.material];
+                  mats.forEach((mat) => {
+                    mat.side = THREE.DoubleSide;
+                    if (mat.map) {
+                      mat.map.colorSpace = THREE.SRGBColorSpace;
+                      mat.map.needsUpdate = true;
+                    }
+                    mat.envMapIntensity = 1.3;
+                  });
+                }
+              }
+            });
+
+            // Pivot placed precisely at the grasp of the mannequin's left hand
+            const backpackPivot = new THREE.Group();
+            backpackPivot.name = 'supremeBackpackPivot';
+            // Positioned inside the left palm and fingers:
+            backpackPivot.position.set(0.30, 0.835, -0.015);
+            // Angled naturally: slight forward pitch, front logo angled towards boutique camera, clearing leg
+            backpackPivot.rotation.set(0.05, 0.25, 0.10);
+
+            // Scale to authentic Supreme Cordura backpack proportions (~48cm tall)
+            const backpackScale = 0.24;
+            backpack.scale.setScalar(backpackScale);
+            // Offset so the top grab handle loop rests inside the hand grasp point
+            backpack.position.set(0, -1.685 * backpackScale, -0.050 * backpackScale);
+
+            backpackPivot.add(backpack);
+            soccerModel.add(backpackPivot);
+          },
+          undefined,
+          (err) => console.warn('Could not load Supreme Backpack GLB:', err)
+        );
+
         // Studio key light for Balenciaga / Adidas soccer jersey and Fox x Supreme helmet
         const soccerKeyLight = new THREE.SpotLight(0xffffff, 4.0, 11.5, Math.PI / 4.0, 0.35);
         soccerKeyLight.position.set(-2.2, 5.0, 0.3);
