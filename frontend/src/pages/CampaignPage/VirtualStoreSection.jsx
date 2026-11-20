@@ -1934,10 +1934,47 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         menGroup.add(soccerWrapper);
 
-        // Studio key light for Balenciaga / Adidas soccer jersey
-        const soccerKeyLight = new THREE.SpotLight(0xffffff, 3.8, 11.0, Math.PI / 4.2, 0.35);
+        // ── Fox x Supreme Motocross Helmet on Balenciaga Soccer Mannequin ──
+        loader.load(
+          '/models/props/fox_x_supreme_helmet.glb',
+          (helmetGltf) => {
+            const helmet = helmetGltf.scene;
+            helmet.name = 'foxSupremeHelmet';
+
+            helmet.traverse((child) => {
+              if (child.isMesh) {
+                child.castShadow = false;
+                child.receiveShadow = false;
+                if (child.material) {
+                  child.material.side = THREE.DoubleSide;
+                  child.material.needsUpdate = true;
+                }
+              }
+            });
+
+            // Cleanly tuck hair meshes inside the full-face helmet shell to eliminate any clipping
+            soccerModel.traverse((child) => {
+              if (child.isMesh && child.name.toLowerCase().includes('hair')) {
+                child.visible = false;
+              }
+            });
+
+            // Sized and fitted securely onto the head of the soccer mannequin
+            const helmetScale = 0.285;
+            helmet.scale.setScalar(helmetScale);
+            // Positioned over head and eyes: x=-0.033, y=1.675, z=0.057 in soccerModel local space
+            helmet.position.set(-0.033, 1.675, 0.057);
+            helmet.rotation.x = -0.055;
+            soccerModel.add(helmet);
+          },
+          undefined,
+          (err) => console.warn('Could not load Fox x Supreme helmet GLB:', err)
+        );
+
+        // Studio key light for Balenciaga / Adidas soccer jersey and Fox x Supreme helmet
+        const soccerKeyLight = new THREE.SpotLight(0xffffff, 4.0, 11.5, Math.PI / 4.0, 0.35);
         soccerKeyLight.position.set(-2.2, 5.0, 0.3);
-        soccerKeyLight.target.position.set(soccerPos.x, 1.25, soccerPos.z);
+        soccerKeyLight.target.position.set(soccerPos.x, 1.45, soccerPos.z);
         soccerKeyLight.castShadow = false;
         menGroup.add(soccerKeyLight);
         menGroup.add(soccerKeyLight.target);
