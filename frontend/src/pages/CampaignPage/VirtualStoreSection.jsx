@@ -1962,9 +1962,9 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             // Sized and fitted securely onto the head of the soccer mannequin
             const helmetScale = 0.285;
             helmet.scale.setScalar(helmetScale);
-            // Positioned over head and eyes: x=-0.033, y=1.675, z=0.057 in soccerModel local space
-            helmet.position.set(-0.033, 1.675, 0.057);
-            helmet.rotation.x = -0.055;
+            // Positioned over head and eyes facing forward (+Z direction):
+            helmet.position.set(-0.033, 1.660, -0.045);
+            helmet.rotation.set(0.02, Math.PI, 0);
             soccerModel.add(helmet);
           },
           undefined,
