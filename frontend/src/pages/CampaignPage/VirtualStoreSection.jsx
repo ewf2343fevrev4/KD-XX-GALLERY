@@ -1394,6 +1394,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     menGroup.add(menSignGlow);
 
     // ── Load User's AI-Generated 3D Mannequin Model ──
+    let spidermanMixer = null;
     const gltfLoader = new GLTFLoader();
     gltfLoader.load(
       '/models/mannequin/mannequin_dorad.glb',
@@ -2027,6 +2028,102 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       },
       undefined,
       (err) => console.warn('Could not load Balenciaga x Adidas soccer mannequin GLB:', err)
+    );
+
+    // ── Load Spiderman Miles Morales in the Open Right Corner of Men's Area ──
+    gltfLoader.load(
+      '/models/characters/spiderman_miles_morales.glb',
+      (gltf) => {
+        const spidermanModel = gltf.scene;
+
+        spidermanModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false; // Zero shadow-pass penalty for 60 FPS
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = Math.max(mat.roughness || 0.45, 0.4);
+                mat.envMapIntensity = 1.4;
+              });
+            }
+          }
+        });
+
+        spidermanModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(spidermanModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const spidermanWrapper = new THREE.Group();
+        spidermanWrapper.name = 'spidermanMilesMoralesWrapper';
+
+        // Center on X and Z, align soles of feet flush to local Y = 0
+        spidermanModel.position.set(-center.x, -box.min.y, -center.z);
+        spidermanWrapper.add(spidermanModel);
+
+        // Scale to heroic athletic runway proportion (~2.15m)
+        const targetHeight = 2.15;
+        const scaleVal = targetHeight / (size.y || 1);
+        spidermanWrapper.scale.setScalar(scaleVal);
+
+        // Positioned in the open right corner of Men's area with 100% unobstructed view from camera
+        const spidermanPos = { x: -1.75, y: -0.015, z: -2.75 };
+        spidermanWrapper.position.set(spidermanPos.x, spidermanPos.y, spidermanPos.z);
+        // Standing slightly angled diagonally towards the camera and center runway (~14 deg)
+        spidermanWrapper.rotation.y = -0.25;
+
+        // Natural soft contact shadow under Spiderman's feet on the floor
+        const spiderShadowCanvas = document.createElement('canvas');
+        spiderShadowCanvas.width = 128;
+        spiderShadowCanvas.height = 128;
+        const spCtx = spiderShadowCanvas.getContext('2d');
+        const spGrad = spCtx.createRadialGradient(64, 64, 8, 64, 64, 64);
+        spGrad.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
+        spGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0.42)');
+        spGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+        spCtx.fillStyle = spGrad;
+        spCtx.fillRect(0, 0, 128, 128);
+        const spiderShadowTex = new THREE.CanvasTexture(spiderShadowCanvas);
+
+        const spiderContactShadow = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.85, 0.85),
+          new THREE.MeshBasicMaterial({
+            map: spiderShadowTex,
+            transparent: true,
+            depthWrite: false,
+          })
+        );
+        spiderContactShadow.rotation.x = -Math.PI / 2;
+        spiderContactShadow.position.set(spidermanPos.x, 0.002, spidermanPos.z);
+        menGroup.add(spiderContactShadow);
+
+        // Studio key spotlight illuminating the red/black suit and reflective eye lenses
+        const spiderKeyLight = new THREE.SpotLight(0xffffff, 4.2, 11.0, Math.PI / 4.0, 0.35);
+        spiderKeyLight.position.set(-1.4, 5.0, -1.0);
+        spiderKeyLight.target.position.set(spidermanPos.x, 1.3, spidermanPos.z);
+        spiderKeyLight.castShadow = false;
+        menGroup.add(spiderKeyLight);
+        menGroup.add(spiderKeyLight.target);
+
+        // Heroic idle breathing animation loop
+        if (gltf.animations && gltf.animations.length > 0) {
+          spidermanMixer = new THREE.AnimationMixer(spidermanModel);
+          const action = spidermanMixer.clipAction(gltf.animations[0]);
+          action.play();
+        }
+
+        menGroup.add(spidermanWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Spiderman Miles Morales GLB:', err)
     );
 
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
@@ -4207,6 +4304,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       const delta = Math.min((now - lastFrameTime) / 1000, 0.1);
       lastFrameTime = now;
       if (showcaseMixer) showcaseMixer.update(delta);
+      if (spidermanMixer) spidermanMixer.update(delta);
 
       const st = animStateRef.current;
 
