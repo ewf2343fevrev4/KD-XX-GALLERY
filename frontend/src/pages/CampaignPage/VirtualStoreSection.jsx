@@ -2069,16 +2069,16 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         spidermanModel.position.set(-center.x, -box.min.y, -center.z);
         spidermanWrapper.add(spidermanModel);
 
-        // Scale to heroic athletic runway proportion (~2.15m)
-        const targetHeight = 2.15;
+        // Scale to heroic athletic runway proportion (~2.20m)
+        const targetHeight = 2.20;
         const scaleVal = targetHeight / (size.y || 1);
         spidermanWrapper.scale.setScalar(scaleVal);
 
-        // Positioned in the open right corner of Men's area with 100% unobstructed view from camera
-        const spidermanPos = { x: -1.75, y: -0.015, z: -2.75 };
+        // Positioned precisely at user-designated spot next to gold mannequin (red X marker)
+        const spidermanPos = { x: -3.88, y: -0.015, z: 1.80 };
         spidermanWrapper.position.set(spidermanPos.x, spidermanPos.y, spidermanPos.z);
-        // Standing slightly angled diagonally towards the camera and center runway (~14 deg)
-        spidermanWrapper.rotation.y = -0.25;
+        // Standing slightly angled diagonally towards the camera and center runway (~27 deg)
+        spidermanWrapper.rotation.y = 0.48;
 
         // Natural soft contact shadow under Spiderman's feet on the floor
         const spiderShadowCanvas = document.createElement('canvas');
@@ -2106,8 +2106,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         menGroup.add(spiderContactShadow);
 
         // Studio key spotlight illuminating the red/black suit and reflective eye lenses
-        const spiderKeyLight = new THREE.SpotLight(0xffffff, 4.2, 11.0, Math.PI / 4.0, 0.35);
-        spiderKeyLight.position.set(-1.4, 5.0, -1.0);
+        const spiderKeyLight = new THREE.SpotLight(0xffffff, 4.5, 12.0, Math.PI / 4.0, 0.35);
+        spiderKeyLight.position.set(-2.8, 5.0, 3.4);
         spiderKeyLight.target.position.set(spidermanPos.x, 1.3, spidermanPos.z);
         spiderKeyLight.castShadow = false;
         menGroup.add(spiderKeyLight);
