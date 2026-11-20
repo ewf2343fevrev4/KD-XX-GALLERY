@@ -2030,11 +2030,12 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       (err) => console.warn('Could not load Balenciaga x Adidas soccer mannequin GLB:', err)
     );
 
-    // ── Load Spiderman Miles Morales in the Open Right Corner of Men's Area ──
+    // ── Load High-Detail Spider-Man (spider_man.glb from Drive D) at Men's Section ──
     gltfLoader.load(
-      '/models/characters/spiderman_miles_morales.glb',
+      '/models/characters/spider_man.glb',
       (gltf) => {
         const spidermanModel = gltf.scene;
+        spidermanModel.name = 'spidermanHeroModel';
 
         spidermanModel.traverse((child) => {
           if (child.isMesh) {
@@ -2048,8 +2049,9 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
                 }
-                mat.roughness = Math.max(mat.roughness || 0.45, 0.4);
-                mat.envMapIntensity = 1.4;
+                mat.roughness = Math.max(mat.roughness || 0.40, 0.35);
+                mat.metalness = Math.min(mat.metalness || 0.20, 0.35);
+                mat.envMapIntensity = 1.6;
               });
             }
           }
@@ -2063,9 +2065,9 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         box.getCenter(center);
 
         const spidermanWrapper = new THREE.Group();
-        spidermanWrapper.name = 'spidermanMilesMoralesWrapper';
+        spidermanWrapper.name = 'spidermanHeroWrapper';
 
-        // Center on X and Z, align soles of feet flush to local Y = 0
+        // Center on X and Z, align lowest feet flush to local Y = 0
         spidermanModel.position.set(-center.x, -box.min.y, -center.z);
         spidermanWrapper.add(spidermanModel);
 
@@ -2074,28 +2076,27 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const scaleVal = targetHeight / (size.y || 1);
         spidermanWrapper.scale.setScalar(scaleVal);
 
-        // Positioned shifted further to Spiderman's right (x: -4.75) at same depth as white mannequin row (z: 0.22)
-        // Completely clears line of sight to King Von sculpture, Bape crate logo, and background streetwear art
+        // Positioned at the exact user-approved coordinates (x: -4.75, y: -0.015, z: 0.22)
         const spidermanPos = { x: -4.75, y: -0.015, z: 0.22 };
         spidermanWrapper.position.set(spidermanPos.x, spidermanPos.y, spidermanPos.z);
-        // Angled naturally towards the center runway and camera (~20 deg)
-        spidermanWrapper.rotation.y = 0.35;
+        // Angled naturally towards the center runway and camera (~16 deg)
+        spidermanWrapper.rotation.y = 0.28;
 
-        // Natural soft contact shadow under Spiderman's feet on the floor
+        // Natural soft contact shadow under Spiderman's action stance on the floor
         const spiderShadowCanvas = document.createElement('canvas');
         spiderShadowCanvas.width = 128;
         spiderShadowCanvas.height = 128;
         const spCtx = spiderShadowCanvas.getContext('2d');
-        const spGrad = spCtx.createRadialGradient(64, 64, 8, 64, 64, 64);
-        spGrad.addColorStop(0, 'rgba(0, 0, 0, 0.85)');
-        spGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0.42)');
+        const spGrad = spCtx.createRadialGradient(64, 64, 10, 64, 64, 64);
+        spGrad.addColorStop(0, 'rgba(0, 0, 0, 0.88)');
+        spGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.45)');
         spGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
         spCtx.fillStyle = spGrad;
         spCtx.fillRect(0, 0, 128, 128);
         const spiderShadowTex = new THREE.CanvasTexture(spiderShadowCanvas);
 
         const spiderContactShadow = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.85, 0.85),
+          new THREE.PlaneGeometry(1.20, 1.20),
           new THREE.MeshBasicMaterial({
             map: spiderShadowTex,
             transparent: true,
@@ -2106,7 +2107,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         spiderContactShadow.position.set(spidermanPos.x, 0.002, spidermanPos.z);
         menGroup.add(spiderContactShadow);
 
-        // Studio key spotlight illuminating the red/black suit and reflective eye lenses
+        // Studio key spotlight illuminating the iconic suit, textures, and reflective lenses
         const spiderKeyLight = new THREE.SpotLight(0xffffff, 4.5, 12.0, Math.PI / 4.0, 0.35);
         spiderKeyLight.position.set(-3.95, 5.0, 2.0);
         spiderKeyLight.target.position.set(spidermanPos.x, 1.3, spidermanPos.z);
@@ -2114,77 +2115,171 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         menGroup.add(spiderKeyLight);
         menGroup.add(spiderKeyLight.target);
 
-        // Heroic idle breathing animation loop
+        // Animations if present
         if (gltf.animations && gltf.animations.length > 0) {
           spidermanMixer = new THREE.AnimationMixer(spidermanModel);
           const action = spidermanMixer.clipAction(gltf.animations[0]);
           action.play();
         }
 
-        // ── Equip Sp5der 555555 Pink Web Graphic Hoodie onto Spiderman ──
-        gltfLoader.load(
-          '/models/props/sp5der_pnk_hoodie.glb',
-          (hoodieGltf) => {
-            const hoodie = hoodieGltf.scene;
-            hoodie.name = 'sp5derPinkHoodie';
-
-            hoodie.traverse((child) => {
-              if (child.isMesh) {
-                child.castShadow = false;
-                child.receiveShadow = true;
-                if (child.material) {
-                  const mats = Array.isArray(child.material) ? child.material : [child.material];
-                  mats.forEach((mat) => {
-                    mat.side = THREE.DoubleSide;
-                    if (mat.map) {
-                      mat.map.colorSpace = THREE.SRGBColorSpace;
-                      mat.map.needsUpdate = true;
-                    }
-                    mat.roughness = 0.82;
-                    mat.metalness = 0.05;
-                    mat.envMapIntensity = 1.3;
-                  });
-                }
-                // Ensure graphic print decals render cleanly over base fabric without z-fighting
-                if (child.name === 'Object_2') {
-                  child.renderOrder = 1;
-                } else {
-                  child.renderOrder = 2;
-                }
-              }
-            });
-
-            hoodie.updateMatrixWorld(true);
-            const hBox = new THREE.Box3().setFromObject(hoodie);
-            const hCenter = new THREE.Vector3();
-            hBox.getCenter(hCenter);
-
-            const hoodiePivot = new THREE.Group();
-            hoodiePivot.name = 'sp5derPinkHoodiePivot';
-
-            // Center hoodie local mesh so pivot origin aligns with hoodie chest center
-            hoodie.position.set(-hCenter.x, -hCenter.y, -hCenter.z);
-            hoodiePivot.add(hoodie);
-
-            // Tailored oversized streetwear puff hoodie fit over athletic suit
-            const hoodieScale = 1.05;
-            hoodiePivot.scale.set(hoodieScale, hoodieScale, hoodieScale * 1.08);
-
-            // Fitted precisely over Spiderman's torso, shoulders, and framing the masked head
-            hoodiePivot.position.set(-0.095, 1.275, -0.165);
-            hoodiePivot.rotation.set(-0.14, -0.02, 0.02);
-
-            spidermanWrapper.add(hoodiePivot);
-          },
-          undefined,
-          (err) => console.warn('Could not load Sp5der Pink Hoodie GLB:', err)
-        );
-
         menGroup.add(spidermanWrapper);
       },
       undefined,
-      (err) => console.warn('Could not load Spiderman Miles Morales GLB:', err)
+      (err) => console.warn('Could not load Spider-Man GLB:', err)
     );
+
+    // ── Luxury Streetwear Museum Showcase: Framed Sp5der Pink Web Hoodie on Angled Wall ──
+    const framedSp5derGroup = new THREE.Group();
+    framedSp5derGroup.name = 'framedSp5derGroup';
+
+    // Positioned flush against the angled brick wall in the lower corner of the Men's section
+    // Below the MEN'S sign at eye-level gallery height (y: 1.95m)
+    framedSp5derGroup.position.set(-7.06, 1.95, -2.45);
+    framedSp5derGroup.rotation.y = Math.PI / 2.35;
+
+    // 1. Deep Museum Shadowbox Frame (Black titanium / dark anodized metal)
+    const frameWidth = 1.48;
+    const frameHeight = 1.25;
+    const frameDepth = 0.32;
+    const frameBorder = 0.055;
+
+    const frameOuterMat = new THREE.MeshStandardMaterial({
+      color: '#121016',
+      roughness: 0.28,
+      metalness: 0.82,
+    });
+
+    const frameBackingMat = new THREE.MeshStandardMaterial({
+      color: '#0a0812', // Deep luxury obsidian velvet backing
+      roughness: 0.65,
+      metalness: 0.1,
+    });
+
+    // Backing board
+    const frameBacking = new THREE.Mesh(
+      new THREE.BoxGeometry(frameWidth, frameHeight, 0.02),
+      frameBackingMat
+    );
+    frameBacking.position.z = -frameDepth / 2;
+    frameBacking.receiveShadow = true;
+    framedSp5derGroup.add(frameBacking);
+
+    // Frame Borders (Top, Bottom, Left, Right)
+    const borderTop = new THREE.Mesh(
+      new THREE.BoxGeometry(frameWidth + frameBorder * 2, frameBorder, frameDepth),
+      frameOuterMat
+    );
+    borderTop.position.set(0, frameHeight / 2 + frameBorder / 2, 0);
+    framedSp5derGroup.add(borderTop);
+
+    const borderBottom = new THREE.Mesh(
+      new THREE.BoxGeometry(frameWidth + frameBorder * 2, frameBorder, frameDepth),
+      frameOuterMat
+    );
+    borderBottom.position.set(0, -frameHeight / 2 - frameBorder / 2, 0);
+    framedSp5derGroup.add(borderBottom);
+
+    const borderLeft = new THREE.Mesh(
+      new THREE.BoxGeometry(frameBorder, frameHeight, frameDepth),
+      frameOuterMat
+    );
+    borderLeft.position.set(-frameWidth / 2 - frameBorder / 2, 0, 0);
+    framedSp5derGroup.add(borderLeft);
+
+    const borderRight = new THREE.Mesh(
+      new THREE.BoxGeometry(frameBorder, frameHeight, frameDepth),
+      frameOuterMat
+    );
+    borderRight.position.set(frameWidth / 2 + frameBorder / 2, 0, 0);
+    framedSp5derGroup.add(borderRight);
+
+    // Front Ultra-Clear Gallery Museum Glass Pane
+    const glassPane = new THREE.Mesh(
+      new THREE.PlaneGeometry(frameWidth, frameHeight),
+      new THREE.MeshPhysicalMaterial({
+        color: '#ffffff',
+        transparent: true,
+        opacity: 0.14,
+        roughness: 0.05,
+        metalness: 0.1,
+        transmission: 0.88,
+        ior: 1.52,
+        reflectivity: 0.6,
+        depthWrite: false,
+      })
+    );
+    glassPane.position.z = frameDepth / 2 + 0.005;
+    framedSp5derGroup.add(glassPane);
+
+    // Ambient Neon Backlight Halo around frame perimeter (#ec4899 / hot pink)
+    const frameHaloLight = new THREE.PointLight('#ec4899', 2.8, 3.8);
+    frameHaloLight.position.set(0, 0, -frameDepth / 2 - 0.05);
+    frameHaloLight.castShadow = false;
+    framedSp5derGroup.add(frameHaloLight);
+
+    // Interior Warm Gallery Spotlight inside top of frame illuminating the hoodie
+    const frameInternalLight = new THREE.SpotLight(0xffffff, 3.5, 4.0, Math.PI / 3, 0.4);
+    frameInternalLight.position.set(0, frameHeight / 2 - 0.04, frameDepth / 2 - 0.05);
+    frameInternalLight.target.position.set(0, 0, 0);
+    framedSp5derGroup.add(frameInternalLight);
+    framedSp5derGroup.add(frameInternalLight.target);
+
+    // Load and mount the Sp5der Pink Web Hoodie inside the shadowbox frame
+    gltfLoader.load(
+      '/models/props/sp5der_pnk_hoodie.glb',
+      (hoodieGltf) => {
+        const hoodie = hoodieGltf.scene;
+        hoodie.name = 'sp5derFramedHoodie';
+
+        hoodie.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.80;
+                mat.metalness = 0.05;
+                mat.envMapIntensity = 1.5;
+              });
+            }
+            if (child.name === 'Object_2') {
+              child.renderOrder = 1;
+            } else {
+              child.renderOrder = 2;
+            }
+          }
+        });
+
+        hoodie.updateMatrixWorld(true);
+        const hBox = new THREE.Box3().setFromObject(hoodie);
+        const hCenter = new THREE.Vector3();
+        hBox.getCenter(hCenter);
+
+        // Center hoodie within frame coordinate space
+        hoodie.position.set(-hCenter.x, -hCenter.y, -hCenter.z);
+
+        // Scale to fit proportionally inside shadowbox
+        const mountedScale = 0.96;
+        hoodie.scale.setScalar(mountedScale);
+
+        // Positioned slightly in front of the back velvet panel
+        const hoodieMount = new THREE.Group();
+        hoodieMount.position.set(0, -0.02, 0.02);
+        hoodieMount.add(hoodie);
+
+        framedSp5derGroup.add(hoodieMount);
+      },
+      undefined,
+      (err) => console.warn('Could not load framed Sp5der hoodie GLB:', err)
+    );
+
+    menGroup.add(framedSp5derGroup);
 
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
