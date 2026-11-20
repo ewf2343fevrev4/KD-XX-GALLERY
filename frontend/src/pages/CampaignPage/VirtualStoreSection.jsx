@@ -1884,23 +1884,23 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         soccerModel.position.set(-center.x, -box.min.y, -center.z);
         soccerWrapper.add(soccerModel);
 
-        // Towering, imposing runway model proportion (~2.30m tall) matching luxury showroom mannequins
-        const targetHeight = 2.30;
+        // Towering, imposing statuary proportion (~2.55m tall) so it stands tall and prominent
+        const targetHeight = 2.55;
         const scaleVal = targetHeight / (size.y || 1);
         soccerWrapper.scale.setScalar(scaleVal);
 
-        // Positioned to the right of Bape wooden crate & King Von with generous clearance
-        const soccerPos = { x: -3.70, y: 0.04, z: -2.35 };
+        // Positioned shifted to the right into the open corridor, completely unobstructed by the white model in front
+        const soccerPos = { x: -2.65, y: 0.04, z: -2.15 };
         soccerWrapper.position.set(soccerPos.x, soccerPos.y, soccerPos.z);
-        // Angled naturally (~16 deg) towards the central styling table and runway
-        soccerWrapper.rotation.y = -0.28;
+        // Angled naturally towards the central styling table and runway
+        soccerWrapper.rotation.y = -0.20;
 
         // Matching gallery podium with polished chrome trim and Electric Cyan underglow
         const soccerPodium = new THREE.Group();
         soccerPodium.position.set(soccerPos.x, 0, soccerPos.z);
 
         const podiumBase = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.44, 0.48, 0.04, 32),
+          new THREE.CylinderGeometry(0.42, 0.46, 0.04, 32),
           new THREE.MeshStandardMaterial({
             color: '#14121d',
             roughness: 0.4,
@@ -1912,7 +1912,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         soccerPodium.add(podiumBase);
 
         const chromeRim = new THREE.Mesh(
-          new THREE.TorusGeometry(0.44, 0.012, 12, 32),
+          new THREE.TorusGeometry(0.42, 0.012, 12, 32),
           chromeMat
         );
         chromeRim.rotation.x = Math.PI / 2;
@@ -1920,7 +1920,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         soccerPodium.add(chromeRim);
 
         const neonRing = new THREE.Mesh(
-          new THREE.TorusGeometry(0.482, 0.014, 12, 48),
+          new THREE.TorusGeometry(0.462, 0.014, 12, 48),
           new THREE.MeshBasicMaterial({ color: '#38bdf8' })
         );
         neonRing.rotation.x = Math.PI / 2;
@@ -1935,9 +1935,9 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         menGroup.add(soccerWrapper);
 
         // Studio key light for Balenciaga / Adidas soccer jersey
-        const soccerKeyLight = new THREE.SpotLight(0xffffff, 4.2, 10.0, Math.PI / 3.8, 0.35);
-        soccerKeyLight.position.set(-2.8, 4.8, 0.5);
-        soccerKeyLight.target.position.set(soccerPos.x, 1.4, soccerPos.z);
+        const soccerKeyLight = new THREE.SpotLight(0xffffff, 4.4, 10.0, Math.PI / 3.8, 0.35);
+        soccerKeyLight.position.set(-2.0, 4.8, 0.6);
+        soccerKeyLight.target.position.set(soccerPos.x, 1.5, soccerPos.z);
         soccerKeyLight.castShadow = false;
         menGroup.add(soccerKeyLight);
         menGroup.add(soccerKeyLight.target);
