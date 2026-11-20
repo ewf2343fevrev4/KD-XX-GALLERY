@@ -2093,8 +2093,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const scaleVal = targetHeight / (spiderSize.y || 1);
         spidermanWrapper.scale.setScalar(scaleVal);
 
-        // Positioned flush onto the floor (y: -0.015) at user-approved location (x: -4.75, z: 0.22)
-        const spidermanPos = { x: -4.75, y: -0.015, z: 0.22 };
+        // Positioned flush onto the floor (y: -0.015) shifted closer to the diagonal wall (x: -5.45, z: -0.65)
+        const spidermanPos = { x: -5.45, y: -0.015, z: -0.65 };
         spidermanWrapper.position.set(spidermanPos.x, spidermanPos.y, spidermanPos.z);
         // Rotated 90 degrees horizontally sideways facing across the boutique towards the center runway
         spidermanWrapper.rotation.y = Math.PI / 2;
@@ -2126,7 +2126,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         // Studio key spotlight illuminating the iconic suit, textures, and reflective lenses
         const spiderKeyLight = new THREE.SpotLight(0xffffff, 4.5, 12.0, Math.PI / 4.0, 0.35);
-        spiderKeyLight.position.set(-3.95, 4.2, 1.8);
+        spiderKeyLight.position.set(spidermanPos.x + 0.80, 4.2, spidermanPos.z + 1.58);
         spiderKeyLight.target.position.set(spidermanPos.x, 0.45, spidermanPos.z);
         spiderKeyLight.castShadow = false;
         menGroup.add(spiderKeyLight);
