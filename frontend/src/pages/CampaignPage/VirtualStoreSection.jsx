@@ -1935,7 +1935,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         menGroup.add(soccerWrapper);
 
         // ── Fox x Supreme Motocross Helmet on Balenciaga Soccer Mannequin ──
-        loader.load(
+        gltfLoader.load(
           '/models/props/fox_x_supreme_helmet.glb',
           (helmetGltf) => {
             const helmet = helmetGltf.scene;
