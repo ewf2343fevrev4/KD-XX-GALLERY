@@ -1884,27 +1884,53 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         soccerModel.position.set(-center.x, -box.min.y, -center.z);
         soccerWrapper.add(soccerModel);
 
-        // Towering, imposing statuary proportion (~2.55m tall) so it stands tall and prominent
-        const targetHeight = 2.55;
+        // Haute couture runway statuary proportion (~2.35m tall) naturally aligned with 3D perspective
+        const targetHeight = 2.35;
         const scaleVal = targetHeight / (size.y || 1);
         soccerWrapper.scale.setScalar(scaleVal);
 
-        // Positioned shifted to the right into the open corridor, completely unobstructed by the white model in front
-        const soccerPos = { x: -2.65, y: 0.04, z: -2.15 };
+        // Positioned in the open corridor flanking the runway with clear floor view and zero foreground occlusion
+        const soccerPos = { x: -2.60, y: 0.04, z: -1.75 };
         soccerWrapper.position.set(soccerPos.x, soccerPos.y, soccerPos.z);
         // Angled naturally towards the central styling table and runway
         soccerWrapper.rotation.y = -0.20;
 
-        // Matching gallery podium with polished chrome trim and Electric Cyan underglow
+        // Matching gallery podium with polished chrome trim, contact shadow and Electric Cyan underglow
         const soccerPodium = new THREE.Group();
         soccerPodium.position.set(soccerPos.x, 0, soccerPos.z);
 
+        // Soft Dark Ambient Occlusion Contact Shadow on the Floor (eliminates floating optical illusion)
+        const shadowCanvas = document.createElement('canvas');
+        shadowCanvas.width = 128;
+        shadowCanvas.height = 128;
+        const sCtx = shadowCanvas.getContext('2d');
+        const sGrad = sCtx.createRadialGradient(64, 64, 10, 64, 64, 64);
+        sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.88)');
+        sGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.52)');
+        sGrad.addColorStop(0.80, 'rgba(0, 0, 0, 0.18)');
+        sGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0)');
+        sCtx.fillStyle = sGrad;
+        sCtx.fillRect(0, 0, 128, 128);
+        const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+
+        const contactShadow = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.25, 1.25),
+          new THREE.MeshBasicMaterial({
+            map: shadowTex,
+            transparent: true,
+            depthWrite: false,
+          })
+        );
+        contactShadow.rotation.x = -Math.PI / 2;
+        contactShadow.position.y = 0.002;
+        soccerPodium.add(contactShadow);
+
         const podiumBase = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.42, 0.46, 0.04, 32),
+          new THREE.CylinderGeometry(0.40, 0.44, 0.04, 32),
           new THREE.MeshStandardMaterial({
-            color: '#14121d',
-            roughness: 0.4,
-            metalness: 0.7,
+            color: '#1e1a29',
+            roughness: 0.35,
+            metalness: 0.5,
           })
         );
         podiumBase.position.y = 0.02;
@@ -1912,7 +1938,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         soccerPodium.add(podiumBase);
 
         const chromeRim = new THREE.Mesh(
-          new THREE.TorusGeometry(0.42, 0.012, 12, 32),
+          new THREE.TorusGeometry(0.40, 0.012, 12, 32),
           chromeMat
         );
         chromeRim.rotation.x = Math.PI / 2;
@@ -1920,24 +1946,25 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         soccerPodium.add(chromeRim);
 
         const neonRing = new THREE.Mesh(
-          new THREE.TorusGeometry(0.462, 0.014, 12, 48),
+          new THREE.TorusGeometry(0.442, 0.012, 12, 48),
           new THREE.MeshBasicMaterial({ color: '#38bdf8' })
         );
         neonRing.rotation.x = Math.PI / 2;
-        neonRing.position.y = 0.01;
+        neonRing.position.y = 0.008;
         soccerPodium.add(neonRing);
 
-        const glowLight = new THREE.PointLight('#38bdf8', 1.8, 2.5);
-        glowLight.position.set(0, 0.03, 0);
+        // Subtle elegant floor accent glow (NOT an overwhelming anti-gravity blast)
+        const glowLight = new THREE.PointLight('#38bdf8', 0.45, 1.4);
+        glowLight.position.set(0, 0.02, 0);
         soccerPodium.add(glowLight);
 
         menGroup.add(soccerPodium);
         menGroup.add(soccerWrapper);
 
         // Studio key light for Balenciaga / Adidas soccer jersey
-        const soccerKeyLight = new THREE.SpotLight(0xffffff, 4.4, 10.0, Math.PI / 3.8, 0.35);
-        soccerKeyLight.position.set(-2.0, 4.8, 0.6);
-        soccerKeyLight.target.position.set(soccerPos.x, 1.5, soccerPos.z);
+        const soccerKeyLight = new THREE.SpotLight(0xffffff, 3.8, 11.0, Math.PI / 4.2, 0.35);
+        soccerKeyLight.position.set(-2.2, 5.0, 0.3);
+        soccerKeyLight.target.position.set(soccerPos.x, 1.3, soccerPos.z);
         soccerKeyLight.castShadow = false;
         menGroup.add(soccerKeyLight);
         menGroup.add(soccerKeyLight.target);
