@@ -1841,6 +1841,111 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     supremePropsFloorLight.castShadow = false;
     supremePropsGroup.add(supremePropsFloorLight);
 
+    // ── Load Balenciaga x Adidas Soccer T-Shirt Mannequin (To the Right of Bape Crate & King Von) ──
+    gltfLoader.load(
+      '/models/mannequin/balenciaga_adidas_soccer.glb',
+      (gltf) => {
+        const soccerModel = gltf.scene;
+
+        soccerModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false; // Zero shadow pass penalty for 60 FPS
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                if (mat.name && (mat.name.includes('eye') || mat.name.includes('eyelash'))) {
+                  mat.transparent = true;
+                  mat.depthWrite = true;
+                }
+                mat.roughness = Math.max(mat.roughness || 0.4, 0.35);
+                mat.envMapIntensity = 1.4;
+              });
+            }
+          }
+        });
+
+        soccerModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(soccerModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const soccerWrapper = new THREE.Group();
+        soccerWrapper.name = 'balenciagaSoccerMannequinWrapper';
+
+        // Center on X and Z, align bottom of boots to Y = 0
+        soccerModel.position.set(-center.x, -box.min.y, -center.z);
+        soccerWrapper.add(soccerModel);
+
+        // Towering, imposing runway model proportion (~2.30m tall) matching luxury showroom mannequins
+        const targetHeight = 2.30;
+        const scaleVal = targetHeight / (size.y || 1);
+        soccerWrapper.scale.setScalar(scaleVal);
+
+        // Positioned to the right of Bape wooden crate & King Von with generous clearance
+        const soccerPos = { x: -3.70, y: 0.04, z: -2.35 };
+        soccerWrapper.position.set(soccerPos.x, soccerPos.y, soccerPos.z);
+        // Angled naturally (~16 deg) towards the central styling table and runway
+        soccerWrapper.rotation.y = -0.28;
+
+        // Matching gallery podium with polished chrome trim and Electric Cyan underglow
+        const soccerPodium = new THREE.Group();
+        soccerPodium.position.set(soccerPos.x, 0, soccerPos.z);
+
+        const podiumBase = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.44, 0.48, 0.04, 32),
+          new THREE.MeshStandardMaterial({
+            color: '#14121d',
+            roughness: 0.4,
+            metalness: 0.7,
+          })
+        );
+        podiumBase.position.y = 0.02;
+        podiumBase.receiveShadow = true;
+        soccerPodium.add(podiumBase);
+
+        const chromeRim = new THREE.Mesh(
+          new THREE.TorusGeometry(0.44, 0.012, 12, 32),
+          chromeMat
+        );
+        chromeRim.rotation.x = Math.PI / 2;
+        chromeRim.position.y = 0.04;
+        soccerPodium.add(chromeRim);
+
+        const neonRing = new THREE.Mesh(
+          new THREE.TorusGeometry(0.482, 0.014, 12, 48),
+          new THREE.MeshBasicMaterial({ color: '#38bdf8' })
+        );
+        neonRing.rotation.x = Math.PI / 2;
+        neonRing.position.y = 0.01;
+        soccerPodium.add(neonRing);
+
+        const glowLight = new THREE.PointLight('#38bdf8', 1.8, 2.5);
+        glowLight.position.set(0, 0.03, 0);
+        soccerPodium.add(glowLight);
+
+        menGroup.add(soccerPodium);
+        menGroup.add(soccerWrapper);
+
+        // Studio key light for Balenciaga / Adidas soccer jersey
+        const soccerKeyLight = new THREE.SpotLight(0xffffff, 4.2, 10.0, Math.PI / 3.8, 0.35);
+        soccerKeyLight.position.set(-2.8, 4.8, 0.5);
+        soccerKeyLight.target.position.set(soccerPos.x, 1.4, soccerPos.z);
+        soccerKeyLight.castShadow = false;
+        menGroup.add(soccerKeyLight);
+        menGroup.add(soccerKeyLight.target);
+      },
+      undefined,
+      (err) => console.warn('Could not load Balenciaga x Adidas soccer mannequin GLB:', err)
+    );
+
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
     menWallLogosGroup.name = 'menWallLogosGroup';
