@@ -2074,11 +2074,12 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const scaleVal = targetHeight / (size.y || 1);
         spidermanWrapper.scale.setScalar(scaleVal);
 
-        // Positioned stepped straight back into the back row, exactly aligned with white outfit mannequin (z: 0.22, x: -3.88 unchanged)
-        const spidermanPos = { x: -3.88, y: -0.015, z: 0.22 };
+        // Positioned shifted to Spiderman's right (x: -4.50) at same depth as white mannequin row (z: 0.22)
+        // This clears line of sight to King Von sculpture, Bape crate logo, and background streetwear art
+        const spidermanPos = { x: -4.50, y: -0.015, z: 0.22 };
         spidermanWrapper.position.set(spidermanPos.x, spidermanPos.y, spidermanPos.z);
-        // Standing slightly angled diagonally towards the camera and center runway (~24 deg)
-        spidermanWrapper.rotation.y = 0.42;
+        // Angled naturally towards the center runway and camera (~22 deg)
+        spidermanWrapper.rotation.y = 0.38;
 
         // Natural soft contact shadow under Spiderman's feet on the floor
         const spiderShadowCanvas = document.createElement('canvas');
@@ -2107,7 +2108,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         // Studio key spotlight illuminating the red/black suit and reflective eye lenses
         const spiderKeyLight = new THREE.SpotLight(0xffffff, 4.5, 12.0, Math.PI / 4.0, 0.35);
-        spiderKeyLight.position.set(-3.2, 5.0, 2.0);
+        spiderKeyLight.position.set(-3.7, 5.0, 2.0);
         spiderKeyLight.target.position.set(spidermanPos.x, 1.3, spidermanPos.z);
         spiderKeyLight.castShadow = false;
         menGroup.add(spiderKeyLight);
