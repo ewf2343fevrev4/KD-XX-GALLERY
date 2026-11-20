@@ -2071,18 +2071,18 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         spidermanModel.position.set(-center.x, -box.min.y, -center.z);
         spidermanWrapper.add(spidermanModel);
 
-        // Scale to heroic athletic runway proportion (~2.20m)
-        const targetHeight = 2.20;
+        // Scale to compact superhero crouching/kneeling height (~1.15m)
+        const targetHeight = 1.15;
         const scaleVal = targetHeight / (size.y || 1);
         spidermanWrapper.scale.setScalar(scaleVal);
 
-        // Positioned at the exact user-approved coordinates (x: -4.75, y: -0.015, z: 0.22)
+        // Positioned flush onto the floor (y: -0.015) at user-approved location (x: -4.75, z: 0.22)
         const spidermanPos = { x: -4.75, y: -0.015, z: 0.22 };
         spidermanWrapper.position.set(spidermanPos.x, spidermanPos.y, spidermanPos.z);
-        // Angled naturally towards the center runway and camera (~16 deg)
-        spidermanWrapper.rotation.y = 0.28;
+        // Rotated 90 degrees horizontally sideways facing across the boutique towards the center runway
+        spidermanWrapper.rotation.y = Math.PI / 2;
 
-        // Natural soft contact shadow under Spiderman's action stance on the floor
+        // Natural soft contact shadow under Spiderman's crouching pose on the floor
         const spiderShadowCanvas = document.createElement('canvas');
         spiderShadowCanvas.width = 128;
         spiderShadowCanvas.height = 128;
@@ -2096,7 +2096,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const spiderShadowTex = new THREE.CanvasTexture(spiderShadowCanvas);
 
         const spiderContactShadow = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.20, 1.20),
+          new THREE.PlaneGeometry(0.95, 0.95),
           new THREE.MeshBasicMaterial({
             map: spiderShadowTex,
             transparent: true,
@@ -2109,8 +2109,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         // Studio key spotlight illuminating the iconic suit, textures, and reflective lenses
         const spiderKeyLight = new THREE.SpotLight(0xffffff, 4.5, 12.0, Math.PI / 4.0, 0.35);
-        spiderKeyLight.position.set(-3.95, 5.0, 2.0);
-        spiderKeyLight.target.position.set(spidermanPos.x, 1.3, spidermanPos.z);
+        spiderKeyLight.position.set(-3.95, 4.2, 1.8);
+        spiderKeyLight.target.position.set(spidermanPos.x, 0.58, spidermanPos.z);
         spiderKeyLight.castShadow = false;
         menGroup.add(spiderKeyLight);
         menGroup.add(spiderKeyLight.target);
@@ -2132,9 +2132,9 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const framedSp5derGroup = new THREE.Group();
     framedSp5derGroup.name = 'framedSp5derGroup';
 
-    // Positioned flush against the angled brick wall in the lower corner of the Men's section
+    // Positioned shifted deeper inwards along the angled brick wall in the lower corner of the Men's section
     // Below the MEN'S sign at eye-level gallery height (y: 1.95m)
-    framedSp5derGroup.position.set(-7.06, 1.95, -2.45);
+    framedSp5derGroup.position.set(-6.86, 1.95, -3.25);
     framedSp5derGroup.rotation.y = Math.PI / 2.35;
 
     // 1. Deep Museum Shadowbox Frame (Black titanium / dark anodized metal)
