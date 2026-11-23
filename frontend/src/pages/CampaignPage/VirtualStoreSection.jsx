@@ -2617,6 +2617,199 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
     menGroup.add(menShoeShelfGroup);
 
+    // ── Tier 1 (First Shelf / Top Tier: yPos = 0.59) 3 Iconic Bape Sta Sneakers ──
+    const targetSlotTier = 4; // Top Tier (Kệ đầu tiên)
+
+    // 1. Bape Sta Patent Leather Orange (Tier 4, Spot 1 / Left)
+    gltfLoader.load(
+      '/models/shoes/bape_sta_patent_leather_orange.glb',
+      (gltf) => {
+        const shoe1 = gltf.scene;
+        shoe1.name = 'bapeStaPatentLeatherOrange';
+        shoe1.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.18; // Patent leather glossy finish
+                mat.metalness = 0.25;
+                mat.envMapIntensity = 2.0;
+              });
+            }
+          }
+        });
+
+        shoe1.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(shoe1);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const shoeWrapper = new THREE.Group();
+        shoeWrapper.name = 'bapeStaOrangeWrapper';
+        shoe1.position.set(-center.x, -box.min.y, -center.z);
+        shoeWrapper.add(shoe1);
+
+        // Scale to authentic 30cm sneaker length
+        const targetLength = 0.30;
+        const scale = targetLength / (size.z || 1);
+        shoeWrapper.scale.setScalar(scale);
+
+        // Angle slightly for dynamic boutique presentation (showcasing star logo)
+        shoeWrapper.rotation.y = 0.18;
+        shoeWrapper.position.set(0, 0.014, 0); // Sits flush on top of the riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot1`);
+        if (slot) {
+          slot.add(shoeWrapper);
+        } else {
+          menShoeShelfGroup.add(shoeWrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Bape Sta Patent Orange GLB:', err)
+    );
+
+    // 2. Bape Sta Classic Pair (Tier 4, Spot 2 / Center)
+    gltfLoader.load(
+      '/models/shoes/bape_sta.glb',
+      (gltf) => {
+        const bapeModel = gltf.scene;
+        bapeModel.name = 'bapeStaClassicModel';
+        bapeModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.42;
+                mat.metalness = 0.15;
+                mat.envMapIntensity = 1.6;
+              });
+            }
+          }
+        });
+
+        bapeModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(bapeModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const bapePair = new THREE.Group();
+        bapePair.name = 'bapeStaClassicPair';
+
+        // Length of raw model along X is 3.109m -> scale to 29cm
+        const bapeScale = 0.29 / (size.x || 1);
+
+        // Right shoe
+        const rightShoe = bapeModel;
+        rightShoe.position.set(-center.x, -box.min.y, -center.z);
+        rightShoe.rotation.y = Math.PI / 2; // toe points towards +Z
+
+        const rightWrapper = new THREE.Group();
+        rightWrapper.add(rightShoe);
+        rightWrapper.scale.setScalar(bapeScale);
+        rightWrapper.position.set(0.075, 0, 0);
+        rightWrapper.rotation.y = -0.10; // Dynamic sneaker toe angle
+
+        // Left shoe (mirrored clone)
+        const leftShoe = rightShoe.clone(true);
+        const leftWrapper = new THREE.Group();
+        leftWrapper.add(leftShoe);
+        leftWrapper.scale.set(-bapeScale, bapeScale, bapeScale); // Mirrored along X
+        leftWrapper.position.set(-0.075, 0, 0);
+        leftWrapper.rotation.y = 0.10; // Dynamic sneaker toe angle
+
+        bapePair.add(rightWrapper);
+        bapePair.add(leftWrapper);
+
+        bapePair.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot2`);
+        if (slot) {
+          slot.add(bapePair);
+        } else {
+          menShoeShelfGroup.add(bapePair);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Bape Sta Classic GLB:', err)
+    );
+
+    // 3. Bape Sta x JJJJound White/Grey (Tier 4, Spot 3 / Right)
+    gltfLoader.load(
+      '/models/shoes/bape_sta_jjjjound_whitegrey.glb',
+      (gltf) => {
+        const shoe3 = gltf.scene;
+        shoe3.name = 'bapeStaJJJJound';
+        shoe3.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.40;
+                mat.metalness = 0.12;
+                mat.envMapIntensity = 1.8;
+              });
+            }
+          }
+        });
+
+        shoe3.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(shoe3);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const shoeWrapper = new THREE.Group();
+        shoeWrapper.name = 'bapeStaJJJJoundWrapper';
+        shoe3.position.set(-center.x, -box.min.y, -center.z);
+        shoeWrapper.add(shoe3);
+
+        // Scale to authentic 30cm sneaker length
+        const targetLength = 0.30;
+        const scale = targetLength / (size.z || 1);
+        shoeWrapper.scale.setScalar(scale);
+
+        // Angle slightly for dynamic boutique presentation (showcasing star logo)
+        shoeWrapper.rotation.y = -0.18;
+        shoeWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot3`);
+        if (slot) {
+          slot.add(shoeWrapper);
+        } else {
+          menShoeShelfGroup.add(shoeWrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Bape Sta JJJJound GLB:', err)
+    );
+
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
     menWallLogosGroup.name = 'menWallLogosGroup';
