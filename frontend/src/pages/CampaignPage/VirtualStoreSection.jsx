@@ -2453,6 +2453,170 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
     menGroup.add(framedChromeHeartsGroup);
 
+    // ── Architectural 4-Tier Streetwear Sneaker Wall Mounted on Angled Left Wall ──
+    // Symmetrically opposite to the Women's 3-Tier Luxury Glass Shelf on the Right Wall
+    const menShoeShelfGroup = new THREE.Group();
+    menShoeShelfGroup.name = 'menWallSneakerShelfGroup';
+    // Symmetrical to women's shelf (x: 7.58 -> x: -7.58, z: -0.56, rotation.y: +Math.PI / 2.35)
+    menShoeShelfGroup.position.set(-7.58, 2.15, -0.56);
+    menShoeShelfGroup.rotation.y = Math.PI / 2.35; // Flush against angled left brick wall
+
+    // Distinct Streetwear / Sneakerhead Materials (Industrial dark titanium, carbon black & smoked glass)
+    const shoeShelfFrameMat = new THREE.MeshStandardMaterial({
+      color: '#18181b', // Matte industrial obsidian steel
+      roughness: 0.32,
+      metalness: 0.85,
+    });
+
+    const shoeShelfSlabMat = new THREE.MeshPhysicalMaterial({
+      color: '#0d0d12', // Smoked obsidian glass slab
+      transparent: true,
+      opacity: 0.75,
+      roughness: 0.20,
+      metalness: 0.40,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.1,
+      reflectivity: 0.85,
+      thickness: 0.024,
+      envMapIntensity: 2.0,
+    });
+
+    const shoeShelfTrimMat = new THREE.MeshStandardMaterial({
+      color: '#38bdf8', // Electric ice cyan anodized front accent
+      roughness: 0.25,
+      metalness: 0.8,
+    });
+
+    const shoeShelfWidth = 3.0; // Matching 3.0m wide grand architectural span
+    const shoeShelfDepth = 0.44; // 44cm deep to comfortably hold full-size sneakers
+    const shoeShelfThick = 0.024; // 2.4cm thick smoked obsidian slab
+    // 4 Vertical Tiers with balanced 39cm vertical clearance for high-tops, low-tops & boxes
+    const shoeTierYPositions = [-0.58, -0.19, 0.20, 0.59];
+
+    // 1. Three Heavy Industrial Uprights (Left, Center, Right)
+    [-1.15, 0.0, 1.15].forEach((xPos) => {
+      // Main vertical slotted mounting rail
+      const rail = new THREE.Mesh(
+        new THREE.BoxGeometry(0.04, 1.55, 0.04),
+        shoeShelfFrameMat
+      );
+      rail.position.set(xPos, 0, 0.025);
+      rail.castShadow = true;
+      rail.receiveShadow = true;
+      menShoeShelfGroup.add(rail);
+
+      // Heavy industrial wall standoff bosses (Top, Mid-top, Mid-bottom, Bottom)
+      [-0.72, -0.24, 0.24, 0.72].forEach((yPos) => {
+        const bolt = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.026, 0.026, 0.035, 16),
+          shoeShelfFrameMat
+        );
+        bolt.rotation.x = Math.PI / 2;
+        bolt.position.set(xPos, yPos, 0.015);
+        menShoeShelfGroup.add(bolt);
+      });
+    });
+
+    // 2. Four Cantilevered Smoked Obsidian Shelves with Integrated LED Underglow & Sneaker Slots
+    shoeTierYPositions.forEach((yPos, tierIdx) => {
+      // Main smoked obsidian shelf slab
+      const slab = new THREE.Mesh(
+        new THREE.BoxGeometry(shoeShelfWidth, shoeShelfThick, shoeShelfDepth),
+        shoeShelfSlabMat
+      );
+      slab.position.set(0, yPos, shoeShelfDepth / 2 + 0.025);
+      slab.castShadow = true;
+      slab.receiveShadow = true;
+      menShoeShelfGroup.add(slab);
+
+      // Cyber Ice Cyan front lip edge trim
+      const frontTrim = new THREE.Mesh(
+        new THREE.BoxGeometry(shoeShelfWidth + 0.005, 0.006, 0.008),
+        shoeShelfTrimMat
+      );
+      frontTrim.position.set(0, yPos, shoeShelfDepth + 0.027);
+      menShoeShelfGroup.add(frontTrim);
+
+      // Angular industrial cantilever support brackets (3 per tier)
+      [-1.15, 0.0, 1.15].forEach((xPos) => {
+        const bracket = new THREE.Mesh(
+          new THREE.BoxGeometry(0.032, 0.032, shoeShelfDepth - 0.04),
+          shoeShelfFrameMat
+        );
+        bracket.position.set(
+          xPos,
+          yPos - shoeShelfThick / 2 - 0.016,
+          shoeShelfDepth / 2 + 0.025
+        );
+        bracket.castShadow = true;
+        menShoeShelfGroup.add(bracket);
+      });
+
+      // Recessed Electric Ice Cyan LED linear light strip under each tier
+      const ledBar = new THREE.Mesh(
+        new THREE.BoxGeometry(shoeShelfWidth - 0.08, 0.01, 0.018),
+        new THREE.MeshBasicMaterial({ color: '#38bdf8' })
+      );
+      ledBar.position.set(0, yPos - shoeShelfThick / 2, 0.045);
+      menShoeShelfGroup.add(ledBar);
+
+      // 3 Display Slots per tier = 12 total dedicated display spots for user's sneakers!
+      // Evenly spaced across the 3.0m span at [-0.92, 0.0, 0.92] (3 pairs per tier)
+      [-0.92, 0.0, 0.92].forEach((slotX, spotIdx) => {
+        const slotGroup = new THREE.Group();
+        slotGroup.name = `menShoeSlot_tier${tierIdx + 1}_spot${spotIdx + 1}`;
+        slotGroup.position.set(slotX, yPos + shoeShelfThick / 2, shoeShelfDepth / 2 + 0.025);
+
+        // Minimalist Sneakerhead Display Riser Platform
+        const riserPlate = new THREE.Mesh(
+          new THREE.BoxGeometry(0.38, 0.014, 0.30),
+          new THREE.MeshStandardMaterial({
+            color: '#141419',
+            roughness: 0.35,
+            metalness: 0.8,
+          })
+        );
+        riserPlate.position.y = 0.007;
+        riserPlate.receiveShadow = true;
+        slotGroup.add(riserPlate);
+
+        // Luminous halo border around sneaker riser plate
+        const riserHalo = new THREE.Mesh(
+          new THREE.BoxGeometry(0.39, 0.004, 0.31),
+          new THREE.MeshBasicMaterial({ color: '#38bdf8' })
+        );
+        riserHalo.position.y = 0.002;
+        slotGroup.add(riserHalo);
+
+        menShoeShelfGroup.add(slotGroup);
+      });
+    });
+
+    // 3. Dedicated Sneaker Gallery Lighting Rig
+    // Dual focused overhead spotlights illuminating all 4 tiers evenly
+    [-0.60, 0.60].forEach((spX) => {
+      const shoeSpotlight = new THREE.SpotLight(
+        '#ffffff',
+        4.5,
+        8.5,
+        Math.PI / 3.2,
+        0.35
+      );
+      shoeSpotlight.position.set(spX, 1.9, 1.05);
+      shoeSpotlight.target.position.set(spX, 0.1, 0.28);
+      shoeSpotlight.castShadow = false;
+      menShoeShelfGroup.add(shoeSpotlight);
+      menShoeShelfGroup.add(shoeSpotlight.target);
+    });
+
+    // Ambient Ice Cyan halo on the brick wall behind the sneaker shelf
+    const shoeShelfAura = new THREE.PointLight('#38bdf8', 2.2, 4.5);
+    shoeShelfAura.position.set(0, 0.1, 0.55);
+    shoeShelfAura.castShadow = false;
+    menShoeShelfGroup.add(shoeShelfAura);
+
+    menGroup.add(menShoeShelfGroup);
+
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
     menWallLogosGroup.name = 'menWallLogosGroup';
