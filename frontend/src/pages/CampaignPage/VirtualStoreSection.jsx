@@ -3201,6 +3201,181 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       (err) => console.warn('Could not load Balenciaga Track Black GLB:', err)
     );
 
+    // ── Tier 4 (Bottom Shelf / Fourth Shelf from Top: yPos = -0.58, slot tier1) 3 Luxury Designer Sneakers Displayed Sideways ──
+    const designerSlotTier = 1; // Bottom Shelf (Tầng 4)
+    const designerTargetLength = 0.33; // 33cm hero display length across the riser plate
+
+    // 1. Louis Vuitton Low Top Sneaker (Tier 4, Spot 1 / Left - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/sneaker_low_lv.glb',
+      (gltf) => {
+        const lvModel = gltf.scene;
+        lvModel.name = 'sneakerLowLvSingle';
+        lvModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.35;
+                mat.metalness = 0.12;
+                mat.envMapIntensity = 1.8;
+              });
+            }
+          }
+        });
+
+        lvModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(lvModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const lvWrapper = new THREE.Group();
+        lvWrapper.name = 'sneakerLowLvWrapper';
+        lvModel.position.set(-center.x, -box.min.y, -center.z);
+        lvWrapper.add(lvModel);
+
+        // Scale length along X to 33cm
+        const scale = designerTargetLength / (size.x || 1);
+        lvWrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), profile facing camera (+Z)
+        lvWrapper.rotation.y = Math.PI;
+        lvWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${designerSlotTier}_spot1`);
+        if (slot) {
+          slot.add(lvWrapper);
+        } else {
+          menShoeShelfGroup.add(lvWrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load LV Sneaker Low GLB:', err)
+    );
+
+    // 2. Dior B23 Oblique High Top (Tier 4, Spot 2 / Center - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/dior_b23_oblique_high_top.glb',
+      (gltf) => {
+        const b23Model = gltf.scene;
+        b23Model.name = 'diorB23ObliqueSingle';
+        b23Model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.28;
+                mat.metalness = 0.15;
+                mat.envMapIntensity = 2.0;
+              });
+            }
+          }
+        });
+
+        b23Model.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(b23Model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const b23Wrapper = new THREE.Group();
+        b23Wrapper.name = 'diorB23Wrapper';
+        b23Model.position.set(-center.x, -box.min.y, -center.z);
+        b23Wrapper.add(b23Model);
+
+        // Scale length along Z to 33cm
+        const scale = designerTargetLength / (size.z || 1);
+        b23Wrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), lateral oblique motif facing camera (+Z)
+        b23Wrapper.rotation.y = -Math.PI / 2;
+        b23Wrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${designerSlotTier}_spot2`);
+        if (slot) {
+          slot.add(b23Wrapper);
+        } else {
+          menShoeShelfGroup.add(b23Wrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Dior B23 Oblique GLB:', err)
+    );
+
+    // 3. Dior B30 Sneaker (Tier 4, Spot 3 / Right - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/dior_sneaker_b30.glb',
+      (gltf) => {
+        const b30Model = gltf.scene;
+        b30Model.name = 'diorB30Single';
+        b30Model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.35;
+                mat.metalness = 0.15;
+                mat.envMapIntensity = 1.8;
+              });
+            }
+          }
+        });
+
+        b30Model.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(b30Model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const b30Wrapper = new THREE.Group();
+        b30Wrapper.name = 'diorB30Wrapper';
+        b30Model.position.set(-center.x, -box.min.y, -center.z);
+        b30Wrapper.add(b30Model);
+
+        // Scale length along X to 33cm
+        const scale = designerTargetLength / (size.x || 1);
+        b30Wrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), profile CD logo facing camera (+Z)
+        b30Wrapper.rotation.y = Math.PI;
+        b30Wrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${designerSlotTier}_spot3`);
+        if (slot) {
+          slot.add(b30Wrapper);
+        } else {
+          menShoeShelfGroup.add(b30Wrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Dior B30 GLB:', err)
+    );
+
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
     menWallLogosGroup.name = 'menWallLogosGroup';
