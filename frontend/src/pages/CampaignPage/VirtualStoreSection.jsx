@@ -2802,6 +2802,192 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       (err) => console.warn('Could not load Bape Sta JJJJound GLB:', err)
     );
 
+    // ── Tier 2 (Second Shelf from Top: yPos = 0.20, slot tier3) 3 Single Nike Sneakers Displayed Sideways ──
+    const nikeSlotTier = 3; // 2nd Shelf from top (Tầng 2)
+    const nikeTargetLength = 0.33; // 33cm hero display length across the riser plate
+
+    // 1. Nike Air Max Plus TN Red (Tier 2, Spot 1 / Left - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/nike_tn_red.glb',
+      (gltf) => {
+        const tnModel = gltf.scene;
+        tnModel.name = 'nikeTnRedSingle';
+        tnModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.25;
+                mat.metalness = 0.15;
+                mat.envMapIntensity = 1.8;
+              });
+            }
+          }
+        });
+
+        tnModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(tnModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const tnWrapper = new THREE.Group();
+        tnWrapper.name = 'nikeTnRedWrapper';
+        tnModel.position.set(-center.x, -box.min.y, -center.z);
+        tnWrapper.add(tnModel);
+
+        // Scale length along X to 33cm
+        const scale = nikeTargetLength / (size.x || 1);
+        tnWrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), side profile facing camera (+Z)
+        tnWrapper.rotation.y = Math.PI;
+        tnWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${nikeSlotTier}_spot1`);
+        if (slot) {
+          slot.add(tnWrapper);
+        } else {
+          menShoeShelfGroup.add(tnWrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Nike TN Red GLB:', err)
+    );
+
+    // 2. Nike Air Presto x Off-White Black (Tier 2, Spot 2 / Center - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/nike_air_presto_x_off-white_black.glb',
+      (gltf) => {
+        const prestoModel = gltf.scene;
+        prestoModel.name = 'nikePrestoOffWhiteSingle';
+        prestoModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              if (child.material.isMeshBasicMaterial && child.material.map) {
+                const oldMap = child.material.map;
+                oldMap.colorSpace = THREE.SRGBColorSpace;
+                oldMap.needsUpdate = true;
+                child.material = new THREE.MeshStandardMaterial({
+                  map: oldMap,
+                  roughness: 0.40,
+                  metalness: 0.10,
+                  side: THREE.DoubleSide,
+                });
+              } else {
+                const mats = Array.isArray(child.material) ? child.material : [child.material];
+                mats.forEach((mat) => {
+                  mat.side = THREE.DoubleSide;
+                  if (mat.map) {
+                    mat.map.colorSpace = THREE.SRGBColorSpace;
+                    mat.map.needsUpdate = true;
+                  }
+                  mat.roughness = 0.40;
+                  mat.metalness = 0.10;
+                });
+              }
+            }
+          }
+        });
+
+        prestoModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(prestoModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const prestoWrapper = new THREE.Group();
+        prestoWrapper.name = 'nikePrestoWrapper';
+        prestoModel.position.set(-center.x, -box.min.y, -center.z);
+        prestoWrapper.add(prestoModel);
+
+        // Scale length along Z to 33cm
+        const scale = nikeTargetLength / (size.z || 1);
+        prestoWrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), facing camera (+Z)
+        prestoWrapper.rotation.y = Math.PI / 2;
+        prestoWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${nikeSlotTier}_spot2`);
+        if (slot) {
+          slot.add(prestoWrapper);
+        } else {
+          menShoeShelfGroup.add(prestoWrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Nike Presto Off-White GLB:', err)
+    );
+
+    // 3. Nike Air Max Streetwear (Tier 2, Spot 3 / Right - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/nike_10.glb',
+      (gltf) => {
+        const n10Model = gltf.scene;
+        n10Model.name = 'nike10Single';
+        n10Model.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.35;
+                mat.metalness = 0.15;
+                mat.envMapIntensity = 1.8;
+              });
+            }
+          }
+        });
+
+        n10Model.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(n10Model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const n10Wrapper = new THREE.Group();
+        n10Wrapper.name = 'nike10Wrapper';
+        n10Model.position.set(-center.x, -box.min.y, -center.z);
+        n10Wrapper.add(n10Model);
+
+        // Scale length along Z to 33cm
+        const scale = nikeTargetLength / (size.z || 1);
+        n10Wrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), lateral swoosh facing camera (+Z)
+        n10Wrapper.rotation.y = -Math.PI / 2;
+        n10Wrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${nikeSlotTier}_spot3`);
+        if (slot) {
+          slot.add(n10Wrapper);
+        } else {
+          menShoeShelfGroup.add(n10Wrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Nike 10 GLB:', err)
+    );
+
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
     menWallLogosGroup.name = 'menWallLogosGroup';
