@@ -2988,6 +2988,219 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       (err) => console.warn('Could not load Nike 10 GLB:', err)
     );
 
+    // ── Tier 3 (Third Shelf from Top: yPos = -0.19, slot tier2) 3 Single Balenciaga Sneakers Displayed Sideways ──
+    const balenciagaSlotTier = 2; // 3rd Shelf from top (Tầng 3)
+    const balenciagaTargetLength = 0.33; // 33cm hero display length across the riser plate
+
+    // 1. Balenciaga Defender / Bouncer (Tier 3, Spot 1 / Left - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/balenciaga_defender.glb',
+      (gltf) => {
+        const defModel = gltf.scene;
+        defModel.name = 'balenciagaDefenderSingle';
+        defModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.35;
+                mat.metalness = 0.12;
+                mat.envMapIntensity = 1.8;
+              });
+            }
+          }
+        });
+
+        defModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(defModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const defWrapper = new THREE.Group();
+        defWrapper.name = 'balenciagaDefenderWrapper';
+        defModel.position.set(-center.x, -box.min.y, -center.z);
+        defWrapper.add(defModel);
+
+        // Scale length along X to 33cm
+        const scale = balenciagaTargetLength / (size.x || 1);
+        defWrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), profile facing camera (+Z)
+        defWrapper.rotation.y = Math.PI;
+        defWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${balenciagaSlotTier}_spot1`);
+        if (slot) {
+          slot.add(defWrapper);
+        } else {
+          menShoeShelfGroup.add(defWrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Balenciaga Defender GLB:', err)
+    );
+
+    // 2. Balenciaga 3XL (Tier 3, Spot 2 / Center - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/balenciaga_3xl.glb',
+      (gltf) => {
+        const xlModel = gltf.scene;
+        xlModel.name = 'balenciaga3xlSingle';
+        xlModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.40;
+                mat.metalness = 0.10;
+                mat.envMapIntensity = 1.6;
+              });
+            }
+          }
+        });
+
+        // Compute accurate box using indexed geometry vertices
+        xlModel.updateMatrixWorld(true);
+        const box = new THREE.Box3();
+        xlModel.traverse((child) => {
+          if (child.isMesh && child.geometry) {
+            const pos = child.geometry.attributes.position;
+            const index = child.geometry.index;
+            if (index) {
+              for (let i = 0; i < index.count; i++) {
+                const idx = index.getX(i);
+                const v = new THREE.Vector3(pos.getX(idx), pos.getY(idx), pos.getZ(idx)).applyMatrix4(child.matrixWorld);
+                box.expandByPoint(v);
+              }
+            } else {
+              box.expandByObject(child);
+            }
+          }
+        });
+        if (box.isEmpty()) box.setFromObject(xlModel);
+
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const xlWrapper = new THREE.Group();
+        xlWrapper.name = 'balenciaga3xlWrapper';
+        xlModel.position.set(-center.x, -box.min.y, -center.z);
+        xlWrapper.add(xlModel);
+
+        // Scale length along X to 33cm
+        const scale = balenciagaTargetLength / (size.x || 1);
+        xlWrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), profile facing camera (+Z)
+        xlWrapper.rotation.y = Math.PI;
+        xlWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${balenciagaSlotTier}_spot2`);
+        if (slot) {
+          slot.add(xlWrapper);
+        } else {
+          menShoeShelfGroup.add(xlWrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Balenciaga 3XL GLB:', err)
+    );
+
+    // 3. Balenciaga Track Black (Tier 3, Spot 3 / Right - Single Shoe Turned Sideways)
+    gltfLoader.load(
+      '/models/shoes/balenciaga_track_black.glb',
+      (gltf) => {
+        const trkModel = gltf.scene;
+        trkModel.name = 'balenciagaTrackBlackSingle';
+        trkModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            // Handle KHR_materials_pbrSpecularGlossiness texture fallback if needed
+            if (gltf.parser && (!child.material || !child.material.map)) {
+              gltf.parser.getDependency('texture', 0).then((tex) => {
+                if (tex) {
+                  tex.colorSpace = THREE.SRGBColorSpace;
+                  tex.needsUpdate = true;
+                  child.material = new THREE.MeshStandardMaterial({
+                    map: tex,
+                    roughness: 0.35,
+                    metalness: 0.15,
+                    side: THREE.DoubleSide,
+                  });
+                  gltf.parser.getDependency('texture', 2).then((normTex) => {
+                    if (normTex && child.material) {
+                      child.material.normalMap = normTex;
+                      child.material.normalScale.set(1.0, 1.0);
+                      child.material.needsUpdate = true;
+                    }
+                  });
+                }
+              });
+            } else if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.35;
+                mat.metalness = 0.15;
+              });
+            }
+          }
+        });
+
+        trkModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(trkModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const trkWrapper = new THREE.Group();
+        trkWrapper.name = 'balenciagaTrackWrapper';
+        trkModel.position.set(-center.x, -box.min.y, -center.z);
+        trkWrapper.add(trkModel);
+
+        // Scale length along X to 33cm
+        const scale = balenciagaTargetLength / (size.x || 1);
+        trkWrapper.scale.setScalar(scale);
+
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), profile facing camera (+Z)
+        trkWrapper.rotation.y = Math.PI;
+        trkWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+
+        const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${balenciagaSlotTier}_spot3`);
+        if (slot) {
+          slot.add(trkWrapper);
+        } else {
+          menShoeShelfGroup.add(trkWrapper);
+        }
+      },
+      undefined,
+      (err) => console.warn('Could not load Balenciaga Track Black GLB:', err)
+    );
+
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
     menWallLogosGroup.name = 'menWallLogosGroup';
