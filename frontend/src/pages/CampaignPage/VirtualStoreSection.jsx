@@ -2663,8 +2663,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const scale = targetLength / (size.z || 1);
         shoeWrapper.scale.setScalar(scale);
 
-        // Angle slightly for dynamic boutique presentation (showcasing star logo)
-        shoeWrapper.rotation.y = 0.18;
+        // Angle dynamically for boutique presentation (showcasing star logo clearly)
+        shoeWrapper.rotation.y = 0.45;
         shoeWrapper.position.set(0, 0.014, 0); // Sits flush on top of the riser plate
 
         const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot1`);
@@ -2678,7 +2678,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       (err) => console.warn('Could not load Bape Sta Patent Orange GLB:', err)
     );
 
-    // 2. Bape Sta Classic Pair (Tier 4, Spot 2 / Center)
+    // 2. Bape Sta Classic Hero Single Sneaker (Tier 4, Spot 2 / Center - Turned Sideways)
     gltfLoader.load(
       '/models/shoes/bape_sta.glb',
       (gltf) => {
@@ -2711,41 +2711,27 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const center = new THREE.Vector3();
         box.getCenter(center);
 
-        const bapePair = new THREE.Group();
-        bapePair.name = 'bapeStaClassicPair';
+        // Display single hero sneaker turned sideways (showcasing full side profile & Bape Star logo)
+        const bapeHeroWrapper = new THREE.Group();
+        bapeHeroWrapper.name = 'bapeStaClassicHeroWrapper';
 
-        // Length of raw model along X is 3.109m -> scale to 29cm
-        const bapeScale = 0.29 / (size.x || 1);
+        bapeModel.position.set(-center.x, -box.min.y, -center.z);
+        bapeHeroWrapper.add(bapeModel);
 
-        // Right shoe
-        const rightShoe = bapeModel;
-        rightShoe.position.set(-center.x, -box.min.y, -center.z);
-        rightShoe.rotation.y = Math.PI / 2; // toe points towards +Z
+        // Scaled to prominent, easily visible hero sneaker size (~34cm length across the display plate)
+        const targetLength = 0.34;
+        const bapeScale = targetLength / (size.x || 1);
+        bapeHeroWrapper.scale.setScalar(bapeScale);
 
-        const rightWrapper = new THREE.Group();
-        rightWrapper.add(rightShoe);
-        rightWrapper.scale.setScalar(bapeScale);
-        rightWrapper.position.set(0.075, 0, 0);
-        rightWrapper.rotation.y = -0.10; // Dynamic sneaker toe angle
-
-        // Left shoe (mirrored clone)
-        const leftShoe = rightShoe.clone(true);
-        const leftWrapper = new THREE.Group();
-        leftWrapper.add(leftShoe);
-        leftWrapper.scale.set(-bapeScale, bapeScale, bapeScale); // Mirrored along X
-        leftWrapper.position.set(-0.075, 0, 0);
-        leftWrapper.rotation.y = 0.10; // Dynamic sneaker toe angle
-
-        bapePair.add(rightWrapper);
-        bapePair.add(leftWrapper);
-
-        bapePair.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+        // Turned sideways along the shelf (toe pointing right, side star logo facing directly forward into the room)
+        bapeHeroWrapper.rotation.y = Math.PI + 0.08;
+        bapeHeroWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
 
         const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot2`);
         if (slot) {
-          slot.add(bapePair);
+          slot.add(bapeHeroWrapper);
         } else {
-          menShoeShelfGroup.add(bapePair);
+          menShoeShelfGroup.add(bapeHeroWrapper);
         }
       },
       undefined,
@@ -2795,8 +2781,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const scale = targetLength / (size.z || 1);
         shoeWrapper.scale.setScalar(scale);
 
-        // Angle slightly for dynamic boutique presentation (showcasing star logo)
-        shoeWrapper.rotation.y = -0.18;
+        // Angle dynamically for boutique presentation (showcasing star logo clearly)
+        shoeWrapper.rotation.y = -0.45;
         shoeWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
 
         const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot3`);
