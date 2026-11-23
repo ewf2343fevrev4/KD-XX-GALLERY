@@ -2617,16 +2617,22 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
     menGroup.add(menShoeShelfGroup);
 
-    // ── Tier 1 (First Shelf / Top Tier: yPos = 0.59) 3 Iconic Bape Sta Sneakers ──
+    // ── Tier 1 (First Shelf / Top Tier: yPos = 0.59) 3 Single Bape Sta Sneakers Displayed Sideways ──
     const targetSlotTier = 4; // Top Tier (Kệ đầu tiên)
+    const shoeTargetLength = 0.33; // 33cm hero display length across the riser plate
 
-    // 1. Bape Sta Patent Leather Orange (Tier 4, Spot 1 / Left)
+    // 1. Bape Sta Patent Leather Orange (Tier 4, Spot 1 / Left - Single Shoe Turned Sideways)
     gltfLoader.load(
       '/models/shoes/bape_sta_patent_leather_orange.glb',
       (gltf) => {
-        const shoe1 = gltf.scene;
-        shoe1.name = 'bapeStaPatentLeatherOrange';
-        shoe1.traverse((child) => {
+        const orangeModel = gltf.scene;
+        orangeModel.name = 'bapeStaPatentLeatherOrangeSingle';
+
+        // Keep only single right shoe (Bape_STA_sneaker3) and remove the other shoe
+        const leftShoe = orangeModel.getObjectByName('Bape_STA_sneaker2');
+        if (leftShoe) leftShoe.removeFromParent();
+
+        orangeModel.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = false;
             child.receiveShadow = true;
@@ -2646,44 +2652,43 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           }
         });
 
-        shoe1.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(shoe1);
+        orangeModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(orangeModel);
         const size = new THREE.Vector3();
         box.getSize(size);
         const center = new THREE.Vector3();
         box.getCenter(center);
 
-        const shoeWrapper = new THREE.Group();
-        shoeWrapper.name = 'bapeStaOrangeWrapper';
-        shoe1.position.set(-center.x, -box.min.y, -center.z);
-        shoeWrapper.add(shoe1);
+        const orangeWrapper = new THREE.Group();
+        orangeWrapper.name = 'bapeStaOrangeWrapper';
+        orangeModel.position.set(-center.x, -box.min.y, -center.z);
+        orangeWrapper.add(orangeModel);
 
-        // Scale to authentic 30cm sneaker length
-        const targetLength = 0.30;
-        const scale = targetLength / (size.z || 1);
-        shoeWrapper.scale.setScalar(scale);
+        // Scale length along Z to 33cm
+        const scale = shoeTargetLength / (size.z || 1);
+        orangeWrapper.scale.setScalar(scale);
 
-        // Angle dynamically for boutique presentation (showcasing star logo clearly)
-        shoeWrapper.rotation.y = 0.45;
-        shoeWrapper.position.set(0, 0.014, 0); // Sits flush on top of the riser plate
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), lateral star facing camera (+Z)
+        orangeWrapper.rotation.y = -Math.PI / 2;
+        orangeWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
 
         const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot1`);
         if (slot) {
-          slot.add(shoeWrapper);
+          slot.add(orangeWrapper);
         } else {
-          menShoeShelfGroup.add(shoeWrapper);
+          menShoeShelfGroup.add(orangeWrapper);
         }
       },
       undefined,
       (err) => console.warn('Could not load Bape Sta Patent Orange GLB:', err)
     );
 
-    // 2. Bape Sta Classic Hero Single Sneaker (Tier 4, Spot 2 / Center - Turned Sideways)
+    // 2. Bape Sta Classic (Tier 4, Spot 2 / Center - Single Shoe Turned Sideways)
     gltfLoader.load(
       '/models/shoes/bape_sta.glb',
       (gltf) => {
         const bapeModel = gltf.scene;
-        bapeModel.name = 'bapeStaClassicModel';
+        bapeModel.name = 'bapeStaClassicSingle';
         bapeModel.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = false;
@@ -2696,7 +2701,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
                 }
-                mat.roughness = 0.42;
+                mat.roughness = 0.38;
                 mat.metalness = 0.15;
                 mat.envMapIntensity = 1.6;
               });
@@ -2711,40 +2716,42 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const center = new THREE.Vector3();
         box.getCenter(center);
 
-        // Display single hero sneaker turned sideways (showcasing full side profile & Bape Star logo)
-        const bapeHeroWrapper = new THREE.Group();
-        bapeHeroWrapper.name = 'bapeStaClassicHeroWrapper';
-
+        const bapeWrapper = new THREE.Group();
+        bapeWrapper.name = 'bapeStaClassicHeroWrapper';
         bapeModel.position.set(-center.x, -box.min.y, -center.z);
-        bapeHeroWrapper.add(bapeModel);
+        bapeWrapper.add(bapeModel);
 
-        // Scaled to prominent, easily visible hero sneaker size (~34cm length across the display plate)
-        const targetLength = 0.34;
-        const bapeScale = targetLength / (size.x || 1);
-        bapeHeroWrapper.scale.setScalar(bapeScale);
+        // Scale length along X to 33cm
+        const scale = shoeTargetLength / (size.x || 1);
+        bapeWrapper.scale.setScalar(scale);
 
-        // Turned sideways along the shelf (toe pointing right, side star logo facing directly forward into the room)
-        bapeHeroWrapper.rotation.y = Math.PI + 0.08;
-        bapeHeroWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), lateral star facing camera (+Z)
+        bapeWrapper.rotation.y = 0;
+        bapeWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
 
         const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot2`);
         if (slot) {
-          slot.add(bapeHeroWrapper);
+          slot.add(bapeWrapper);
         } else {
-          menShoeShelfGroup.add(bapeHeroWrapper);
+          menShoeShelfGroup.add(bapeWrapper);
         }
       },
       undefined,
       (err) => console.warn('Could not load Bape Sta Classic GLB:', err)
     );
 
-    // 3. Bape Sta x JJJJound White/Grey (Tier 4, Spot 3 / Right)
+    // 3. Bape Sta x JJJJound White/Grey (Tier 4, Spot 3 / Right - Single Shoe Turned Sideways)
     gltfLoader.load(
       '/models/shoes/bape_sta_jjjjound_whitegrey.glb',
       (gltf) => {
-        const shoe3 = gltf.scene;
-        shoe3.name = 'bapeStaJJJJound';
-        shoe3.traverse((child) => {
+        const jjjModel = gltf.scene;
+        jjjModel.name = 'bapeStaJJJJoundSingle';
+
+        // Keep only single right shoe (JJJOUND_X_Bape_STA) and remove the other shoe
+        const leftShoe = jjjModel.getObjectByName('JJJOUND_X_Bape_STA1');
+        if (leftShoe) leftShoe.removeFromParent();
+
+        jjjModel.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = false;
             child.receiveShadow = true;
@@ -2756,7 +2763,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
                 }
-                mat.roughness = 0.40;
+                mat.roughness = 0.36;
                 mat.metalness = 0.12;
                 mat.envMapIntensity = 1.8;
               });
@@ -2764,32 +2771,31 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           }
         });
 
-        shoe3.updateMatrixWorld(true);
-        const box = new THREE.Box3().setFromObject(shoe3);
+        jjjModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(jjjModel);
         const size = new THREE.Vector3();
         box.getSize(size);
         const center = new THREE.Vector3();
         box.getCenter(center);
 
-        const shoeWrapper = new THREE.Group();
-        shoeWrapper.name = 'bapeStaJJJJoundWrapper';
-        shoe3.position.set(-center.x, -box.min.y, -center.z);
-        shoeWrapper.add(shoe3);
+        const jjjWrapper = new THREE.Group();
+        jjjWrapper.name = 'bapeStaJJJJoundWrapper';
+        jjjModel.position.set(-center.x, -box.min.y, -center.z);
+        jjjWrapper.add(jjjModel);
 
-        // Scale to authentic 30cm sneaker length
-        const targetLength = 0.30;
-        const scale = targetLength / (size.z || 1);
-        shoeWrapper.scale.setScalar(scale);
+        // Scale length along Z to 33cm
+        const scale = shoeTargetLength / (size.z || 1);
+        jjjWrapper.scale.setScalar(scale);
 
-        // Angle dynamically for boutique presentation (showcasing star logo clearly)
-        shoeWrapper.rotation.y = -0.45;
-        shoeWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
+        // Turned sideways horizontally: toe pointing left (-X), heel right (+X), lateral star facing camera (+Z)
+        jjjWrapper.rotation.y = -Math.PI / 2;
+        jjjWrapper.position.set(0, 0.014, 0); // Sits flush on top of riser plate
 
         const slot = menShoeShelfGroup.getObjectByName(`menShoeSlot_tier${targetSlotTier}_spot3`);
         if (slot) {
-          slot.add(shoeWrapper);
+          slot.add(jjjWrapper);
         } else {
-          menShoeShelfGroup.add(shoeWrapper);
+          menShoeShelfGroup.add(jjjWrapper);
         }
       },
       undefined,
