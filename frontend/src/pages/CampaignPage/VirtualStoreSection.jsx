@@ -2298,6 +2298,161 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
     menGroup.add(framedSp5derGroup);
 
+    // ── Luxury Streetwear Museum Showcase: Framed Chrome Hearts Zip Hoodie (Stacked Above Sp5der Frame) ──
+    const framedChromeHeartsGroup = new THREE.Group();
+    framedChromeHeartsGroup.name = 'framedChromeHeartsGroup';
+
+    // Positioned vertically directly above the Sp5der frame along the angled brick wall
+    framedChromeHeartsGroup.position.set(-6.86, 3.48, -3.25);
+    framedChromeHeartsGroup.rotation.y = Math.PI / 2.35;
+
+    // Deep Museum Shadowbox Frame (Black titanium / dark anodized metal)
+    const chFrameWidth = 1.48;
+    const chFrameHeight = 1.25;
+    const chFrameDepth = 0.35;
+    const chFrameBorder = 0.055;
+
+    const chFrameOuterMat = new THREE.MeshStandardMaterial({
+      color: '#121016',
+      roughness: 0.28,
+      metalness: 0.82,
+    });
+
+    const chFrameBackingMat = new THREE.MeshStandardMaterial({
+      color: '#090710', // Deep luxury obsidian velvet backing
+      roughness: 0.65,
+      metalness: 0.1,
+    });
+
+    // Backing board
+    const chFrameBacking = new THREE.Mesh(
+      new THREE.BoxGeometry(chFrameWidth, chFrameHeight, 0.02),
+      chFrameBackingMat
+    );
+    chFrameBacking.position.z = -chFrameDepth / 2;
+    chFrameBacking.receiveShadow = true;
+    framedChromeHeartsGroup.add(chFrameBacking);
+
+    // Frame Borders (Top, Bottom, Left, Right)
+    const chBorderTop = new THREE.Mesh(
+      new THREE.BoxGeometry(chFrameWidth + chFrameBorder * 2, chFrameBorder, chFrameDepth),
+      chFrameOuterMat
+    );
+    chBorderTop.position.set(0, chFrameHeight / 2 + chFrameBorder / 2, 0);
+    framedChromeHeartsGroup.add(chBorderTop);
+
+    const chBorderBottom = new THREE.Mesh(
+      new THREE.BoxGeometry(chFrameWidth + chFrameBorder * 2, chFrameBorder, chFrameDepth),
+      chFrameOuterMat
+    );
+    chBorderBottom.position.set(0, -chFrameHeight / 2 - chFrameBorder / 2, 0);
+    framedChromeHeartsGroup.add(chBorderBottom);
+
+    const chBorderLeft = new THREE.Mesh(
+      new THREE.BoxGeometry(chFrameBorder, chFrameHeight, chFrameDepth),
+      chFrameOuterMat
+    );
+    chBorderLeft.position.set(-chFrameWidth / 2 - chFrameBorder / 2, 0, 0);
+    framedChromeHeartsGroup.add(chBorderLeft);
+
+    const chBorderRight = new THREE.Mesh(
+      new THREE.BoxGeometry(chFrameBorder, chFrameHeight, chFrameDepth),
+      chFrameOuterMat
+    );
+    chBorderRight.position.set(chFrameWidth / 2 + chFrameBorder / 2, 0, 0);
+    framedChromeHeartsGroup.add(chBorderRight);
+
+    // Front Ultra-Clear Gallery Museum Glass Pane
+    const chGlassPane = new THREE.Mesh(
+      new THREE.PlaneGeometry(chFrameWidth, chFrameHeight),
+      new THREE.MeshPhysicalMaterial({
+        color: '#ffffff',
+        transparent: true,
+        opacity: 0.14,
+        roughness: 0.05,
+        metalness: 0.1,
+        transmission: 0.88,
+        ior: 1.52,
+        reflectivity: 0.6,
+        depthWrite: false,
+      })
+    );
+    chGlassPane.position.z = chFrameDepth / 2 + 0.005;
+    framedChromeHeartsGroup.add(chGlassPane);
+
+    // Ambient Platinum / Gothic Silver Neon Halo Backlight (#e0e7ff / icy silver white)
+    const chFrameHaloLight = new THREE.PointLight('#e0e7ff', 2.6, 3.8);
+    chFrameHaloLight.position.set(0, 0, -chFrameDepth / 2 - 0.05);
+    chFrameHaloLight.castShadow = false;
+    framedChromeHeartsGroup.add(chFrameHaloLight);
+
+    // Interior Crisp Gallery Spotlight inside top of frame illuminating the back graphic
+    const chFrameInternalLight = new THREE.SpotLight(0xffffff, 4.0, 4.5, Math.PI / 3, 0.4);
+    chFrameInternalLight.position.set(0, chFrameHeight / 2 - 0.04, chFrameDepth / 2 - 0.05);
+    chFrameInternalLight.target.position.set(0, 0, 0);
+    framedChromeHeartsGroup.add(chFrameInternalLight);
+    framedChromeHeartsGroup.add(chFrameInternalLight.target);
+
+    // Load and mount the Chrome Hearts Zip Hoodie inside the shadowbox frame (Back facing outwards)
+    gltfLoader.load(
+      '/models/props/chrome_hearts_zip_hoodie.glb',
+      (chGltf) => {
+        const chHoodie = chGltf.scene;
+        chHoodie.name = 'chromeHeartsFramedHoodie';
+
+        chHoodie.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.78;
+                mat.metalness = 0.12;
+                mat.envMapIntensity = 1.5;
+              });
+            }
+          }
+        });
+
+        chHoodie.updateMatrixWorld(true);
+        const chBox = new THREE.Box3().setFromObject(chHoodie);
+        const chCenter = new THREE.Vector3();
+        chBox.getCenter(chCenter);
+        const chSize = new THREE.Vector3();
+        chBox.getSize(chSize);
+
+        // Center geometry around (0, 0, 0)
+        chHoodie.position.set(-chCenter.x, -chCenter.y, -chCenter.z);
+
+        // Orient back facing outwards towards the glass pane / viewer as requested
+        chHoodie.rotation.y = Math.PI;
+
+        const chHoodieMount = new THREE.Group();
+        chHoodieMount.name = 'chromeHeartsHoodieMount';
+        chHoodieMount.add(chHoodie);
+
+        // Scale to fit proportionally inside shadowbox (~1.15m wide inside the 1.48m frame)
+        const chTargetWidth = 1.15;
+        const chScale = chTargetWidth / (chSize.x || 1);
+        chHoodieMount.scale.setScalar(chScale);
+
+        // Positioned cleanly within depth bounds
+        chHoodieMount.position.set(0, -0.02, 0.02);
+
+        framedChromeHeartsGroup.add(chHoodieMount);
+      },
+      undefined,
+      (err) => console.warn('Could not load framed Chrome Hearts hoodie GLB:', err)
+    );
+
+    menGroup.add(framedChromeHeartsGroup);
+
     // ── Men's Back Wall Streetwear Showcase: 3 Iconic Hip-Hop Logos ──
     const menWallLogosGroup = new THREE.Group();
     menWallLogosGroup.name = 'menWallLogosGroup';
