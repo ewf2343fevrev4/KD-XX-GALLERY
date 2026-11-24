@@ -1303,11 +1303,72 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Back brick wall
-    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(18, 7.5), brickMat);
-    backWall.position.set(0, 3.75, -4.2);
-    backWall.receiveShadow = true;
-    scene.add(backWall);
+    // ── Straight Back Wall (Center Area): 3D Brick Wall Mural of an Angel ──
+    const backWallGroup = new THREE.Group();
+    backWallGroup.name = 'centerBackAngelMuralWallGroup';
+    backWallGroup.position.set(0, 3.75, -4.2);
+    scene.add(backWallGroup);
+
+    // Initial fallback plane while GLB loads, ensuring instant seamless render
+    const backWallFallback = new THREE.Mesh(new THREE.PlaneGeometry(18, 7.5), brickMat);
+    backWallFallback.receiveShadow = true;
+    backWallGroup.add(backWallFallback);
+
+    gltfLoader.load(
+      '/models/architecture/brick_wall_mural_of_an_angel.glb',
+      (gltf) => {
+        const muralModel = gltf.scene;
+        muralModel.name = 'angelMuralArtModel';
+
+        muralModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const oldMap = child.material.map;
+              if (oldMap) {
+                oldMap.colorSpace = THREE.SRGBColorSpace;
+                oldMap.needsUpdate = true;
+              }
+              // Standard material so it catches boutique gallery ambient glow and spotlights realistically
+              child.material = new THREE.MeshStandardMaterial({
+                map: oldMap,
+                roughness: 0.82,
+                metalness: 0.05,
+                side: THREE.DoubleSide,
+              });
+            }
+          }
+        });
+
+        muralModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(muralModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        // Scale to boutique floor-to-ceiling height (7.5m)
+        const targetHeight = 7.5;
+        const scale = targetHeight / (size.y || 1);
+
+        const muralWrapper = new THREE.Group();
+        muralWrapper.name = 'angelMuralWrapper';
+
+        // Position model so front painted face is at local Z = 0, centered in Y and Z
+        muralModel.position.set(-box.min.x, -center.y, -center.z);
+        muralWrapper.add(muralModel);
+        muralWrapper.scale.setScalar(scale);
+
+        // Rotate Math.PI / 2 so front painted face normal aligns with local +Z
+        muralWrapper.rotation.y = Math.PI / 2;
+
+        backWallGroup.remove(backWallFallback);
+        backWallGroup.add(muralWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Brick Wall Mural of an Angel GLB:', err)
+    );
 
     // ── Angled Left Wall (Men's Area): 3D Love City Mural Art Wall ──
     const leftWallGroup = new THREE.Group();
@@ -3684,13 +3745,82 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     centerSign.position.set(0, 4.15, -3.95);
     centerGroup.add(centerSign);
 
-    // Decorative framed arch backdrop behind Mix & Match
-    const centerArchFrame = new THREE.Mesh(
-      new THREE.BoxGeometry(4.4, 4.8, 0.12),
-      darkSteelMat
-    );
-    centerArchFrame.position.set(0, 2.4, -4.1);
-    centerGroup.add(centerArchFrame);
+    // ── Luxury Atelier Pleated Velvet Curtain Backdrop (Replacing rigid black booth) ──
+    const curtainGroup = new THREE.Group();
+    curtainGroup.name = 'mixAndMatchCurtainBackdropGroup';
+    curtainGroup.position.set(0, 0, -4.05);
+
+    const curtainWidth = 4.6;
+    const curtainHeight = 5.1;
+    const segX = 128;
+    const segY = 56;
+    const numPleats = 16;
+
+    const curtainGeom = new THREE.PlaneGeometry(curtainWidth, curtainHeight, segX, segY);
+    const cPos = curtainGeom.attributes.position;
+
+    for (let i = 0; i < cPos.count; i++) {
+      const x = cPos.getX(i);
+      const y = cPos.getY(i);
+      const u = x / curtainWidth + 0.5;
+      const v = y / curtainHeight + 0.5; // 0 at bottom, 1 at top
+
+      // Harmonic undulating wave for realistic deep velvet folds
+      const foldWave =
+        Math.sin(u * Math.PI * 2 * numPleats) * 0.082 +
+        Math.sin(u * Math.PI * 4 * numPleats) * 0.016 +
+        Math.sin(u * Math.PI * 6 * numPleats) * 0.005;
+
+      // Natural flare near the floor (gathering slightly wider at bottom)
+      const flare = 1.0 + 0.14 * (1.0 - v);
+      // Subtle cloth draping wrinkles
+      const microWrinkle = Math.sin(v * 32 + u * 18) * 0.004;
+
+      cPos.setZ(i, foldWave * flare + microWrinkle);
+    }
+    curtainGeom.computeVertexNormals();
+
+    const velvetMat = new THREE.MeshStandardMaterial({
+      color: '#15131c', // Deep midnight obsidian luxury velvet
+      roughness: 0.86,
+      metalness: 0.06,
+      side: THREE.DoubleSide,
+    });
+
+    const curtainMesh = new THREE.Mesh(curtainGeom, velvetMat);
+    curtainMesh.position.set(0, curtainHeight / 2, 0);
+    curtainMesh.receiveShadow = true;
+    curtainMesh.castShadow = true;
+    curtainGroup.add(curtainMesh);
+
+    // Architectural Brushed Gold Curtain Rod across the top
+    const rodMat = new THREE.MeshStandardMaterial({
+      color: '#d4af37', // Brushed luxury champagne gold
+      metalness: 0.88,
+      roughness: 0.26,
+    });
+    const rodGeom = new THREE.CylinderGeometry(0.032, 0.032, curtainWidth + 0.35, 24);
+    const rodMesh = new THREE.Mesh(rodGeom, rodMat);
+    rodMesh.rotation.z = Math.PI / 2;
+    rodMesh.position.set(0, curtainHeight + 0.03, 0.02);
+    curtainGroup.add(rodMesh);
+
+    // Finials at ends of the rod
+    [-(curtainWidth + 0.35) / 2, (curtainWidth + 0.35) / 2].forEach((endX) => {
+      const finial = new THREE.Mesh(new THREE.SphereGeometry(0.052, 16, 16), rodMat);
+      finial.position.set(endX, curtainHeight + 0.03, 0.02);
+      curtainGroup.add(finial);
+    });
+
+    // Hanging curtain rings along the rod
+    for (let p = 0; p <= numPleats * 2; p++) {
+      const ringX = -curtainWidth / 2 + (p / (numPleats * 2)) * curtainWidth;
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.006, 8, 16), rodMat);
+      ring.position.set(ringX, curtainHeight + 0.015, 0.02);
+      curtainGroup.add(ring);
+    }
+
+    centerGroup.add(curtainGroup);
 
     // Suspended Overhead Neon Halo above the Styling Table
     const haloGroup = new THREE.Group();
