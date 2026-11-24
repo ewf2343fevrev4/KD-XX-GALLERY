@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
-import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import './VirtualStoreSection.css';
 
@@ -1256,8 +1255,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       depth: true,
     });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    // Capped to 1.25 to prevent 4K/Retina fill-rate choking while keeping visuals sharp
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+    // Capped to 1.0 for silky smooth 60 FPS on all devices (Retina, 4K, laptops, phones)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1273,7 +1272,46 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     scene.environment = neutralEnv;
 
     const gltfLoader = new GLTFLoader();
-    gltfLoader.setMeshoptDecoder(MeshoptDecoder);
+
+    // ── Progressive Staggered Model Loading Queue ──
+    // Eliminates CPU/GPU event-loop congestion and prevents "Page isn't responding"
+    let isComponentMounted = true;
+    const modelLoadQueue = [];
+    let isQueueActive = false;
+
+    const originalGltfLoad = gltfLoader.load.bind(gltfLoader);
+    const pumpModelQueue = () => {
+      if (!isComponentMounted || modelLoadQueue.length === 0) {
+        isQueueActive = false;
+        return;
+      }
+      isQueueActive = true;
+      const item = modelLoadQueue.shift();
+      originalGltfLoad(
+        item.url,
+        (gltf) => {
+          if (isComponentMounted) {
+            item.onLoad?.(gltf);
+          }
+          // Give browser 25ms breathing room to render frames and handle input
+          setTimeout(pumpModelQueue, 25);
+        },
+        item.onProgress,
+        (err) => {
+          if (isComponentMounted) {
+            item.onError?.(err);
+          }
+          setTimeout(pumpModelQueue, 25);
+        }
+      );
+    };
+
+    gltfLoader.load = (url, onLoad, onProgress, onError) => {
+      modelLoadQueue.push({ url, onLoad, onProgress, onError });
+      if (!isQueueActive) {
+        pumpModelQueue();
+      }
+    };
 
     // ── 2. Shared Materials & Procedural Textures ──
     const brickTex = createBrickTexture();
@@ -5806,6 +5844,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     reqId = requestAnimationFrame(animate);
 
     return () => {
+      isComponentMounted = false;
+      modelLoadQueue.length = 0;
       cancelAnimationFrame(reqId);
       if (visibilityObserver) visibilityObserver.disconnect();
       window.removeEventListener('resize', handleResize);
