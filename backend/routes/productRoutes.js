@@ -3,6 +3,7 @@ const {
   getProducts,
   getProductById,
   getProductTags,
+  getCampaignCuratedProducts,
   createProduct,
   updateProduct,
   deleteProduct
@@ -16,6 +17,7 @@ router.route('/')
   .post(protect, admin, createProduct);
 
 router.get('/tags', getProductTags);
+router.get('/campaign-curated', getCampaignCuratedProducts);
 
 router.route('/:id')
   .get(getProductById)

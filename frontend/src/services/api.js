@@ -29,6 +29,7 @@ const apiCall = async (endpoint, token) => {
 
 // ==================== PRODUCT API ====================
 export const getAllProducts = () => apiCall('/products');
+export const getCampaignCuratedProducts = () => apiCall('/products/campaign-curated');
 export const getTryOnCatalog = () => apiCall('/tryon/catalog');
 export const getProductById = (id) => apiCall(`/products/${id}`);
 export const getProductsByCategory = (category) => apiCall(`/products/category/${category}`);

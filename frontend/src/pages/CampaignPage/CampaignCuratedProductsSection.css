@@ -1,0 +1,414 @@
+/* ============================================
+   CAMPAIGN PAGE — CURATED 4-COLUMN PRODUCT SHOWCASE
+   AMIRI Official Store Layout Inspired
+   Clean Studio White Cards + Subtle Luxury Purple Accents
+   Ultra-optimized, 60fps zero-lag performance
+   ============================================ */
+
+.campaign-curated-section {
+  position: relative;
+  width: 100%;
+  background-color: #06040a;
+  border-top: 1px solid rgba(168, 85, 247, 0.16);
+  border-bottom: 1px solid rgba(168, 85, 247, 0.16);
+  padding: 56px 0 64px 0;
+  user-select: none;
+  contain: layout paint;
+  overflow: hidden;
+}
+
+/* Subtle background atmospheric purple glow (CSS only, zero lag) */
+.campaign-curated-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 1400px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.4), transparent);
+  pointer-events: none;
+}
+
+.campaign-curated-container {
+  width: 100%;
+  max-width: 1720px;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 1200px) {
+  .campaign-curated-container {
+    padding: 0 40px;
+  }
+}
+
+/* ── Dual Split Headers (Columns 1-2 Left, Columns 3-4 Right) ── */
+.campaign-curated-headers {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+@media (max-width: 768px) {
+  .campaign-curated-headers {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.campaign-curated-header-col {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 0 4px;
+}
+
+.campaign-curated-header-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.campaign-curated-header-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #c084fc; /* Luxury lavender */
+}
+
+.campaign-curated-icon {
+  color: #c084fc;
+}
+
+.campaign-curated-title {
+  font-family: 'Cinzel', 'Playfair Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+@media (min-width: 1024px) {
+  .campaign-curated-title {
+    font-size: 1.65rem;
+    letter-spacing: 0.14em;
+  }
+}
+
+/* Header Pagination Controls */
+.campaign-curated-page-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  border-radius: 9999px;
+  padding: 4px 10px;
+  backdrop-filter: blur(8px);
+}
+
+.campaign-curated-arrow-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.campaign-curated-arrow-btn:hover {
+  color: #c084fc;
+  transform: scale(1.15);
+}
+
+.campaign-curated-page-text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* ── 4-Column Showcase Grid ── */
+.campaign-curated-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 1200px) {
+  .campaign-curated-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .campaign-curated-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}
+
+.campaign-curated-grid-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Curated Product Card (Studio White Surface) ── */
+.curated-card {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.curated-card:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 4px;
+}
+
+.curated-card__surface {
+  position: relative;
+  background-color: #faf9f6; /* Studio white luxury paper */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 520px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+
+@media (min-width: 1440px) {
+  .curated-card__surface {
+    height: 560px;
+  }
+}
+
+.curated-card:hover .curated-card__surface {
+  border-color: rgba(168, 85, 247, 0.45);
+  box-shadow: 0 16px 36px -10px rgba(168, 85, 247, 0.28), 0 4px 20px rgba(0, 0, 0, 0.35);
+  transform: translateY(-4px);
+}
+
+/* Skeleton Loading State */
+.curated-card--skeleton {
+  background: linear-gradient(90deg, #110e1a 25%, #1f182c 50%, #110e1a 75%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.6s ease-in-out infinite;
+  height: 520px;
+  border-radius: 6px;
+  border: 1px solid rgba(168, 85, 247, 0.1);
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Top bar with + Try-On pill */
+.curated-card__topbar {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.curated-card__tryon-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 9999px;
+  padding: 4px 11px;
+  cursor: pointer;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #111827;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.22s ease;
+}
+
+.curated-card__tryon-plus {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9333ea; /* Purple accent */
+  line-height: 1;
+}
+
+.curated-card__tryon-btn:hover {
+  background-color: #f5f3ff;
+  border-color: #a855f7;
+  color: #7e22ce;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.25);
+  transform: translateY(-1px);
+}
+
+.curated-card__pill-tag {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  background-color: rgba(168, 85, 247, 0.12);
+  color: #9333ea;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 4px;
+}
+
+/* Image Container */
+.curated-card__image-container {
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #faf9f6;
+  padding: 30px 20px 10px 20px;
+  box-sizing: border-box;
+}
+
+.curated-card__image {
+  max-width: 90%;
+  max-height: 380px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.curated-card:hover .curated-card__image {
+  transform: scale(1.04);
+}
+
+/* Navigation Arrows on Image */
+.curated-card__nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #1f2937;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease, color 0.2s ease;
+  z-index: 4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.curated-card:hover .curated-card__nav-arrow {
+  opacity: 1;
+}
+
+.curated-card__nav-arrow--left {
+  left: 8px;
+}
+
+.curated-card__nav-arrow--right {
+  right: 8px;
+}
+
+.curated-card__nav-arrow:hover {
+  background: #9333ea;
+  color: #ffffff;
+  border-color: #9333ea;
+}
+
+/* Bottom Right 1 / 4 Image Counter */
+.curated-card__counter {
+  position: absolute;
+  bottom: 10px;
+  right: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  z-index: 3;
+}
+
+/* Bottom Card Details */
+.curated-card__details {
+  padding: 14px 16px 18px 16px;
+  background-color: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.curated-card__name {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s ease;
+}
+
+.curated-card:hover .curated-card__name {
+  color: #7e22ce; /* Luxury purple highlight on hover */
+}
+
+.curated-card__price {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #4b5563;
+  margin: 0;
+  letter-spacing: 0.02em;
+}

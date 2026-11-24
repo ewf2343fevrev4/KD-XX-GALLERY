@@ -5,6 +5,7 @@ import Footer from '../../components/Footer';
 import { getAllProducts, getCampaignMedia } from '../../services/api';
 import VirtualStoreSection from './VirtualStoreSection';
 import CampaignVideoSection from './CampaignVideoSection';
+import CampaignCuratedProductsSection from './CampaignCuratedProductsSection';
 import EditorialShowcaseSection from './EditorialShowcaseSection';
 import './CampaignPage.css';
 
@@ -189,7 +190,10 @@ const CampaignPage = ({
       {/* ── 3. Cinematic Video Section (AMIRI Winter Capsule Inspired) ── */}
       <CampaignVideoSection videoData={campaignMedia?.video} />
 
-      {/* ── 4. Editorial Showcase: Couple Outfit & Outfit with Homie ── */}
+      {/* ── 4. Curated 4-Column AMIRI Showcase (Best Sellers & Highlights) ── */}
+      <CampaignCuratedProductsSection />
+
+      {/* ── 5. Editorial Showcase: Couple Outfit & Outfit with Homie ── */}
       <EditorialShowcaseSection 
         showcaseLeft={campaignMedia?.showcaseLeft}
         showcaseRight={campaignMedia?.showcaseRight}
