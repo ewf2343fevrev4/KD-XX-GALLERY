@@ -3835,7 +3835,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.FrontSide;
+                mat.side = THREE.DoubleSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3859,16 +3859,17 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         statueModel.position.set(-center.x, -box.min.y, -center.z);
         statueWrapper.add(statueModel);
 
-        // Scale to elegant tabletop bust height (~46cm)
-        const targetHeight = 0.46;
+        // Scale to prominent tabletop bust height (~52cm)
+        const targetHeight = 0.52;
         const scale = targetHeight / (size.y || 1);
         statueWrapper.scale.setScalar(scale);
 
-        // Position flush on top of the central styling table (tabletop top y = 0.963m, z = -1.1m)
-        statueWrapper.position.set(0, 0.963, -1.1);
-        statueWrapper.rotation.y = 0; // Facing front toward camera
+        // Position flush on top of the central styling table (tabletop surface y = 0.965m, z = -1.1m)
+        statueWrapper.position.set(0, 0.965, -1.1);
+        statueWrapper.rotation.y = Math.PI; // Face forward toward the camera / user
 
         centerGroup.add(statueWrapper);
+        console.log('✓ Tabletop Graffiti Statue loaded successfully');
       },
       undefined,
       (err) => console.warn('Could not load Graffiti Statue GLB:', err),
@@ -3888,13 +3889,16 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.FrontSide;
+                mat.side = THREE.DoubleSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
                 }
-                mat.roughness = 0.4;
-                mat.metalness = 0.1;
+                if (mat.color) {
+                  mat.color.set('#f1f5f9'); // Clean luxury satin porcelain finish
+                }
+                mat.roughness = 0.32;
+                mat.metalness = 0.12;
               });
             }
           }
@@ -3907,8 +3911,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const center = new THREE.Vector3();
         box.getCenter(center);
 
-        // Scale to balanced tabletop head height (~42cm)
-        const targetHeight = 0.42;
+        // Scale to balanced tabletop head height (~48cm)
+        const targetHeight = 0.48;
         const scale = targetHeight / (size.y || 1);
 
         // 1. Left Wig Mannequin Head
@@ -3917,8 +3921,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         baseWigModel.position.set(-center.x, -box.min.y, -center.z);
         leftWrapper.add(baseWigModel);
         leftWrapper.scale.setScalar(scale);
-        leftWrapper.position.set(-0.68, 0.963, -1.1);
-        leftWrapper.rotation.y = 0.22; // Angled slightly inward toward center
+        leftWrapper.position.set(-0.65, 0.965, -1.1);
+        leftWrapper.rotation.y = Math.PI - 0.22; // Face forward, angled slightly inward
         centerGroup.add(leftWrapper);
 
         // 2. Right Wig Mannequin Head (Cloned instance for 0% redundant memory)
@@ -3927,9 +3931,10 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         rightWrapper.name = 'tabletopWigRightWrapper';
         rightWrapper.add(rightModel);
         rightWrapper.scale.setScalar(scale);
-        rightWrapper.position.set(0.68, 0.963, -1.1);
-        rightWrapper.rotation.y = -0.22; // Angled slightly inward toward center
+        rightWrapper.position.set(0.65, 0.965, -1.1);
+        rightWrapper.rotation.y = Math.PI + 0.22; // Face forward, angled slightly inward
         centerGroup.add(rightWrapper);
+        console.log('✓ Tabletop Left & Right Wig Mannequins loaded successfully');
       },
       undefined,
       (err) => console.warn('Could not load Wig Mannequin GLB:', err),
