@@ -1195,19 +1195,22 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     [onSelectCategory, onNavigateMixAndMatch]
   );
 
+  const triggerZoneSelectionRef = useRef(null);
+  triggerZoneSelectionRef.current = triggerZoneSelection;
+
   // Listen for global navbar navigation events (e.g. clicking ACCESSORIES in header)
   useEffect(() => {
     const handleFocusEvent = (e) => {
       const targetZone = e.detail;
       if (targetZone && !animStateRef.current.isTransitioning) {
-        triggerZoneSelection(targetZone);
+        triggerZoneSelectionRef.current?.(targetZone);
       }
     };
     window.addEventListener('focusBoutiqueZone', handleFocusEvent);
     return () => {
       window.removeEventListener('focusBoutiqueZone', handleFocusEvent);
     };
-  }, [triggerZoneSelection]);
+  }, []);
 
   // Return camera from Mix & Match table back to store overview
   const handleResetToOverview = useCallback(() => {
@@ -5680,7 +5683,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
       if (intersects.length > 0) {
         const hitZone = intersects[0].object.userData.zone;
-        triggerZoneSelection(hitZone);
+        triggerZoneSelectionRef.current?.(hitZone);
       }
     };
 
@@ -5808,7 +5811,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       domEl.removeEventListener('click', handlePointerClick);
       renderer.dispose();
     };
-  }, [triggerZoneSelection]);
+  }, []);
 
   return (
     <section

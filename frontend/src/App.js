@@ -143,14 +143,14 @@ function App() {
     setProducts(loadedProducts);
   }, []);
 
-  const handleCategoryChange = (category) => {
+  const handleCategoryChange = useCallback((category) => {
     setSelectedCategory(category);
     setSelectedTag(null);
     setSearchQuery('');
     if (category === 'home') {
       setSelectedBrand(null);
     }
-  };
+  }, []);
 
   const handleSelectTag = (tag, category = null) => {
     setSelectedTag(tag);
