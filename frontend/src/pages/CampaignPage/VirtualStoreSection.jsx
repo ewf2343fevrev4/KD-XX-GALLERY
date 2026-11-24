@@ -1314,12 +1314,73 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     leftWall.receiveShadow = true;
     scene.add(leftWall);
 
-    // Angled right brick wall
-    const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 7.5), brickMat);
-    rightWall.position.set(7.6, 3.75, -0.5);
-    rightWall.rotation.y = -Math.PI / 2.35;
-    rightWall.receiveShadow = true;
-    scene.add(rightWall);
+    // ── Angled Right Wall (Women's Area): 3D Los Angeles Mural Art Wall ──
+    const rightWallGroup = new THREE.Group();
+    rightWallGroup.name = 'womenRightMuralWallGroup';
+    rightWallGroup.position.set(7.6, 3.75, -0.5);
+    rightWallGroup.rotation.y = -Math.PI / 2.35;
+    scene.add(rightWallGroup);
+
+    // Initial fallback plane while GLB loads, ensuring instant seamless render
+    const rightWallFallback = new THREE.Mesh(new THREE.PlaneGeometry(10, 7.5), brickMat);
+    rightWallFallback.receiveShadow = true;
+    rightWallGroup.add(rightWallFallback);
+
+    gltfLoader.load(
+      '/models/architecture/los_angeles_mural_art.glb',
+      (gltf) => {
+        const muralModel = gltf.scene;
+        muralModel.name = 'losAngelesMuralArtModel';
+
+        muralModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const oldMap = child.material.map;
+              if (oldMap) {
+                oldMap.colorSpace = THREE.SRGBColorSpace;
+                oldMap.needsUpdate = true;
+              }
+              // Standard material so it catches pink neon ambient glow and gallery spotlights realistically
+              child.material = new THREE.MeshStandardMaterial({
+                map: oldMap,
+                roughness: 0.82,
+                metalness: 0.05,
+                side: THREE.DoubleSide,
+              });
+            }
+          }
+        });
+
+        muralModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(muralModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        // Scale to boutique floor-to-ceiling height (7.5m)
+        const targetHeight = 7.5;
+        const scale = targetHeight / (size.y || 1);
+
+        const muralWrapper = new THREE.Group();
+        muralWrapper.name = 'muralWrapper';
+
+        // Position model so front painted face is at local Z = 0, centered in Y and Z
+        muralModel.position.set(-box.min.x, -center.y, -center.z);
+        muralWrapper.add(muralModel);
+        muralWrapper.scale.setScalar(scale);
+
+        // Rotate Math.PI / 2 so front painted face normal aligns with local +Z
+        muralWrapper.rotation.y = Math.PI / 2;
+
+        rightWallGroup.remove(rightWallFallback);
+        rightWallGroup.add(muralWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Los Angeles Mural Art GLB:', err)
+    );
 
     // Industrial steel columns dividing the 3 bays on the back wall
     [-3.1, 3.1, -6.6, 6.6].forEach((xPos) => {
