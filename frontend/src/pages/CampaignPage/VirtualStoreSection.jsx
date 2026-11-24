@@ -183,6 +183,7 @@ function createNeonSignTexture({ title, subtitle, primaryColor, secondaryColor }
 }
 
 // ── Editorial Lookbook Catalog Texture ──
+// eslint-disable-next-line no-unused-vars
 function createLookbookTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
@@ -985,6 +986,7 @@ function createMannequin({
 }
 
 // ── Realistic Folded Garment Builder (for Central Styling Table) ──
+// eslint-disable-next-line no-unused-vars
 function createFoldedGarmentItem({ type, color, labelText = 'AMIRI' }) {
   const group = new THREE.Group();
 
@@ -1258,7 +1260,6 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     // ── 2. Shared Materials & Procedural Textures ──
     const brickTex = createBrickTexture();
     const concreteTex = createConcreteTexture();
-    const lookbookTex = createLookbookTexture();
 
     const brickMat = new THREE.MeshStandardMaterial({
       map: brickTex,
@@ -3599,156 +3600,63 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     platformRim.position.set(0, 0.015, -1.1);
     centerGroup.add(platformRim);
 
-    // Central Styling Table Pedestal & Tabletop
-    const tableBase = new THREE.Mesh(
-      new THREE.BoxGeometry(2.5, 0.88, 1.35),
-      marbleMat
+    // Central Styling Table: Premium Fancy Table GLB (Clean minimalist tabletop, no items)
+    gltfLoader.load(
+      '/models/props/fancy_table.glb',
+      (gltf) => {
+        const tableModel = gltf.scene;
+        tableModel.name = 'fancyStylingTableModel';
+
+        tableModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.12; // Polished luxury reflection
+                mat.metalness = 0.45;
+                mat.envMapIntensity = 2.2;
+              });
+            }
+          }
+        });
+
+        tableModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(tableModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const tableWrapper = new THREE.Group();
+        tableWrapper.name = 'fancyStylingTableWrapper';
+
+        // Center table model on its base
+        tableModel.position.set(-center.x, -box.min.y, -center.z);
+        tableWrapper.add(tableModel);
+
+        // Scale table to fit the central styling podium (width ~2.68m across shop)
+        const targetWidth = 2.68;
+        const scale = targetWidth / (size.z || 1);
+        tableWrapper.scale.setScalar(scale);
+
+        // Rotate 90 deg so its long axis spans along X across the boutique
+        tableWrapper.rotation.y = Math.PI / 2;
+
+        // Position flush on top of the elevated center platform (platform top y = 0.08m, z = -1.1m)
+        tableWrapper.position.set(0, 0.08, -1.1);
+
+        centerGroup.add(tableWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Fancy Table GLB:', err)
     );
-    tableBase.position.set(0, 0.48, -1.1);
-    tableBase.castShadow = true;
-    tableBase.receiveShadow = true;
-    centerGroup.add(tableBase);
-
-    const tableTop = new THREE.Mesh(
-      new THREE.BoxGeometry(2.85, 0.09, 1.65),
-      new THREE.MeshStandardMaterial({
-        color: '#1e192b',
-        roughness: 0.14,
-        metalness: 0.55,
-      })
-    );
-    tableTop.position.set(0, 0.96, -1.1);
-    tableTop.castShadow = true;
-    centerGroup.add(tableTop);
-
-    // Illuminated frosted styling mat on top of table
-    const frostedMat = new THREE.Mesh(
-      new THREE.BoxGeometry(2.45, 0.02, 1.25),
-      new THREE.MeshStandardMaterial({
-        color: '#e9d5ff',
-        emissive: '#7e22ce',
-        emissiveIntensity: 0.35,
-        roughness: 0.2,
-      })
-    );
-    frostedMat.position.set(0, 1.015, -1.1);
-    centerGroup.add(frostedMat);
-
-    // Realistic Folded Hoodies and Stacks of Distressed Denim Jeans
-    // Left stack: Folded luxury hoodies
-    const foldedHoodie1 = createFoldedGarmentItem({
-      type: 'hoodie',
-      color: '#0f172a',
-    });
-    foldedHoodie1.position.set(-0.78, 1.025, -1.15);
-    centerGroup.add(foldedHoodie1);
-
-    const foldedHoodie2 = createFoldedGarmentItem({
-      type: 'hoodie',
-      color: '#581c87',
-    });
-    foldedHoodie2.position.set(-0.78, 1.135, -1.15);
-    foldedHoodie2.rotation.y = 0.05;
-    centerGroup.add(foldedHoodie2);
-
-    const foldedTee = createFoldedGarmentItem({
-      type: 'sweater',
-      color: '#f8fafc',
-    });
-    foldedTee.position.set(-0.78, 1.245, -1.15);
-    centerGroup.add(foldedTee);
-
-    // Right stack: Authentic folded distressed denim jeans with rivets and leather patch
-    const foldedJeans1 = createFoldedGarmentItem({
-      type: 'denim',
-      color: '#1e293b',
-    });
-    foldedJeans1.position.set(0.78, 1.025, -1.15);
-    centerGroup.add(foldedJeans1);
-
-    const foldedJeans2 = createFoldedGarmentItem({
-      type: 'denim',
-      color: '#0f172a',
-    });
-    foldedJeans2.position.set(0.78, 1.125, -1.15);
-    foldedJeans2.rotation.y = -0.04;
-    centerGroup.add(foldedJeans2);
-
-    const foldedJeans3 = createFoldedGarmentItem({
-      type: 'denim',
-      color: '#334155',
-    });
-    foldedJeans3.position.set(0.78, 1.225, -1.15);
-    centerGroup.add(foldedJeans3);
-
-    // Open Luxury Fashion Lookbook / Magazine resting angled on the table
-    const lookbook = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.58, 0.42),
-      new THREE.MeshStandardMaterial({
-        map: lookbookTex,
-        roughness: 0.25,
-        metalness: 0.1,
-      })
-    );
-    lookbook.rotation.x = -Math.PI / 2.25;
-    lookbook.position.set(-0.02, 1.035, -0.72);
-    centerGroup.add(lookbook);
-
-    // Designer Accessories Tray on the Table (Sunglasses + Cuban Chain)
-    const tray = new THREE.Mesh(
-      new THREE.BoxGeometry(0.44, 0.02, 0.32),
-      new THREE.MeshStandardMaterial({ color: '#1c1917', roughness: 0.3 })
-    );
-    tray.position.set(0, 1.025, -1.52);
-    centerGroup.add(tray);
-
-    // Aviator Sunglasses
-    [-0.06, 0.06].forEach((ex) => {
-      const lens = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.038, 0.038, 0.005, 16),
-        new THREE.MeshStandardMaterial({ color: '#09090b', roughness: 0.1, metalness: 0.9 })
-      );
-      lens.rotation.x = Math.PI / 2;
-      lens.position.set(ex, 1.045, -1.52);
-      centerGroup.add(lens);
-    });
-
-    const bridge = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.003, 0.003, 0.14, 8),
-      chromeMat
-    );
-    bridge.rotation.z = Math.PI / 2;
-    bridge.position.set(0, 1.045, -1.52);
-    centerGroup.add(bridge);
-
-    // Coiled Cuban Curb Chain Necklace on the tray
-    const chainCoil = new THREE.Mesh(
-      new THREE.TorusGeometry(0.08, 0.012, 8, 20),
-      chromeMat
-    );
-    chainCoil.rotation.x = Math.PI / 2;
-    chainCoil.position.set(0, 1.035, -1.38);
-    centerGroup.add(chainCoil);
-
-    // Featured sneaker pair on central acrylic display riser
-    const centerRiser = new THREE.Mesh(
-      new THREE.BoxGeometry(0.52, 0.14, 0.38),
-      chromeMat
-    );
-    centerRiser.position.set(0, 1.09, -1.1);
-    centerGroup.add(centerRiser);
-
-    [-0.12, 0.12].forEach((ox) => {
-      const sneaker = new THREE.Mesh(
-        new THREE.BoxGeometry(0.15, 0.11, 0.3),
-        new THREE.MeshStandardMaterial({
-          color: '#f8fafc',
-          roughness: 0.3,
-        })
-      );
-      sneaker.position.set(ox, 1.22, -1.1);
-      centerGroup.add(sneaker);
-    });
 
     // ── 6. RIGHT AREA: WOMEN'S CLOTHING RACKS & DISPLAYS ──
     const womenGroup = new THREE.Group();
