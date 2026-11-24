@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader.js';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import './VirtualStoreSection.css';
@@ -1259,6 +1260,9 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Disable per-frame shadow map rerendering: eliminates massive GPU overhead
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = true;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.28;
 
@@ -1271,7 +1275,15 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const neutralEnv = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
     scene.environment = neutralEnv;
 
+    // ── Hardware Web Worker Draco Loader ──
+    // Decompresses compact models in background threads with 0% main thread blocking
+    const dracoLoader = new DRACOLoader();
+    dracoLoader.setDecoderPath('/draco/gltf/');
+    dracoLoader.setDecoderConfig({ type: 'js' });
+    dracoLoader.preload();
+
     const gltfLoader = new GLTFLoader();
+    gltfLoader.setDRACOLoader(dracoLoader);
 
     // ── Progressive Staggered Model Loading Queue ──
     // Eliminates CPU/GPU event-loop congestion and prevents "Page isn't responding"
@@ -1292,6 +1304,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         (gltf) => {
           if (isComponentMounted) {
             item.onLoad?.(gltf);
+            renderer.shadowMap.needsUpdate = true;
           }
           // Give browser 25ms breathing room to render frames and handle input
           setTimeout(pumpModelQueue, 25);
@@ -1754,16 +1767,6 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         keyLight.castShadow = false;
         menGroup.add(keyLight);
         menGroup.add(keyLight.target);
-
-        // Soft Studio Fill Light (Keeps body shadows smooth and elegant)
-        const fillLight = new THREE.PointLight(0xf1f5f9, 2.8, 9);
-        fillLight.position.set(-6.6, 3.0, 2.8);
-        menGroup.add(fillLight);
-
-        // Studio Rim / Silhouette Light (Outlines the back of shoulders and neck)
-        const rimLight = new THREE.PointLight(0xe2e8f0, 3.2, 8);
-        rimLight.position.set(-6.0, 3.6, 0.2);
-        menGroup.add(rimLight);
 
         // Add the flex AI mannequin into the scene while keeping the main men's display mannequin
         menGroup.add(mannequinWrapper);
@@ -4354,10 +4357,10 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const fbxLoader = new FBXLoader();
     const textureLoader = new THREE.TextureLoader();
 
-    const dieselBaseColor = textureLoader.load('/models/products/diesel_bag/bag_Material.001_BaseColor.png');
+    const dieselBaseColor = textureLoader.load('/models/products/diesel_bag/bag_Material.001_BaseColor.webp');
     dieselBaseColor.colorSpace = THREE.SRGBColorSpace;
-    const dieselArmPacked = textureLoader.load('/models/products/diesel_bag/diesel_arm_packed.png');
-    const dieselNormal = textureLoader.load('/models/products/diesel_bag/bag_Material.001_Normal.png');
+    const dieselArmPacked = textureLoader.load('/models/products/diesel_bag/diesel_arm_packed.webp');
+    const dieselNormal = textureLoader.load('/models/products/diesel_bag/bag_Material.001_Normal.webp');
 
     // High-gloss mirror metallic silver chrome PBR material matching authentic Diesel 1DR (Photo 2)
     const dieselPBRMaterial = new THREE.MeshStandardMaterial({
@@ -5365,14 +5368,6 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         womenGroup.add(keyLightFemale);
         womenGroup.add(keyLightFemale.target);
 
-        const fillLightFemale = new THREE.PointLight(0xf1f5f9, 2.8, 9);
-        fillLightFemale.position.set(6.6, 3.0, 2.8);
-        womenGroup.add(fillLightFemale);
-
-        const rimLightFemale = new THREE.PointLight(0xe2e8f0, 3.2, 8);
-        rimLightFemale.position.set(6.0, 3.6, 0.2);
-        womenGroup.add(rimLightFemale);
-
         // Add the flex AI female mannequin into the scene while keeping the main women's display mannequin
         womenGroup.add(femaleWrapper);
       },
@@ -5846,6 +5841,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     return () => {
       isComponentMounted = false;
       modelLoadQueue.length = 0;
+      dracoLoader.dispose();
       cancelAnimationFrame(reqId);
       if (visibilityObserver) visibilityObserver.disconnect();
       window.removeEventListener('resize', handleResize);
