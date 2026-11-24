@@ -6033,7 +6033,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           disabled={isTransitioning}
         >
           <span className="campaign-store-dock-btn__index">05</span>
-          <span>ACCESSORIES (BAGS)</span>
+          <span>ACCESSORIES</span>
         </button>
       </div>
 

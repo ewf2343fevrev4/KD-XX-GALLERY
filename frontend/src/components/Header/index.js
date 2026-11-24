@@ -19,8 +19,8 @@ const NAV_ITEMS = [
   { id: 'men', label: 'Men', category: 'men', isHome: false },
   { id: 'women', label: 'Women', category: 'women', isHome: false },
   { id: 'accessories', label: 'Accessories', category: 'accessories', isHome: false },
-  { id: 'fit-lab', label: 'Fit Lab', path: '/fit-lab', isHome: false },
   { id: 'shoes', label: 'Shoes', category: 'shoes', isHome: false },
+  { id: 'fit-lab', label: 'Fit Lab', path: '/fit-lab', isHome: false },
 ];
 
 const Header = ({
