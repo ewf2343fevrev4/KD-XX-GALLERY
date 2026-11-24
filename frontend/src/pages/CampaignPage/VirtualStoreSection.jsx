@@ -11,6 +11,10 @@ const CAMERA_PRESETS = {
     pos: new THREE.Vector3(0, 2.65, 8.4),
     lookAt: new THREE.Vector3(0, 1.85, -1.6),
   },
+  shoes: {
+    pos: new THREE.Vector3(-4.8, 2.3, 1.6),
+    lookAt: new THREE.Vector3(-7.4, 2.15, -0.4),
+  },
   men: {
     pos: new THREE.Vector3(-3.0, 2.05, 2.85),
     lookAt: new THREE.Vector3(-3.35, 1.65, -1.25),
@@ -31,6 +35,7 @@ const CAMERA_PRESETS = {
 
 // ── 3D World positions for the projected floating hotspot markers ──
 const HOTSPOT_ANCHORS = {
+  shoes: new THREE.Vector3(-7.42, 3.68, -0.38),
   men: new THREE.Vector3(-4.15, 4.65, -1.8),
   center: new THREE.Vector3(0, 2.55, -0.7),
   women: new THREE.Vector3(4.15, 4.65, -1.8),
@@ -1091,6 +1096,7 @@ const easeInOutCubic = (t) =>
 const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
   const mountRef = useRef(null);
   const hotspotRefs = useRef({
+    shoes: null,
     men: null,
     center: null,
     women: null,
@@ -1151,7 +1157,12 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       st.animDuration = 1150; // ~1.15s restrained camera animation
       st.isAnimatingCamera = true;
 
-      if (zoneKey === 'men' || zoneKey === 'women' || zoneKey === 'accessories') {
+      if (
+        zoneKey === 'men' ||
+        zoneKey === 'women' ||
+        zoneKey === 'accessories' ||
+        zoneKey === 'shoes'
+      ) {
         // Start brief smooth fade near the end of the camera move
         const fadeTimer = setTimeout(() => {
           setIsFading(true);
@@ -3822,15 +3833,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
     centerGroup.add(curtainGroup);
 
-    // Suspended Overhead Neon Halo above the Styling Table
-    const haloGroup = new THREE.Group();
-    haloGroup.position.set(0, 3.65, -1.1);
-    const haloOuter = new THREE.Mesh(
-      new THREE.BoxGeometry(2.8, 0.07, 1.5),
-      ledPurpleMat
-    );
-    haloGroup.add(haloOuter);
-    centerGroup.add(haloGroup);
+
 
     // Elevated floor platform under the styling table
     const platform = new THREE.Mesh(
@@ -5575,6 +5578,16 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     womenHitbox.userData = { zone: 'women' };
     scene.add(womenHitbox);
 
+    const shoesHitbox = new THREE.Mesh(
+      new THREE.BoxGeometry(3.2, 2.4, 1.2),
+      hitboxMat
+    );
+    // Positioned over the 4-tier luxury sneaker shelf on the angled left wall
+    shoesHitbox.position.set(-7.58, 2.15, -0.56);
+    shoesHitbox.rotation.y = Math.PI / 2.35;
+    shoesHitbox.userData = { zone: 'shoes' };
+    scene.add(shoesHitbox);
+
     const accessoriesHitbox = new THREE.Mesh(
       new THREE.BoxGeometry(3.2, 2.2, 1.2),
       hitboxMat
@@ -5585,7 +5598,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     accessoriesHitbox.userData = { zone: 'accessories' };
     scene.add(accessoriesHitbox);
 
-    const hitboxes = [menHitbox, centerHitbox, womenHitbox, accessoriesHitbox];
+    const hitboxes = [shoesHitbox, menHitbox, centerHitbox, womenHitbox, accessoriesHitbox];
 
     // ── 8. Boutique Lighting Setup ──
     const ambientLight = new THREE.AmbientLight('#3b2c56', 1.85);
@@ -5769,7 +5782,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       const width = container.clientWidth;
       const height = container.clientHeight;
 
-      ['men', 'center', 'women', 'accessories'].forEach((key) => {
+      ['shoes', 'men', 'center', 'women', 'accessories'].forEach((key) => {
         const el = hotspotRefs.current[key];
         if (!el) return;
         tempVec.copy(HOTSPOT_ANCHORS[key]);
@@ -5827,6 +5840,29 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
       {/* 3D-Projected Interactive Hotspot Markers */}
       <div className="campaign-virtual-store__hotspots">
+        {/* FAR LEFT: SHOES (4-TIER SNEAKER SHELF) */}
+        <button
+          type="button"
+          ref={(el) => {
+            hotspotRefs.current.shoes = el;
+          }}
+          className={`campaign-store-hotspot campaign-store-hotspot--shoes ${
+            hoveredZone === 'shoes' ? 'is-hovered' : ''
+          } ${isTransitioning ? 'is-disabled' : ''}`}
+          onMouseEnter={() => !isTransitioning && setHoveredZone('shoes')}
+          onMouseLeave={() => !isTransitioning && setHoveredZone(null)}
+          onClick={() => triggerZoneSelection('shoes')}
+          disabled={isTransitioning}
+        >
+          <span className="campaign-store-hotspot__dot" />
+          <span className="campaign-store-hotspot__info">
+            <span className="campaign-store-hotspot__label">SHOES</span>
+            <span className="campaign-store-hotspot__action">
+              Sneakers &amp; Footwear →
+            </span>
+          </span>
+        </button>
+
         {/* LEFT: MEN'S */}
         <button
           type="button"
@@ -5845,7 +5881,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           <span className="campaign-store-hotspot__info">
             <span className="campaign-store-hotspot__label">MEN&apos;S</span>
             <span className="campaign-store-hotspot__action">
-              Apparel &amp; Sneakers →
+              Streetwear &amp; Apparel →
             </span>
           </span>
         </button>
@@ -5929,6 +5965,20 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         <button
           type="button"
           className={`campaign-store-dock-btn ${
+            hoveredZone === 'shoes' || activeZone === 'shoes' ? 'is-active' : ''
+          }`}
+          onMouseEnter={() => !isTransitioning && setHoveredZone('shoes')}
+          onMouseLeave={() => !isTransitioning && setHoveredZone(null)}
+          onClick={() => triggerZoneSelection('shoes')}
+          disabled={isTransitioning}
+        >
+          <span className="campaign-store-dock-btn__index">01</span>
+          <span>SHOES (SNEAKERS)</span>
+        </button>
+
+        <button
+          type="button"
+          className={`campaign-store-dock-btn ${
             hoveredZone === 'men' || activeZone === 'men' ? 'is-active' : ''
           }`}
           onMouseEnter={() => !isTransitioning && setHoveredZone('men')}
@@ -5936,7 +5986,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           onClick={() => triggerZoneSelection('men')}
           disabled={isTransitioning}
         >
-          <span className="campaign-store-dock-btn__index">01</span>
+          <span className="campaign-store-dock-btn__index">02</span>
           <span>MEN&apos;S DISPLAY</span>
         </button>
 
@@ -5952,7 +6002,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           onClick={() => triggerZoneSelection('center')}
           disabled={isTransitioning}
         >
-          <span className="campaign-store-dock-btn__index">02</span>
+          <span className="campaign-store-dock-btn__index">03</span>
           <span>MIX &amp; MATCH TABLE</span>
         </button>
 
@@ -5966,7 +6016,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           onClick={() => triggerZoneSelection('women')}
           disabled={isTransitioning}
         >
-          <span className="campaign-store-dock-btn__index">03</span>
+          <span className="campaign-store-dock-btn__index">04</span>
           <span>WOMEN&apos;S SHOWCASE</span>
         </button>
 
@@ -5982,7 +6032,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
           onClick={() => triggerZoneSelection('accessories')}
           disabled={isTransitioning}
         >
-          <span className="campaign-store-dock-btn__index">04</span>
+          <span className="campaign-store-dock-btn__index">05</span>
           <span>ACCESSORIES (BAGS)</span>
         </button>
       </div>
