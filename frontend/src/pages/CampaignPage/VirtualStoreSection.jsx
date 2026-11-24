@@ -5188,6 +5188,75 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       2
     );
 
+    // ── Load Dior Seated Runway Mannequin on the Right Corner of Dior Podium ──
+    gltfLoader.load(
+      '/models/props/maniqui_sentado_diohr_ok.glb',
+      (gltf) => {
+        const sittingModel = gltf.scene;
+        sittingModel.name = 'diorSittingMannequinModel';
+
+        sittingModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.38;
+                mat.metalness = 0.12;
+              });
+            }
+          }
+        });
+
+        sittingModel.updateMatrixWorld(true);
+        const sitBox = new THREE.Box3().setFromObject(sittingModel);
+        const sitSize = new THREE.Vector3();
+        sitBox.getSize(sitSize);
+        const sitCenter = new THREE.Vector3();
+        sitBox.getCenter(sitCenter);
+
+        const sitWrapper = new THREE.Group();
+        sitWrapper.name = 'diorSittingMannequinWrapper';
+
+        // Center on X and Z, align bottom of feet to Y = 0
+        sittingModel.position.set(-sitCenter.x, -sitBox.min.y, -sitCenter.z);
+        sitWrapper.add(sittingModel);
+
+        // Minimalist luxury showroom styling cube supporting the seated posture
+        const seatCube = new THREE.Mesh(
+          new THREE.BoxGeometry(0.46, 0.56, 0.46),
+          new THREE.MeshLambertMaterial({
+            color: '#15141d',
+          })
+        );
+        seatCube.position.set(0.126, 0.56 / 2, -0.122);
+        seatCube.receiveShadow = true;
+        sitWrapper.add(seatCube);
+
+        // Scale: Impressive haute couture seated height (~2.10m tall matching surrounding ~2.4m - 2.6m runway models)
+        const targetHeight = 2.10;
+        const scaleVal = targetHeight / (sitSize.y || 1);
+        sitWrapper.scale.setScalar(scaleVal);
+
+        // Position: Right corner of the Dior platform floor (x = 5.95, y = 0.08, z = -1.15)
+        sitWrapper.position.set(5.95, 0.08, -1.15);
+        // Angle slightly inward toward center of the boutique
+        sitWrapper.rotation.y = -0.32;
+
+        womenGroup.add(sitWrapper);
+        console.log('✓ Dior Sitting Mannequin loaded successfully on right corner of Dior podium');
+      },
+      undefined,
+      (err) => console.warn('Could not load Dior Sitting Mannequin GLB:', err),
+      2
+    );
+
     // ── Load User's AI-Generated 3D Female Mannequin Model (Mirrored on Right Side) ──
     gltfLoader.load(
       '/models/mannequin/mannequin_female.glb',
