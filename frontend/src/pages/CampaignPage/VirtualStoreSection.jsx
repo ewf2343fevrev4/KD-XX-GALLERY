@@ -1257,6 +1257,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     const neutralEnv = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
     scene.environment = neutralEnv;
 
+    const gltfLoader = new GLTFLoader();
+
     // ── 2. Shared Materials & Procedural Textures ──
     const brickTex = createBrickTexture();
     const concreteTex = createConcreteTexture();
@@ -1457,7 +1459,6 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
     // ── Load User's AI-Generated 3D Mannequin Model ──
     let spidermanMixer = null;
-    const gltfLoader = new GLTFLoader();
     gltfLoader.load(
       '/models/mannequin/mannequin_dorad.glb',
       (gltf) => {
