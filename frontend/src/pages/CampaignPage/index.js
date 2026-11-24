@@ -180,14 +180,14 @@ const CampaignPage = ({
         </div>
       </section>
 
-      {/* ── 2. Cinematic Video Section (AMIRI Winter Capsule Inspired) ── */}
-      <CampaignVideoSection videoData={campaignMedia?.video} />
-
-      {/* ── 3. Interactive 3D Fashion Boutique Section ── */}
+      {/* ── 2. Interactive 3D Fashion Boutique Section ── */}
       <VirtualStoreSection 
         onSelectCategory={handleStoreCategoryNavigate}
         onNavigateMixAndMatch={handleNavigateMixAndMatch}
       />
+
+      {/* ── 3. Cinematic Video Section (AMIRI Winter Capsule Inspired) ── */}
+      <CampaignVideoSection videoData={campaignMedia?.video} />
 
       {/* ── 4. Editorial Showcase: Couple Outfit & Outfit with Homie ── */}
       <EditorialShowcaseSection 
