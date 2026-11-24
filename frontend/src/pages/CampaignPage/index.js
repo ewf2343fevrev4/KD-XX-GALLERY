@@ -93,17 +93,6 @@ const CampaignPage = ({
   };
 
   const handleCategoryChange = (category) => {
-    if (category === 'accessories') {
-      const storeEl = document.getElementById('campaign-virtual-store');
-      if (storeEl) {
-        storeEl.scrollIntoView({ behavior: 'smooth' });
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('focusBoutiqueZone', { detail: 'accessories' }));
-        }, 350);
-        return;
-      }
-    }
-
     if (onCategoryChange) {
       onCategoryChange(category);
     }

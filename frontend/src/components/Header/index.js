@@ -160,8 +160,11 @@ const Header = ({
       onCategoryChange(category);
     }
     if (location.pathname !== '/home') {
-      navigate(`/home?category=${category}`);
+      navigate('/home');
     } else {
+      if (typeof window !== 'undefined' && window.location.search) {
+        window.history.replaceState(null, '', '/home');
+      }
       const productsSection =
         document.getElementById('products-section') ||
         document.getElementById('new-arrivals');
@@ -212,6 +215,11 @@ const Header = ({
     e.preventDefault();
     setActiveDropdown(null);
 
+    // Clean up any stale query parameters in the address bar
+    if (typeof window !== 'undefined' && window.location.search) {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+
     if (category) {
       onCategoryChange(category);
       if (category !== 'home') {
@@ -226,6 +234,8 @@ const Header = ({
             behavior: 'smooth',
           });
         }
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
       return;
     }
@@ -569,7 +579,7 @@ const Header = ({
                     onMouseLeave={handleNavMouseLeave}
                   >
                     <Link
-                      to={item.path || (item.category ? `/home?category=${item.category}` : '/home')}
+                      to={item.path || '/home'}
                       onClick={(e) => {
                         if (item.isHome) {
                           if (location.pathname === '/home') {

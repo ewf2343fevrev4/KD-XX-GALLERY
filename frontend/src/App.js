@@ -92,11 +92,9 @@ function HomePage({
       const catParam = params.get('category');
       if (tagParam && onSelectTag) {
         onSelectTag(tagParam, catParam || undefined);
-      } else if (catParam && onCategoryChange && selectedCategory !== catParam) {
-        onCategoryChange(catParam);
       }
     }
-  }, [location.search, selectedCategory, onCategoryChange, onSelectTag]);
+  }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="home-page">
