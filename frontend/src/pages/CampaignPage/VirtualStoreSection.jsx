@@ -1250,14 +1250,14 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     camera.lookAt(CAMERA_PRESETS.overview.lookAt);
 
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: false,
       powerPreference: 'high-performance',
       stencil: false,
       depth: true,
     });
     renderer.setSize(container.clientWidth, container.clientHeight);
-    // Capped to 1.0 for silky smooth 60 FPS on all devices (Retina, 4K, laptops, phones)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.0));
+    // Dynamic quality pixel ratio (0.9x scale) for ultra-silky smooth 60 FPS on all devices (Retina, 4K, laptops, phones)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio * 0.9, 1.0));
     // Dynamic shadow maps disabled: saves 50%+ GPU frame-time, eliminated shadow pass
     renderer.shadowMap.enabled = false;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1334,42 +1334,26 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       pumpModelQueue();
     };
 
-    // ── 2. Shared Materials & Procedural Textures ──
+    // ── 2. Shared Lightweight Materials (Gouraud/Lambert Shading for Maximum 60 FPS Fillrate) ──
     const brickTex = createBrickTexture();
     const concreteTex = createConcreteTexture();
 
-    const brickMat = new THREE.MeshStandardMaterial({
+    const brickMat = new THREE.MeshLambertMaterial({
       map: brickTex,
-      bumpMap: brickTex,
-      bumpScale: 0.04,
-      roughness: 0.82,
-      metalness: 0.08,
     });
 
-    const floorMat = new THREE.MeshStandardMaterial({
+    const floorMat = new THREE.MeshLambertMaterial({
       map: concreteTex,
-      bumpMap: concreteTex,
-      bumpScale: 0.015,
-      roughness: 0.28,
-      metalness: 0.22,
     });
 
-    const darkSteelMat = new THREE.MeshStandardMaterial({
+    const darkSteelMat = new THREE.MeshLambertMaterial({
       color: '#18161f',
-      roughness: 0.35,
-      metalness: 0.85,
     });
 
     const chromeMat = new THREE.MeshStandardMaterial({
       color: '#d4d4dc',
       roughness: 0.18,
       metalness: 0.92,
-    });
-
-    const marbleMat = new THREE.MeshStandardMaterial({
-      color: '#14111d',
-      roughness: 0.2,
-      metalness: 0.3,
     });
 
     // ── 3. Boutique Room Geometry (Floor, Brick Walls, Ceiling Trusses) ──
@@ -1664,7 +1648,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
                 child.material.map.needsUpdate = true;
@@ -1730,10 +1714,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         const podiumBase = new THREE.Mesh(
           new THREE.CylinderGeometry(0.58, 0.64, 0.05, 32),
-          new THREE.MeshStandardMaterial({
+          new THREE.MeshLambertMaterial({
             color: '#14121d',
-            roughness: 0.4,
-            metalness: 0.7,
           })
         );
         podiumBase.position.y = 0.025;
@@ -1780,7 +1762,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false; // High FPS performance, no shadow pass overhead
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -1836,7 +1818,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false; // Zero shadow-pass penalty for high FPS
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -1897,7 +1879,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -1946,7 +1928,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -2006,7 +1988,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -2068,7 +2050,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -2160,7 +2142,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
                 child.castShadow = false;
                 child.receiveShadow = false;
                 if (child.material) {
-                  child.material.side = THREE.DoubleSide;
+                  child.material.side = THREE.FrontSide;
                   child.material.needsUpdate = true;
                 }
               }
@@ -2199,7 +2181,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
                 if (child.material) {
                   const mats = Array.isArray(child.material) ? child.material : [child.material];
                   mats.forEach((mat) => {
-                    mat.side = THREE.DoubleSide;
+                    mat.side = THREE.FrontSide;
                     if (mat.map) {
                       mat.map.colorSpace = THREE.SRGBColorSpace;
                       mat.map.needsUpdate = true;
@@ -2250,7 +2232,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -2441,7 +2423,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -2580,7 +2562,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -2634,30 +2616,21 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     menShoeShelfGroup.position.set(-7.58, 2.15, -0.56);
     menShoeShelfGroup.rotation.y = Math.PI / 2.35; // Flush against angled left brick wall
 
-    // Distinct Streetwear / Sneakerhead Materials (Industrial dark titanium, carbon black & smoked glass)
-    const shoeShelfFrameMat = new THREE.MeshStandardMaterial({
+    // Distinct Streetwear / Sneakerhead Materials (Lightweight Standard & Lambert for High FPS)
+    const shoeShelfFrameMat = new THREE.MeshLambertMaterial({
       color: '#18181b', // Matte industrial obsidian steel
-      roughness: 0.32,
-      metalness: 0.85,
     });
 
-    const shoeShelfSlabMat = new THREE.MeshPhysicalMaterial({
+    const shoeShelfSlabMat = new THREE.MeshStandardMaterial({
       color: '#0d0d12', // Smoked obsidian glass slab
       transparent: true,
       opacity: 0.75,
       roughness: 0.20,
       metalness: 0.40,
-      clearcoat: 0.9,
-      clearcoatRoughness: 0.1,
-      reflectivity: 0.85,
-      thickness: 0.024,
-      envMapIntensity: 2.0,
     });
 
-    const shoeShelfTrimMat = new THREE.MeshStandardMaterial({
+    const shoeShelfTrimMat = new THREE.MeshLambertMaterial({
       color: '#38bdf8', // Electric ice cyan anodized front accent
-      roughness: 0.25,
-      metalness: 0.8,
     });
 
     const shoeShelfWidth = 3.0; // Matching 3.0m wide grand architectural span
@@ -2789,7 +2762,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -2846,7 +2819,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -2908,7 +2881,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -2969,7 +2942,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3037,7 +3010,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
               } else {
                 const mats = Array.isArray(child.material) ? child.material : [child.material];
                 mats.forEach((mat) => {
-                  mat.side = THREE.DoubleSide;
+                  mat.side = THREE.FrontSide;
                   if (mat.map) {
                     mat.map.colorSpace = THREE.SRGBColorSpace;
                     mat.map.needsUpdate = true;
@@ -3094,7 +3067,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3155,7 +3128,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3212,7 +3185,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3308,7 +3281,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             } else if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3368,7 +3341,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3425,7 +3398,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3482,7 +3455,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3541,7 +3514,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -3593,7 +3566,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               child.material.color = new THREE.Color('#f1f5f9');
               child.material.roughness = 0.18;
               child.material.metalness = 0.82;
@@ -3638,7 +3611,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               child.material.emissive = new THREE.Color('#ffffff');
               child.material.emissiveIntensity = 0.85;
               child.material.color = new THREE.Color('#ffffff');
@@ -3727,10 +3700,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     }
     curtainGeom.computeVertexNormals();
 
-    const velvetMat = new THREE.MeshStandardMaterial({
+    const velvetMat = new THREE.MeshLambertMaterial({
       color: '#15131c', // Deep midnight obsidian luxury velvet
-      roughness: 0.86,
-      metalness: 0.06,
       side: THREE.DoubleSide,
     });
 
@@ -3774,10 +3745,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     // Elevated floor platform under the styling table
     const platform = new THREE.Mesh(
       new THREE.BoxGeometry(4.2, 0.08, 2.8),
-      new THREE.MeshStandardMaterial({
+      new THREE.MeshLambertMaterial({
         color: '#0d0917',
-        roughness: 0.35,
-        metalness: 0.4,
       })
     );
     platform.position.set(0, 0.04, -1.1);
@@ -3806,7 +3775,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             if (child.material) {
               const mats = Array.isArray(child.material) ? child.material : [child.material];
               mats.forEach((mat) => {
-                mat.side = THREE.DoubleSide;
+                mat.side = THREE.FrontSide;
                 if (mat.map) {
                   mat.map.colorSpace = THREE.SRGBColorSpace;
                   mat.map.needsUpdate = true;
@@ -3878,25 +3847,18 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     shelfGroup.position.set(7.58, 2.15, -0.56);
     shelfGroup.rotation.y = -Math.PI / 2.35; // Flush with angled right wall
 
-    // Architectural Ultra-Clear Tempered Glass Material
-    const luxuryGlassMat = new THREE.MeshPhysicalMaterial({
+    // Architectural Ultra-Clear Tempered Glass Material (High FPS Standard Glass)
+    const luxuryGlassMat = new THREE.MeshStandardMaterial({
       color: '#f8fafc',
       transparent: true,
       opacity: 0.48,
       roughness: 0.08,
       metalness: 0.12,
-      transmission: 0.88,
-      ior: 1.52,
-      reflectivity: 0.92,
-      thickness: 0.025,
-      envMapIntensity: 2.2,
     });
 
     // Dark Titanium / Polished Chrome Rail Material
-    const shelfFrameMat = new THREE.MeshStandardMaterial({
+    const shelfFrameMat = new THREE.MeshLambertMaterial({
       color: '#27272a',
-      roughness: 0.22,
-      metalness: 0.92,
     });
 
     const shelfWidth = 3.0; // Extended to 3.0m wide grand luxury display span
@@ -4017,7 +3979,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.receiveShadow = true;
 
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4097,7 +4059,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.receiveShadow = true;
 
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4176,7 +4138,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.receiveShadow = true;
 
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4340,7 +4302,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4410,7 +4372,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4482,7 +4444,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4547,7 +4509,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4646,7 +4608,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4721,7 +4683,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4791,7 +4753,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4865,7 +4827,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -4931,7 +4893,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.receiveShadow = true;
 
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
                 child.material.map.needsUpdate = true;
@@ -5066,10 +5028,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const plinthDepth = targetDepth + 0.08; // 3.48m
         const foundationPlinth = new THREE.Mesh(
           new THREE.BoxGeometry(plinthWidth, 0.05, plinthDepth),
-          new THREE.MeshStandardMaterial({
+          new THREE.MeshLambertMaterial({
             color: '#111018',
-            roughness: 0.4,
-            metalness: 0.75,
           })
         );
         foundationPlinth.position.set(showcasePos.x, 0.025, showcasePos.z + plinthDepth / 2);
@@ -5118,7 +5078,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace || 'srgb';
                 child.material.map.needsUpdate = true;
@@ -5172,10 +5132,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         const podiumBase = new THREE.Mesh(
           new THREE.CylinderGeometry(0.58, 0.64, 0.05, 32),
-          new THREE.MeshStandardMaterial({
+          new THREE.MeshLambertMaterial({
             color: '#14121d',
-            roughness: 0.4,
-            metalness: 0.7,
           })
         );
         podiumBase.position.y = 0.025;
@@ -5222,7 +5180,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -5265,10 +5223,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         const podiumBaseMeta = new THREE.Mesh(
           new THREE.CylinderGeometry(0.38, 0.42, 0.04, 32),
-          new THREE.MeshStandardMaterial({
+          new THREE.MeshLambertMaterial({
             color: '#14121d',
-            roughness: 0.4,
-            metalness: 0.7,
           })
         );
         podiumBaseMeta.position.y = 0.02;
@@ -5313,7 +5269,7 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
             child.castShadow = false;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.side = THREE.DoubleSide;
+              child.material.side = THREE.FrontSide;
               if (child.material.map) {
                 child.material.map.colorSpace = THREE.SRGBColorSpace;
                 child.material.map.needsUpdate = true;
@@ -5356,10 +5312,8 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
 
         const podiumBaseMetaMen = new THREE.Mesh(
           new THREE.CylinderGeometry(0.38, 0.42, 0.04, 32),
-          new THREE.MeshStandardMaterial({
+          new THREE.MeshLambertMaterial({
             color: '#14121d',
-            roughness: 0.4,
-            metalness: 0.7,
           })
         );
         podiumBaseMetaMen.position.y = 0.02;
@@ -5631,15 +5585,19 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         const targetX = CAMERA_PRESETS.overview.pos.x + st.mouseX * 0.45;
         const targetY = CAMERA_PRESETS.overview.pos.y + st.mouseY * 0.22;
 
-        st.currentPos.x += (targetX - st.currentPos.x) * 0.05;
-        st.currentPos.y += (targetY - st.currentPos.y) * 0.05;
-        st.currentPos.z +=
-          (CAMERA_PRESETS.overview.pos.z - st.currentPos.z) * 0.05;
+        const dx = targetX - st.currentPos.x;
+        const dy = targetY - st.currentPos.y;
+        const dz = CAMERA_PRESETS.overview.pos.z - st.currentPos.z;
+        if (Math.abs(dx) > 0.0003) st.currentPos.x += dx * 0.05;
+        if (Math.abs(dy) > 0.0003) st.currentPos.y += dy * 0.05;
+        if (Math.abs(dz) > 0.0003) st.currentPos.z += dz * 0.05;
 
         const lookX = CAMERA_PRESETS.overview.lookAt.x + st.mouseX * 0.35;
         const lookY = CAMERA_PRESETS.overview.lookAt.y + st.mouseY * 0.18;
-        st.currentLookAt.x += (lookX - st.currentLookAt.x) * 0.05;
-        st.currentLookAt.y += (lookY - st.currentLookAt.y) * 0.05;
+        const dlx = lookX - st.currentLookAt.x;
+        const dly = lookY - st.currentLookAt.y;
+        if (Math.abs(dlx) > 0.0003) st.currentLookAt.x += dlx * 0.05;
+        if (Math.abs(dly) > 0.0003) st.currentLookAt.y += dly * 0.05;
 
         camera.position.copy(st.currentPos);
         camera.lookAt(st.currentLookAt);
