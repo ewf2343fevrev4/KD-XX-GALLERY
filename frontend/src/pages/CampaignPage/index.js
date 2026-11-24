@@ -55,6 +55,13 @@ const CampaignPage = ({
   const [campaignMedia, setCampaignMedia] = useState(null);
 
   useEffect(() => {
+    document.title = 'KD-XX GALLERY STUDIO | Streetwear & Luxury Fashion';
+    if (onCategoryChange && selectedCategory !== 'home') {
+      onCategoryChange('home');
+    }
+  }, [onCategoryChange, selectedCategory]);
+
+  useEffect(() => {
     // Fetch campaign media (video & showcase ads)
     getCampaignMedia()
       .then((res) => {

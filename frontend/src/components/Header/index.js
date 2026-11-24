@@ -503,6 +503,9 @@ const Header = ({
             className="logo-text"
             onClick={() => {
               setActiveDropdown(null);
+              if (onCategoryChange) {
+                onCategoryChange('home');
+              }
               if (location.pathname === '/' || location.pathname === '/campaign') {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }
@@ -523,11 +526,18 @@ const Header = ({
             <ul className="nav-menu">
               {NAV_ITEMS.map((item) => {
                 const isItemActive = (() => {
+                  // 1. If on the landing / campaign page (/ or /campaign), HOME is always active
+                  if (location.pathname === '/' || location.pathname === '/campaign') {
+                    return item.isHome;
+                  }
+
+                  // 2. If on Fit Lab
                   if (location.pathname === '/fit-lab') {
                     return item.id === 'fit-lab';
                   }
 
-                  if (location.pathname === '/home' || location.pathname === '/') {
+                  // 3. If on Store Catalog (/home or /store)
+                  if (location.pathname === '/home' || location.pathname === '/store') {
                     if (selectedTag) {
                       if (selectedCategory && selectedCategory !== 'home') {
                         return !item.isHome && item.category === selectedCategory;
