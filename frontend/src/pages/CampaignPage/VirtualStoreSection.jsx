@@ -5239,18 +5239,19 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
         seatCube.receiveShadow = true;
         sitWrapper.add(seatCube);
 
-        // Scale: Impressive haute couture seated height (~2.10m tall matching surrounding ~2.4m - 2.6m runway models)
-        const targetHeight = 2.10;
+        // Scale: Impressive haute couture seated height (~1.98m tall so head aligns with ~2.4m standing models)
+        const targetHeight = 1.98;
         const scaleVal = targetHeight / (sitSize.y || 1);
         sitWrapper.scale.setScalar(scaleVal);
 
-        // Position: Right corner of the Dior platform floor (x = 5.95, y = 0.08, z = -1.15)
-        sitWrapper.position.set(5.95, 0.08, -1.15);
+        // Position: Moved forward to front-right area of the Dior platform floor (x = 5.85, y = 0.485, z = -0.62)
+        // y = 0.485m matches the exact top surface of the elevated Dior runway stage so feet never sink into the podium
+        sitWrapper.position.set(5.85, 0.485, -0.62);
         // Angle slightly inward toward center of the boutique
-        sitWrapper.rotation.y = -0.32;
+        sitWrapper.rotation.y = -0.28;
 
         womenGroup.add(sitWrapper);
-        console.log('✓ Dior Sitting Mannequin loaded successfully on right corner of Dior podium');
+        console.log('✓ Dior Sitting Mannequin positioned forward flush on podium surface');
       },
       undefined,
       (err) => console.warn('Could not load Dior Sitting Mannequin GLB:', err),
