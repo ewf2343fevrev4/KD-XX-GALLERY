@@ -3820,6 +3820,122 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
       1
     );
 
+    // ── Central Styling Tabletop Display: 3 Mannequin Heads / Statues ──
+    // Center: Graffiti Statue Head
+    gltfLoader.load(
+      '/models/props/graffiti_statue.glb',
+      (gltf) => {
+        const statueModel = gltf.scene;
+        statueModel.name = 'tabletopGraffitiStatue';
+
+        statueModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.FrontSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.35;
+                mat.metalness = 0.15;
+              });
+            }
+          }
+        });
+
+        statueModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(statueModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        const statueWrapper = new THREE.Group();
+        statueWrapper.name = 'tabletopGraffitiStatueWrapper';
+        statueModel.position.set(-center.x, -box.min.y, -center.z);
+        statueWrapper.add(statueModel);
+
+        // Scale to elegant tabletop bust height (~46cm)
+        const targetHeight = 0.46;
+        const scale = targetHeight / (size.y || 1);
+        statueWrapper.scale.setScalar(scale);
+
+        // Position flush on top of the central styling table (tabletop top y = 0.963m, z = -1.1m)
+        statueWrapper.position.set(0, 0.963, -1.1);
+        statueWrapper.rotation.y = 0; // Facing front toward camera
+
+        centerGroup.add(statueWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Graffiti Statue GLB:', err),
+      2
+    );
+
+    // Left & Right: Wig Mannequin Heads
+    gltfLoader.load(
+      '/models/props/wig_mannequin.glb',
+      (gltf) => {
+        const baseWigModel = gltf.scene;
+
+        baseWigModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const mats = Array.isArray(child.material) ? child.material : [child.material];
+              mats.forEach((mat) => {
+                mat.side = THREE.FrontSide;
+                if (mat.map) {
+                  mat.map.colorSpace = THREE.SRGBColorSpace;
+                  mat.map.needsUpdate = true;
+                }
+                mat.roughness = 0.4;
+                mat.metalness = 0.1;
+              });
+            }
+          }
+        });
+
+        baseWigModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(baseWigModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        // Scale to balanced tabletop head height (~42cm)
+        const targetHeight = 0.42;
+        const scale = targetHeight / (size.y || 1);
+
+        // 1. Left Wig Mannequin Head
+        const leftWrapper = new THREE.Group();
+        leftWrapper.name = 'tabletopWigLeftWrapper';
+        baseWigModel.position.set(-center.x, -box.min.y, -center.z);
+        leftWrapper.add(baseWigModel);
+        leftWrapper.scale.setScalar(scale);
+        leftWrapper.position.set(-0.68, 0.963, -1.1);
+        leftWrapper.rotation.y = 0.22; // Angled slightly inward toward center
+        centerGroup.add(leftWrapper);
+
+        // 2. Right Wig Mannequin Head (Cloned instance for 0% redundant memory)
+        const rightModel = baseWigModel.clone(true);
+        const rightWrapper = new THREE.Group();
+        rightWrapper.name = 'tabletopWigRightWrapper';
+        rightWrapper.add(rightModel);
+        rightWrapper.scale.setScalar(scale);
+        rightWrapper.position.set(0.68, 0.963, -1.1);
+        rightWrapper.rotation.y = -0.22; // Angled slightly inward toward center
+        centerGroup.add(rightWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Wig Mannequin GLB:', err),
+      2
+    );
+
     // ── 6. RIGHT AREA: WOMEN'S CLOTHING RACKS & DISPLAYS ──
     const womenGroup = new THREE.Group();
     scene.add(womenGroup);
