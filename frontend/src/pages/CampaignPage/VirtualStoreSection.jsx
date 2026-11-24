@@ -1309,12 +1309,73 @@ const VirtualStoreSection = ({ onSelectCategory, onNavigateMixAndMatch }) => {
     backWall.receiveShadow = true;
     scene.add(backWall);
 
-    // Angled left brick wall
-    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(10, 7.5), brickMat);
-    leftWall.position.set(-7.6, 3.75, -0.5);
-    leftWall.rotation.y = Math.PI / 2.35;
-    leftWall.receiveShadow = true;
-    scene.add(leftWall);
+    // ── Angled Left Wall (Men's Area): 3D Love City Mural Art Wall ──
+    const leftWallGroup = new THREE.Group();
+    leftWallGroup.name = 'menLeftMuralWallGroup';
+    leftWallGroup.position.set(-7.6, 3.75, -0.5);
+    leftWallGroup.rotation.y = Math.PI / 2.35;
+    scene.add(leftWallGroup);
+
+    // Initial fallback plane while GLB loads, ensuring instant seamless render
+    const leftWallFallback = new THREE.Mesh(new THREE.PlaneGeometry(10, 7.5), brickMat);
+    leftWallFallback.receiveShadow = true;
+    leftWallGroup.add(leftWallFallback);
+
+    gltfLoader.load(
+      '/models/architecture/love_city_in_the_clouds_mural_art.glb',
+      (gltf) => {
+        const muralModel = gltf.scene;
+        muralModel.name = 'loveCityMuralArtModel';
+
+        muralModel.traverse((child) => {
+          if (child.isMesh) {
+            child.castShadow = false;
+            child.receiveShadow = true;
+            if (child.material) {
+              const oldMap = child.material.map;
+              if (oldMap) {
+                oldMap.colorSpace = THREE.SRGBColorSpace;
+                oldMap.needsUpdate = true;
+              }
+              // Standard material so it catches cyan neon ambient glow and gallery spotlights realistically
+              child.material = new THREE.MeshStandardMaterial({
+                map: oldMap,
+                roughness: 0.82,
+                metalness: 0.05,
+                side: THREE.DoubleSide,
+              });
+            }
+          }
+        });
+
+        muralModel.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(muralModel);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+
+        // Scale to boutique floor-to-ceiling height (7.5m)
+        const targetHeight = 7.5;
+        const scale = targetHeight / (size.y || 1);
+
+        const muralWrapper = new THREE.Group();
+        muralWrapper.name = 'loveCityMuralWrapper';
+
+        // Position model so front painted face is at local Z = 0, centered in Y and Z
+        muralModel.position.set(-box.min.x, -center.y, -center.z);
+        muralWrapper.add(muralModel);
+        muralWrapper.scale.setScalar(scale);
+
+        // Rotate Math.PI / 2 so front painted face normal aligns with local +Z
+        muralWrapper.rotation.y = Math.PI / 2;
+
+        leftWallGroup.remove(leftWallFallback);
+        leftWallGroup.add(muralWrapper);
+      },
+      undefined,
+      (err) => console.warn('Could not load Love City Mural Art GLB:', err)
+    );
 
     // ── Angled Right Wall (Women's Area): 3D Los Angeles Mural Art Wall ──
     const rightWallGroup = new THREE.Group();
