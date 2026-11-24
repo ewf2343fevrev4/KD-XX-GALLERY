@@ -569,7 +569,7 @@ const Header = ({
                     onMouseLeave={handleNavMouseLeave}
                   >
                     <Link
-                      to={item.path || '/home'}
+                      to={item.path || (item.category ? `/home?category=${item.category}` : '/home')}
                       onClick={(e) => {
                         if (item.isHome) {
                           if (location.pathname === '/home') {
@@ -584,7 +584,8 @@ const Header = ({
                             e.preventDefault();
                             handleNavClick(e, null, item.category);
                           } else {
-                            onCategoryChange(item.category);
+                            e.preventDefault();
+                            handleCategoryClick(item.category);
                           }
                         }
                       }}
