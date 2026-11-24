@@ -38,6 +38,16 @@ export default function AdminCampaignAdsManager() {
   const [feedback, setFeedback] = useState({ type: '', message: '' });
 
   // Campaign media state
+  const [heroData, setHeroData] = useState({
+    mediaType: 'image', // 'image' | 'video'
+    mediaUrl: '/campaign-hero.jpg',
+    eyebrow: 'MADE TRẦN ĐỨC MINH',
+    headline: 'Beyond The Ordinary',
+    subtext: 'A New Expression of Luxury Streetwear.',
+    ctaText: 'Discover New Arrivals',
+    ctaLink: '/home'
+  });
+
   const [videoData, setVideoData] = useState({
     videoUrl: '/assets/vid1.mp4',
     title: 'WINTER CAPSULE',
@@ -71,6 +81,17 @@ export default function AdminCampaignAdsManager() {
       const res = await getAdminCampaignMedia(token);
       const media = res?.data?.data || res?.data;
       if (res?.success && media) {
+        if (media.hero) {
+          setHeroData({
+            mediaType: media.hero.mediaType || 'image',
+            mediaUrl: media.hero.mediaUrl || '/campaign-hero.jpg',
+            eyebrow: media.hero.eyebrow || 'MADE TRẦN ĐỨC MINH',
+            headline: media.hero.headline || 'Beyond The Ordinary',
+            subtext: media.hero.subtext || 'A New Expression of Luxury Streetwear.',
+            ctaText: media.hero.ctaText || 'Discover New Arrivals',
+            ctaLink: media.hero.ctaLink || '/home'
+          });
+        }
         if (media.video) {
           setVideoData({
             videoUrl: media.video.videoUrl || '/assets/vid1.mp4',
@@ -105,6 +126,7 @@ export default function AdminCampaignAdsManager() {
       setFeedback({ type: '', message: '' });
 
       const payload = {
+        hero: heroData,
         video: videoData,
         showcaseLeft: showcaseLeft,
         showcaseRight: showcaseRight
@@ -133,10 +155,19 @@ export default function AdminCampaignAdsManager() {
   // Reset to default
   const handleResetToDefault = () => {
     const confirmReset = window.confirm(
-      '⚠️ Bạn có chắc chắn muốn khôi phục về video và 2 ảnh mẫu mặc định của Winter Capsule không?'
+      '⚠️ Bạn có chắc chắn muốn khôi phục về banner hero, video và 2 ảnh mẫu mặc định của Winter Capsule không?'
     );
     if (!confirmReset) return;
 
+    setHeroData({
+      mediaType: 'image',
+      mediaUrl: '/campaign-hero.jpg',
+      eyebrow: 'MADE TRẦN ĐỨC MINH',
+      headline: 'Beyond The Ordinary',
+      subtext: 'A New Expression of Luxury Streetwear.',
+      ctaText: 'Discover New Arrivals',
+      ctaLink: '/home'
+    });
     setVideoData({
       videoUrl: '/assets/vid1.mp4',
       title: 'WINTER CAPSULE',
@@ -146,6 +177,39 @@ export default function AdminCampaignAdsManager() {
     setShowcaseLeft([DEFAULT_LEFT_TEMPLATE]);
     setShowcaseRight([DEFAULT_RIGHT_TEMPLATE]);
     setFeedback({ type: 'success', message: 'Đã đặt lại dữ liệu mẫu. Hãy bấm "LƯU CẤU HÌNH" để áp dụng lên hệ thống.' });
+  };
+
+  // Hero File Upload (Image or Video)
+  const handleHeroFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 100 * 1024 * 1024) {
+      alert('⚠️ Dung lượng file vượt quá 100MB. Vui lòng nén hoặc chọn file nhỏ hơn!');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const res = await uploadCampaignMediaFile(token, file);
+      if (res?.success && res.url) {
+        const isVideo = file.type.startsWith('video/');
+        setHeroData(prev => ({
+          ...prev,
+          mediaUrl: res.url,
+          mediaType: isVideo ? 'video' : 'image'
+        }));
+        alert(`✅ Đã tải ${isVideo ? 'video' : 'ảnh'} Hero lên Cloudinary thành công!`);
+      } else {
+        alert(`❌ Lỗi upload: ${res?.error || 'Không thể upload file.'}`);
+      }
+    } catch (err) {
+      console.error('Hero file upload error:', err);
+      alert('❌ Có lỗi khi tải file lên Cloudinary.');
+    } finally {
+      setUploading(false);
+      e.target.value = '';
+    }
   };
 
   // Video File Upload
@@ -358,6 +422,208 @@ export default function AdminCampaignAdsManager() {
           <span>{feedback.message}</span>
         </div>
       )}
+
+      {/* ============================================================== */}
+      {/* 0. SECTION: BANNER CHÍNH CAMPAIGN (HERO IMAGE / VIDEO)         */}
+      {/* ============================================================== */}
+      <section className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-7 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center">
+              {heroData.mediaType === 'video' ? <Film size={22} /> : <ImageIcon size={22} />}
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <span>0. Ảnh / Video Nền Chính (Campaign Hero Banner)</span>
+                <span className="text-[11px] font-normal px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-md border border-indigo-200 uppercase font-semibold">
+                  {heroData.mediaType === 'video' ? 'Định dạng Video' : 'Định dạng Ảnh'}
+                </span>
+              </h3>
+              <p className="text-xs text-gray-500">Banner toàn màn hình xuất hiện đầu tiên khi khách vào trang /campaign</p>
+            </div>
+          </div>
+
+          {/* Media Type Switcher */}
+          <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-xl border border-gray-200">
+            <button
+              type="button"
+              onClick={() => setHeroData(prev => ({ ...prev, mediaType: 'image' }))}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                heroData.mediaType === 'image'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <ImageIcon size={14} />
+              <span>Hình Ảnh</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setHeroData(prev => ({ ...prev, mediaType: 'video' }))}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                heroData.mediaType === 'video'
+                  ? 'bg-white text-indigo-700 shadow-xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Film size={14} />
+              <span>Video</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Inputs (Left 7 cols) */}
+          <div className="lg:col-span-7 space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                Đường dẫn {heroData.mediaType === 'video' ? 'Video' : 'Ảnh'} Nền Hero <span className="text-red-500">*</span>
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={heroData.mediaUrl}
+                  onChange={(e) => setHeroData(prev => ({ ...prev, mediaUrl: e.target.value }))}
+                  placeholder={heroData.mediaType === 'video' ? "VD: /campaign-hero.mp4 hoặc URL Cloudinary" : "VD: /campaign-hero.jpg hoặc URL Cloudinary"}
+                  className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
+                />
+                
+                {/* Upload button */}
+                <label className="shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2.5 bg-gray-800 hover:bg-gray-900 text-white rounded-xl text-xs font-semibold cursor-pointer transition-colors">
+                  {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                  <span>{uploading ? 'Đang tải...' : `Upload ${heroData.mediaType === 'video' ? 'Video' : 'Ảnh'}`}</span>
+                  <input
+                    type="file"
+                    accept={heroData.mediaType === 'video' ? "video/*" : "image/*"}
+                    onChange={handleHeroFileUpload}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+              <p className="text-[11px] text-gray-500 mt-1">
+                Hỗ trợ tải trực tiếp từ máy tính lên Cloudinary hoặc nhập link ảnh/video từ CDN.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  Dòng Eyebrow (Nhãn nhỏ trên cùng)
+                </label>
+                <input
+                  type="text"
+                  value={heroData.eyebrow}
+                  onChange={(e) => setHeroData(prev => ({ ...prev, eyebrow: e.target.value }))}
+                  placeholder="VD: MADE TRẦN ĐỨC MINH"
+                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  Tiêu đề chính (Headline)
+                </label>
+                <input
+                  type="text"
+                  value={heroData.headline}
+                  onChange={(e) => setHeroData(prev => ({ ...prev, headline: e.target.value }))}
+                  placeholder="VD: Beyond The Ordinary"
+                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                Mô tả phụ (Subtext)
+              </label>
+              <input
+                type="text"
+                value={heroData.subtext}
+                onChange={(e) => setHeroData(prev => ({ ...prev, subtext: e.target.value }))}
+                placeholder="VD: A New Expression of Luxury Streetwear."
+                className="w-full px-3.5 py-2.5 text-xs bg-gray-50 border border-gray-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  Nội dung nút bấm (CTA Button Text)
+                </label>
+                <input
+                  type="text"
+                  value={heroData.ctaText}
+                  onChange={(e) => setHeroData(prev => ({ ...prev, ctaText: e.target.value }))}
+                  placeholder="VD: Discover New Arrivals"
+                  className="w-full px-3.5 py-2.5 text-xs font-semibold bg-gray-50 border border-gray-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+                  Đường dẫn khi click (CTA Link)
+                </label>
+                <input
+                  type="text"
+                  value={heroData.ctaLink}
+                  onChange={(e) => setHeroData(prev => ({ ...prev, ctaLink: e.target.value }))}
+                  placeholder="VD: /home"
+                  className="w-full px-3.5 py-2.5 text-xs font-mono bg-gray-50 border border-gray-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Live Preview Box (Right 5 cols) */}
+          <div className="lg:col-span-5">
+            <span className="block text-xs font-bold text-gray-700 uppercase mb-1.5">
+              Xem trước Hero (Live Preview)
+            </span>
+            <div className="relative aspect-video rounded-xl overflow-hidden bg-black border border-gray-800 shadow-md flex items-center justify-center text-center p-4">
+              {heroData.mediaType === 'video' ? (
+                <video
+                  src={heroData.mediaUrl}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <img
+                  src={heroData.mediaUrl || '/campaign-hero.jpg'}
+                  alt="Hero Preview"
+                  className="absolute inset-0 w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.src = '/campaign-hero.jpg'; }}
+                />
+              )}
+
+              {/* Dark Overlay Vignette */}
+              <div className="absolute inset-0 bg-black/45" />
+
+              {/* Text Preview */}
+              <div className="relative z-10 space-y-1">
+                <p className="text-[10px] uppercase font-bold tracking-widest text-gray-300">
+                  {heroData.eyebrow || 'MADE TRẦN ĐỨC MINH'}
+                </p>
+                <h4 className="text-base sm:text-lg font-black uppercase text-white tracking-wider">
+                  {heroData.headline || 'Beyond The Ordinary'}
+                </h4>
+                <p className="text-[11px] text-gray-300 italic">
+                  {heroData.subtext || 'A New Expression of Luxury Streetwear.'}
+                </p>
+                <div className="pt-2">
+                  <span className="inline-block px-3 py-1 bg-white text-black text-[10px] font-bold rounded-sm uppercase tracking-wider">
+                    {heroData.ctaText || 'Discover New Arrivals'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ============================================================== */}
       {/* 1. SECTION: VIDEO QUẢNG CÁO (CAMPAIGN VIDEO SECTION)           */}

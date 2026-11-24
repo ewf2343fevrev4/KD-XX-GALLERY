@@ -148,30 +148,45 @@ const CampaignPage = ({
         onSelectTag={onSelectTag}
       />
 
-      {/* ── 1. Campaign Hero (Kept Intact) ── */}
+      {/* ── 1. Campaign Hero (Dynamic Image or Video from Admin) ── */}
       <section className="campaign-hero">
-        <img
-          src="/campaign-hero.jpg"
-          alt="AMIRI — Beyond The Ordinary campaign featuring two dark streetwear figures with wings against purple lightning"
-          className="campaign-hero__image"
-          loading="eager"
-          fetchPriority="high"
-        />
+        {campaignMedia?.hero?.mediaType === 'video' ? (
+          <video
+            src={campaignMedia?.hero?.mediaUrl || '/campaign-hero.mp4'}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="campaign-hero__image campaign-hero__video"
+          />
+        ) : (
+          <img
+            src={campaignMedia?.hero?.mediaUrl || '/campaign-hero.jpg'}
+            alt="AMIRI — Beyond The Ordinary campaign"
+            className="campaign-hero__image"
+            loading="eager"
+            fetchPriority="high"
+          />
+        )}
 
         <div className="campaign-hero__overlay" />
 
         <div className="campaign-hero__content">
-          <p className="campaign-hero__eyebrow">MADE TRẦN ĐỨC MINH</p>
-          <h1 className="campaign-hero__headline">Beyond The Ordinary</h1>
+          <p className="campaign-hero__eyebrow">
+            {campaignMedia?.hero?.eyebrow || 'MADE TRẦN ĐỨC MINH'}
+          </p>
+          <h1 className="campaign-hero__headline">
+            {campaignMedia?.hero?.headline || 'Beyond The Ordinary'}
+          </h1>
           <p className="campaign-hero__subtext">
-            A New Expression of Luxury Streetwear.
+            {campaignMedia?.hero?.subtext || 'A New Expression of Luxury Streetwear.'}
           </p>
           <Link
-            to="/home"
+            to={campaignMedia?.hero?.ctaLink || '/home'}
             className="campaign-hero__cta"
             onClick={handleCtaClick}
           >
-            Discover New Arrivals
+            {campaignMedia?.hero?.ctaText || 'Discover New Arrivals'}
           </Link>
         </div>
 

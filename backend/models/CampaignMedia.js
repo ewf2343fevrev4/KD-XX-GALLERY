@@ -7,11 +7,56 @@ const ShowcaseItemSchema = new mongoose.Schema({
   description: { type: String, default: '' }
 }, { _id: true });
 
+const HeroSchema = new mongoose.Schema({
+  mediaType: { 
+    type: String, 
+    enum: ['image', 'video'], 
+    default: 'image' 
+  },
+  mediaUrl: { 
+    type: String, 
+    default: '/campaign-hero.jpg' 
+  },
+  eyebrow: { 
+    type: String, 
+    default: 'MADE TRẦN ĐỨC MINH' 
+  },
+  headline: { 
+    type: String, 
+    default: 'Beyond The Ordinary' 
+  },
+  subtext: { 
+    type: String, 
+    default: 'A New Expression of Luxury Streetwear.' 
+  },
+  ctaText: { 
+    type: String, 
+    default: 'Discover New Arrivals' 
+  },
+  ctaLink: { 
+    type: String, 
+    default: '/home' 
+  }
+}, { _id: false });
+
 const CampaignMediaSchema = new mongoose.Schema({
   key: { 
     type: String, 
     default: 'main_campaign', 
     unique: true 
+  },
+  // Section 0: Banner Ảnh/Video Chính Trang Campaign (Hero Section)
+  hero: {
+    type: HeroSchema,
+    default: () => ({
+      mediaType: 'image',
+      mediaUrl: '/campaign-hero.jpg',
+      eyebrow: 'MADE TRẦN ĐỨC MINH',
+      headline: 'Beyond The Ordinary',
+      subtext: 'A New Expression of Luxury Streetwear.',
+      ctaText: 'Discover New Arrivals',
+      ctaLink: '/home'
+    })
   },
   // Section 1: Video Quảng Cáo (Campaign Video)
   video: {

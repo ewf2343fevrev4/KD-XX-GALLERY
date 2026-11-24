@@ -14,6 +14,15 @@ const uploadMedia = multer({
 
 const DEFAULT_CAMPAIGN_DATA = {
   key: 'main_campaign',
+  hero: {
+    mediaType: 'image',
+    mediaUrl: '/campaign-hero.jpg',
+    eyebrow: 'MADE TRẦN ĐỨC MINH',
+    headline: 'Beyond The Ordinary',
+    subtext: 'A New Expression of Luxury Streetwear.',
+    ctaText: 'Discover New Arrivals',
+    ctaLink: '/home'
+  },
   video: {
     videoUrl: '/assets/vid1.mp4',
     title: 'WINTER CAPSULE',
@@ -43,6 +52,9 @@ async function getOrCreateCampaignMedia() {
   let doc = await CampaignMedia.findOne({ key: 'main_campaign' });
   if (!doc) {
     doc = await CampaignMedia.create(DEFAULT_CAMPAIGN_DATA);
+  } else if (!doc.hero || !doc.hero.mediaUrl) {
+    doc.hero = DEFAULT_CAMPAIGN_DATA.hero;
+    await doc.save();
   }
   return doc;
 }
@@ -91,8 +103,20 @@ router.get('/admin', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.put('/admin', protect, admin, async (req, res) => {
   try {
-    const { video, showcaseLeft, showcaseRight } = req.body;
+    const { hero, video, showcaseLeft, showcaseRight } = req.body;
     let doc = await getOrCreateCampaignMedia();
+
+    if (hero) {
+      doc.hero = {
+        mediaType: hero.mediaType || doc.hero?.mediaType || 'image',
+        mediaUrl: hero.mediaUrl !== undefined ? hero.mediaUrl : (doc.hero?.mediaUrl || '/campaign-hero.jpg'),
+        eyebrow: hero.eyebrow !== undefined ? hero.eyebrow : (doc.hero?.eyebrow || 'MADE TRẦN ĐỨC MINH'),
+        headline: hero.headline !== undefined ? hero.headline : (doc.hero?.headline || 'Beyond The Ordinary'),
+        subtext: hero.subtext !== undefined ? hero.subtext : (doc.hero?.subtext || 'A New Expression of Luxury Streetwear.'),
+        ctaText: hero.ctaText !== undefined ? hero.ctaText : (doc.hero?.ctaText || 'Discover New Arrivals'),
+        ctaLink: hero.ctaLink !== undefined ? hero.ctaLink : (doc.hero?.ctaLink || '/home')
+      };
+    }
 
     if (video) {
       doc.video = {
