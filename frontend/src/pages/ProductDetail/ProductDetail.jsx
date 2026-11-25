@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   Heart, 
@@ -246,6 +247,68 @@ export default function ProductDetailPage({
   const productId = product?._id || product?.id;
   const isWishlisted = isInWishlist(productId);
 
+  // JSON-LD Product Schema (auto-detected by search engines & Anywear Live Virtual Try-On)
+  const productJsonLd = useMemo(() => {
+    if (!product) return null;
+
+    const toAbsoluteUrl = (url) => {
+      if (!url || typeof url !== 'string') return '';
+      const trimmed = url.trim();
+      if (/^https?:\/\//i.test(trimmed)) return trimmed;
+      if (typeof window !== 'undefined' && window.location?.origin) {
+        return `${window.location.origin}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
+      }
+      return trimmed;
+    };
+
+    const numericPrice = Number(product.price || 0);
+    const isVnd = numericPrice >= 100000;
+    const schemaImages = allImages.map(toAbsoluteUrl).filter(Boolean);
+
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      image: schemaImages,
+      description:
+        product.description ||
+        'Sản phẩm cao cấp được thiết kế và sản xuất tỉ mỉ theo tiêu chuẩn xa xỉ, phong cách streetwear thời thượng của thương hiệu AMIRI.',
+      sku: product.sku || productId || undefined,
+      brand: {
+        '@type': 'Brand',
+        name: product.brand || 'AMIRI',
+      },
+      category: product.category || undefined,
+      offers: {
+        '@type': 'Offer',
+        url: typeof window !== 'undefined' ? window.location.href : '',
+        priceCurrency: isVnd ? 'VND' : 'USD',
+        price: isVnd ? Math.round(numericPrice) : Number(numericPrice.toFixed(2)),
+        availability: isOutOfStock
+          ? 'https://schema.org/OutOfStock'
+          : 'https://schema.org/InStock',
+        itemCondition: 'https://schema.org/NewCondition',
+      },
+    };
+
+    if (reviewsStats.totalReviews > 0) {
+      schema.aggregateRating = {
+        '@type': 'AggregateRating',
+        ratingValue: Number(reviewsStats.averageRating || 5.0).toFixed(1),
+        reviewCount: reviewsStats.totalReviews,
+      };
+    }
+
+    return schema;
+  }, [product, productId, allImages, isOutOfStock, reviewsStats]);
+
+  // Update browser page title when viewing a product
+  useEffect(() => {
+    if (product?.name) {
+      document.title = `${product.name} | KD-XX GALLERY STUDIO`;
+    }
+  }, [product]);
+
   // Related products
   const relatedProducts = useMemo(() => {
     if (!product || !catalog.length) return [];
@@ -448,6 +511,17 @@ export default function ProductDetailPage({
   // ──────────────────────────────────────────────
   return (
     <div className="product-detail-page">
+      {typeof document !== 'undefined' && productJsonLd && createPortal(
+        <script
+          key={`product-jsonld-${productId}`}
+          id="product-jsonld"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(productJsonLd).replace(/</g, '\\u003c'),
+          }}
+        />,
+        document.head
+      )}
       <Header 
         onSearch={onSearch}
         products={catalog}

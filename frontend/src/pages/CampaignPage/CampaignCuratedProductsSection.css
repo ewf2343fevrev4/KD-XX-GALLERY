@@ -219,11 +219,15 @@
 }
 
 .amiri-curated-col__image {
+  position: relative;
+  z-index: 2;
   max-width: 86%;
   max-height: 80%;
   width: auto;
   height: auto;
   object-fit: contain;
+  pointer-events: auto;
+  user-select: auto;
   transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform;
 }
@@ -246,12 +250,14 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.22s ease, color 0.2s ease, transform 0.2s ease;
   z-index: 8;
 }
 
 .amiri-curated-col:hover .amiri-curated-col__arrow {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .amiri-curated-col__arrow--left {
