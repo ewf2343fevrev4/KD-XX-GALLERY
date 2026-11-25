@@ -565,6 +565,7 @@ export default function ProductDetailPage({
                       <img 
                         src={img} 
                         alt={`${product.name} thumb ${index + 1}`}
+                        referrerPolicy="no-referrer"
                         onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                       />
                     </button>
@@ -600,6 +601,7 @@ export default function ProductDetailPage({
                     src={allImages[selectedImageIndex]} 
                     alt={product.name}
                     className="gallery-main-img"
+                    referrerPolicy="no-referrer"
                     onError={(e) => { e.target.src = '/placeholder.jpg'; }}
                   />
                   <div className="gallery-zoom-hint">

@@ -56,6 +56,7 @@ const ProductCard = ({ product }) => {
         <img 
           src={productImage} 
           alt={product.name}
+          referrerPolicy="no-referrer"
           onError={(e) => {
             e.target.src = '/placeholder.jpg'; // Fallback nếu ảnh lỗi
           }}

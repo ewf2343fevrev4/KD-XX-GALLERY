@@ -103,6 +103,7 @@ const CuratedColumn = ({ product }) => {
           src={currentImg} 
           alt={product?.name || 'AMIRI Product'} 
           className="amiri-curated-col__image"
+          referrerPolicy="no-referrer"
           loading="lazy"
           onError={(e) => {
             e.currentTarget.src = '/placeholder.jpg';
