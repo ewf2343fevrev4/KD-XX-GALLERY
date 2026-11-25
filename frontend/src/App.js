@@ -15,6 +15,7 @@ import OAuthCallback from './pages/OAuthCallback';
 import ProductDetailPage from './pages/ProductDetail';
 import FitLabPage from './pages/FitLab';
 import ChatWidget from './components/ChatWidget/ChatWidget';
+import AnywearWidgetEnhancer from './components/AnywearEnhancer/AnywearWidgetEnhancer';
 import './styles/global.css';
 
 
@@ -329,6 +330,8 @@ function App() {
 
               {/* Floating Customer Support Chat Widget */}
               <ChatWidget />
+              {/* Cute Dark-Lavender Styling + Draggable Glitter Trail for Anywear Widget */}
+              <AnywearWidgetEnhancer />
             </div>
           </BrowserRouter>
         </CartProvider>

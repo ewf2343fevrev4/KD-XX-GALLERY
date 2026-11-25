@@ -1,0 +1,213 @@
+/* ==========================================================================
+   KD-XX DARK LAVENDER CUTE — ANYWEAR WIDGET ENHANCER
+   - Soft capsule pill & frosted lavender-dark luxury theme
+   - Freely draggable launcher pill + GPU glitter dust trail
+   - Rounded frosted lavender frame for open desktop pane
+   ========================================================================== */
+
+/* Container in closed pill mode */
+#__decart-tryon-widget.kdxx-anywear-pill-mode {
+  border-radius: 9999px !important;
+  border: 1px solid rgba(216, 180, 254, 0.42) !important;
+  background: transparent !important;
+  box-shadow:
+    0 10px 30px -4px rgba(168, 85, 247, 0.38),
+    0 4px 14px rgba(0, 0, 0, 0.45) !important;
+  overflow: visible !important;
+  /* Never animate top/left so dragging stays 1:1 with pointer */
+  transition: box-shadow 0.25s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  touch-action: none !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pill-mode:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 14px 36px -2px rgba(192, 132, 252, 0.55),
+    0 6px 18px rgba(0, 0, 0, 0.5) !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pill-mode.kdxx-is-dragging {
+  transform: scale(1.05) !important;
+  cursor: grabbing !important;
+  box-shadow:
+    0 16px 42px rgba(217, 70, 239, 0.55),
+    0 0 22px rgba(192, 132, 252, 0.65) !important;
+}
+
+/* Cute capsule button */
+#__decart-tryon-widget.kdxx-anywear-pill-mode #__decart-pill-btn {
+  border-radius: 9999px !important;
+  background: linear-gradient(135deg, rgba(20, 12, 36, 0.92) 0%, rgba(44, 23, 76, 0.92) 100%) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  color: #faf5ff !important;
+  padding: 9px 34px 9px 16px !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  border: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+  cursor: grab !important;
+  touch-action: none !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pill-mode.kdxx-is-dragging #__decart-pill-btn {
+  cursor: grabbing !important;
+}
+
+/* Collapsed mini-pill state (when user clicks x minimise) */
+html.decart-collapsed #__decart-tryon-widget.kdxx-anywear-pill-mode #__decart-pill-btn {
+  padding: 7px 14px !important;
+  font-size: 11.5px !important;
+}
+
+/* Override Anywear orbital conic beam to round lavender shimmer */
+#__decart-tryon-widget.kdxx-anywear-pill-mode #__decart-pill-btn::before {
+  border-radius: 9999px !important;
+  padding: 1.5px !important;
+  background: conic-gradient(
+    from var(--decart-beam-angle),
+    transparent 0%,
+    transparent 56%,
+    rgba(192, 132, 252, 0.5) 70%,
+    rgba(240, 171, 252, 0.98) 84%,
+    rgba(168, 85, 247, 0.55) 95%,
+    transparent 100%
+  ) !important;
+}
+
+/* Camera icon tinted soft lavender */
+#__decart-tryon-widget.kdxx-anywear-pill-mode #__decart-pill-btn svg {
+  color: #e9d5ff !important;
+  filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.6));
+  flex-shrink: 0;
+}
+
+/* Cute injected sparkle accent next to camera icon */
+.kdxx-pill-sparkle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #f0abfc;
+  font-size: 12px;
+  line-height: 1;
+  margin-left: -3px;
+  animation: kdxxSparklePulse 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes kdxxSparklePulse {
+  0%, 100% {
+    opacity: 0.78;
+    transform: scale(0.95) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.18) rotate(15deg);
+    text-shadow: 0 0 8px rgba(240, 171, 252, 0.9);
+  }
+}
+
+/* Minimise button cleanly tucked inside capsule end */
+#__decart-tryon-widget.kdxx-anywear-pill-mode [aria-label="Minimise"] {
+  right: 10px !important;
+  width: 20px !important;
+  height: 20px !important;
+  border-radius: 50% !important;
+  transition: background 0.2s ease !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pill-mode [aria-label="Minimise"]:hover {
+  background: rgba(216, 180, 254, 0.18) !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pill-mode [aria-label="Minimise"] svg {
+  stroke: #e9d5ff !important;
+}
+
+/* ==========================================================================
+   OPEN DESKTOP POPUP PANE THEME (excluding fullscreen & mobile inset:0)
+   ========================================================================== */
+#__decart-tryon-widget.kdxx-anywear-pane-mode {
+  border-radius: 20px !important;
+  border: 1px solid rgba(192, 132, 252, 0.45) !important;
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.55),
+    0 0 34px rgba(168, 85, 247, 0.26) !important;
+  overflow: hidden !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pane-mode .kdxx-anywear-pane-header {
+  background: linear-gradient(90deg, rgba(16, 10, 28, 0.95) 0%, rgba(34, 18, 58, 0.95) 100%) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border-bottom: 1px solid rgba(192, 132, 252, 0.22) !important;
+  color: #f5f3ff !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.03em !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pane-mode .kdxx-anywear-pane-header svg path {
+  fill: #e879f9 !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pane-mode button[title="Minimize"] span span,
+#__decart-tryon-widget.kdxx-anywear-pane-mode button[title="Close"] span span {
+  background: #e9d5ff !important;
+}
+
+#__decart-tryon-widget.kdxx-anywear-pane-mode button[title="Fullscreen"] svg {
+  stroke: #e9d5ff !important;
+}
+
+/* ==========================================================================
+   GLITTER DUST TRAIL LAYER & PARTICLES (GPU-ACCELERATED)
+   ========================================================================== */
+.kdxx-glitter-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483646;
+  overflow: hidden;
+}
+
+.kdxx-glitter-particle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  will-change: transform, opacity;
+  animation: kdxxGlitterFloat var(--dur, 620ms) cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes kdxxGlitterFloat {
+  0% {
+    opacity: 0;
+    transform: translate3d(var(--x0, 0px), var(--y0, 0px), 0) scale(0.35) rotate(0deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate3d(
+        calc(var(--x0, 0px) + var(--dx, 0px) * 0.25),
+        calc(var(--y0, 0px) + var(--dy, 0px) * 0.25),
+        0
+      )
+      scale(var(--sc, 1))
+      rotate(calc(var(--rot, 45deg) * 0.3));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(
+        calc(var(--x0, 0px) + var(--dx, 0px)),
+        calc(var(--y0, 0px) + var(--dy, 0px)),
+        0
+      )
+      scale(0.15)
+      rotate(var(--rot, 90deg));
+  }
+}
