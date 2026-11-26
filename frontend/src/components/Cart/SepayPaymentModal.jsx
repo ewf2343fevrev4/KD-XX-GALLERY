@@ -304,7 +304,7 @@ const SepayPaymentModal = ({ isOpen, onClose, order, onPaymentSuccess }) => {
                     </div>
                     <div className="detail-sub">
                       {Number(qrData?.amountVND) > 0 && Number(qrData?.amountUSD || order.total || 0) < 1
-                        ? 'Miễn phí giao hàng & VAT • Giao dịch ủng hộ / Test SePay'
+                        ? 'Miễn phí giao hàng & VAT • Ủng hộ KD-XX Studio'
                         : `Tương đương $${Number(qrData?.amountUSD || order.total || 0).toFixed(2)} USD`}
                     </div>
                   </div>

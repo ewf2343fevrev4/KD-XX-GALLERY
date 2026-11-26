@@ -221,6 +221,8 @@ const createDefaultAdmin = async () => {
 const ensureDefaultTipProduct = async () => {
   try {
     const Product = require('./models/Product');
+    const cleanDescription =
+      'Một ly cà phê ảo ủng hộ team KD-XX Gallery Studio! ☕✨ Dùng để tip nhẹ nhàng 2.000đ — miễn phí 100% phí ship & thuế VAT.';
     const existingTip = await Product.findOne({ sku: 'KDXX-TIP-2K' });
     if (!existingTip) {
       await Product.create({
@@ -228,24 +230,36 @@ const ensureDefaultTipProduct = async () => {
         name: 'TIP CHO KD',
         brand: 'KD-XX STUDIO',
         category: 'accessories',
-        subCategory: 'Digital Support & SePay Test',
-        description:
-          'Một ly cà phê ảo ủng hộ team KD-XX Gallery Studio! ☕✨ Dùng để tip nhẹ nhàng 2.000đ hoặc test nhanh thanh toán chuyển khoản VietQR SePay tự động — miễn phí 100% phí ship & thuế VAT.',
+        subCategory: 'Digital Support',
+        description: cleanDescription,
         price: 0.08,
         fixedAmountVND: 2000,
         isDigital: true,
         freeShipping: true,
         taxExempt: true,
-        images: ['/tip-cho-kd.svg'],
-        image: '/tip-cho-kd.svg',
+        images: ['/tip-cho-kd.jpg'],
+        image: '/tip-cho-kd.jpg',
         sizes: [],
         colors: [],
-        tags: ['Tip', 'Support', 'Test SePay'],
+        tags: ['Tip', 'Support'],
         stock: 999999,
         inStock: true,
         featured: false
       });
       console.log('✅ Default Tip product seeded: TIP CHO KD (2,000 VND, Free Shipping)');
+    } else if (
+      existingTip.image === '/tip-cho-kd.svg' ||
+      /test nhanh|SePay Test|Test SePay/i.test(
+        `${existingTip.description || ''} ${existingTip.subCategory || ''} ${(existingTip.tags || []).join(' ')}`
+      )
+    ) {
+      existingTip.subCategory = 'Digital Support';
+      existingTip.description = cleanDescription;
+      existingTip.images = ['/tip-cho-kd.jpg'];
+      existingTip.image = '/tip-cho-kd.jpg';
+      existingTip.tags = ['Tip', 'Support'];
+      await existingTip.save();
+      console.log('✅ Updated default Tip product image & description: TIP CHO KD');
     }
   } catch (error) {
     console.error('❌ Error ensuring default Tip product:', error.message);
