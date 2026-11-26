@@ -3,6 +3,12 @@ import { createPortal } from 'react-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createOrder } from '../../services/api';
+import {
+  isFreeShippingItem,
+  isTaxExemptItem,
+  getFixedUnitVND,
+  formatProductPrice
+} from '../../utils/priceUtils';
 import SepayPaymentModal from './SepayPaymentModal';
 import './Cart.css';
 
@@ -22,6 +28,28 @@ const Cart = () => {
     }
   };
 
+  // Tính toán giá trị đơn hàng (Miễn ship & miễn thuế đối với sản phẩm điện tử / Tip)
+  const itemsPrice = getTotalPrice();
+  const taxablePrice = items.reduce(
+    (sum, item) => sum + (isTaxExemptItem(item) ? 0 : (Number(item.price || 0) * item.quantity)),
+    0
+  );
+  const physicalPrice = items.reduce(
+    (sum, item) => sum + (isFreeShippingItem(item) ? 0 : (Number(item.price || 0) * item.quantity)),
+    0
+  );
+  const hasPhysicalItems = items.some((item) => !isFreeShippingItem(item));
+  const hasFixedVndOnly =
+    items.length > 0 &&
+    items.every((item) => getFixedUnitVND(item) > 0 && isTaxExemptItem(item) && isFreeShippingItem(item));
+  const totalFixedVND = hasFixedVndOnly
+    ? items.reduce((sum, item) => sum + getFixedUnitVND(item) * item.quantity, 0)
+    : 0;
+
+  const taxPrice = Math.round(taxablePrice * 0.1 * 100) / 100; // 10% VAT trên hàng vật lý
+  const shippingPrice = !hasPhysicalItems ? 0 : (physicalPrice > 100 ? 0 : 10); // Free ship nếu digital hoặc > $100
+  const totalPrice = Math.round((itemsPrice + taxPrice + shippingPrice) * 100) / 100;
+
   const handleCheckout = async () => {
     // Kiểm tra thông tin người dùng
     if (!user) {
@@ -29,20 +57,22 @@ const Cart = () => {
       return;
     }
 
-    // Kiểm tra xem user có đầy đủ thông tin address và phone không
-    const missingInfo = [];
-    
-    if (!user.address || user.address.trim() === '') {
-      missingInfo.push('địa chỉ');
-    }
-    
-    if (!user.phone || user.phone.trim() === '') {
-      missingInfo.push('số điện thoại');
-    }
+    // Chỉ yêu cầu địa chỉ & SĐT đối với đơn hàng có sản phẩm vật lý cần giao
+    if (hasPhysicalItems) {
+      const missingInfo = [];
+      
+      if (!user.address || user.address.trim() === '') {
+        missingInfo.push('địa chỉ');
+      }
+      
+      if (!user.phone || user.phone.trim() === '') {
+        missingInfo.push('số điện thoại');
+      }
 
-    if (missingInfo.length > 0) {
-      alert(`Vui lòng cập nhật đủ thông tin ${missingInfo.join(' và ')} tại trang Profile trước khi thanh toán!`);
-      return;
+      if (missingInfo.length > 0) {
+        alert(`Vui lòng cập nhật đủ thông tin ${missingInfo.join(' và ')} tại trang Profile trước khi thanh toán!`);
+        return;
+      }
     }
 
     // Kiểm tra giỏ hàng có sản phẩm không
@@ -54,12 +84,6 @@ const Cart = () => {
     setIsProcessing(true);
 
     try {
-      // Tính toán giá trị
-      const itemsPrice = getTotalPrice();
-      const taxPrice = itemsPrice * 0.1; // 10% thuế
-      const shippingPrice = itemsPrice > 100 ? 0 : 10; // Free ship nếu > $100
-      const totalPrice = itemsPrice + taxPrice + shippingPrice;
-
       const orderData = {
         items: items.map(item => ({
           name: item.name,
@@ -71,8 +95,8 @@ const Cart = () => {
           color: item.color || ''
         })),
         shippingAddress: {
-          address: user.address,
-          city: user.city || 'N/A',
+          address: user.address?.trim() || 'Digital Support (No Shipping)',
+          city: user.city || 'Online',
           postalCode: user.postalCode || '00000',
           country: user.country || 'Vietnam'
         },
@@ -130,12 +154,6 @@ const Cart = () => {
     toggleCart();
   };
 
-  // Tính toán để hiển thị
-  const itemsPrice = getTotalPrice();
-  const taxPrice = itemsPrice * 0.1;
-  const shippingPrice = itemsPrice > 100 ? 0 : 10;
-  const totalPrice = itemsPrice + taxPrice + shippingPrice;
-
   return (
     <>
       {/* Cart Icon */}
@@ -183,7 +201,9 @@ const Cart = () => {
                               {item.color ? `Color: ${item.color}` : ''}
                             </div>
                           )}
-                          <p className="cart-item-price">${item.price}</p>
+                          <p className="cart-item-price">
+                            {getFixedUnitVND(item) > 0 ? formatProductPrice(item) : `$${item.price}`}
+                          </p>
                           <div className="quantity-controls">
                             <button 
                               onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
@@ -201,7 +221,9 @@ const Cart = () => {
                           </div>
                         </div>
                         <div className="cart-item-total">
-                          ${(item.price * item.quantity).toFixed(2)}
+                          {getFixedUnitVND(item) > 0
+                            ? formatProductPrice(item, item.quantity)
+                            : `$${(item.price * item.quantity).toFixed(2)}`}
                         </div>
                         <button 
                           className="remove-item"
@@ -218,19 +240,31 @@ const Cart = () => {
                     <div className="price-breakdown">
                       <div className="price-row">
                         <span>Subtotal:</span>
-                        <span>${itemsPrice.toFixed(2)}</span>
+                        <span>
+                          {hasFixedVndOnly
+                            ? `${totalFixedVND.toLocaleString('vi-VN')} VND`
+                            : `$${itemsPrice.toFixed(2)}`}
+                        </span>
                       </div>
                       <div className="price-row">
                         <span>Tax (10%):</span>
-                        <span>${taxPrice.toFixed(2)}</span>
+                        <span>
+                          {taxPrice === 0
+                            ? (hasFixedVndOnly ? '0 VND (Miễn thuế)' : 'Free')
+                            : `$${taxPrice.toFixed(2)}`}
+                        </span>
                       </div>
                       <div className="price-row">
                         <span>Shipping:</span>
-                        <span>{shippingPrice === 0 ? 'Free' : `$${shippingPrice.toFixed(2)}`}</span>
+                        <span>{shippingPrice === 0 ? 'Free (0 VND)' : `$${shippingPrice.toFixed(2)}`}</span>
                       </div>
                       <div className="price-row total">
                         <span>Total:</span>
-                        <span>${totalPrice.toFixed(2)}</span>
+                        <span>
+                          {hasFixedVndOnly
+                            ? `${totalFixedVND.toLocaleString('vi-VN')} VND`
+                            : `$${totalPrice.toFixed(2)}`}
+                        </span>
                       </div>
                     </div>
 

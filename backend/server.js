@@ -218,10 +218,45 @@ const createDefaultAdmin = async () => {
   }
 };
 
+const ensureDefaultTipProduct = async () => {
+  try {
+    const Product = require('./models/Product');
+    const existingTip = await Product.findOne({ sku: 'KDXX-TIP-2K' });
+    if (!existingTip) {
+      await Product.create({
+        sku: 'KDXX-TIP-2K',
+        name: 'TIP CHO KD',
+        brand: 'KD-XX STUDIO',
+        category: 'accessories',
+        subCategory: 'Digital Support & SePay Test',
+        description:
+          'Một ly cà phê ảo ủng hộ team KD-XX Gallery Studio! ☕✨ Dùng để tip nhẹ nhàng 2.000đ hoặc test nhanh thanh toán chuyển khoản VietQR SePay tự động — miễn phí 100% phí ship & thuế VAT.',
+        price: 0.08,
+        fixedAmountVND: 2000,
+        isDigital: true,
+        freeShipping: true,
+        taxExempt: true,
+        images: ['/tip-cho-kd.svg'],
+        image: '/tip-cho-kd.svg',
+        sizes: [],
+        colors: [],
+        tags: ['Tip', 'Support', 'Test SePay'],
+        stock: 999999,
+        inStock: true,
+        featured: false
+      });
+      console.log('✅ Default Tip product seeded: TIP CHO KD (2,000 VND, Free Shipping)');
+    }
+  } catch (error) {
+    console.error('❌ Error ensuring default Tip product:', error.message);
+  }
+};
+
 // Gọi hàm khi MongoDB kết nối xong
 mongoose.connection.once('open', async () => {
   console.log('✅ MongoDB connected successfully');
   await createDefaultAdmin();
+  await ensureDefaultTipProduct();
 });
 
 // Routes

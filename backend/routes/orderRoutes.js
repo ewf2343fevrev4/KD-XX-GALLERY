@@ -102,7 +102,13 @@ router.post('/', verifyToken, async (req, res) => {
     }
 
     // 5. Pre-check stock & calculate authoritative prices
+    const exchangeRate = Number(process.env.USD_VND_EXCHANGE_RATE) || 25400;
     let calculatedSubtotal = 0;
+    let taxableSubtotal = 0;
+    let physicalSubtotal = 0;
+    let hasPhysicalItems = false;
+    let hasFixedVndItem = false;
+    let fixedOrConvertedItemsVND = 0;
     const processedItems = [];
     const processedOrderItems = [];
 
@@ -117,7 +123,25 @@ router.post('/', verifyToken, async (req, res) => {
       }
 
       const unitPrice = Number(product.price) || 0;
-      calculatedSubtotal += unitPrice * item.quantity;
+      const lineTotal = unitPrice * item.quantity;
+      const isFreeShipItem = Boolean(product.freeShipping || product.isDigital || product.sku === 'KDXX-TIP-2K');
+      const isTaxExemptItem = Boolean(product.taxExempt || product.isDigital || product.sku === 'KDXX-TIP-2K');
+      const fixedUnitVND = Number(product.fixedAmountVND) || 0;
+
+      calculatedSubtotal += lineTotal;
+      if (!isTaxExemptItem) {
+        taxableSubtotal += lineTotal;
+      }
+      if (!isFreeShipItem) {
+        hasPhysicalItems = true;
+        physicalSubtotal += lineTotal;
+      }
+      if (fixedUnitVND > 0) {
+        hasFixedVndItem = true;
+        fixedOrConvertedItemsVND += fixedUnitVND * item.quantity;
+      } else {
+        fixedOrConvertedItemsVND += Math.round(lineTotal * exchangeRate);
+      }
 
       const itemImage = product.image || (Array.isArray(product.images) && product.images[0]) || '';
 
@@ -142,12 +166,16 @@ router.post('/', verifyToken, async (req, res) => {
 
     // Authoritative financial calculations
     calculatedSubtotal = Math.round(calculatedSubtotal * 100) / 100;
-    const calculatedTax = Math.round(calculatedSubtotal * 0.1 * 100) / 100; // 10% VAT
-    const calculatedShipping = calculatedSubtotal > 100 ? 0 : 10; // Free ship if subtotal > $100
+    taxableSubtotal = Math.round(taxableSubtotal * 100) / 100;
+    physicalSubtotal = Math.round(physicalSubtotal * 100) / 100;
+
+    const calculatedTax = Math.round(taxableSubtotal * 0.1 * 100) / 100; // 10% VAT on taxable items
+    const calculatedShipping = !hasPhysicalItems ? 0 : (physicalSubtotal > 100 ? 0 : 10); // Free ship for digital items or physical subtotal > $100
     const calculatedTotal = Math.round((calculatedSubtotal + calculatedTax + calculatedShipping) * 100) / 100;
 
-    const exchangeRate = Number(process.env.USD_VND_EXCHANGE_RATE) || 25400;
-    const amountVND = Math.round(calculatedTotal * exchangeRate);
+    const amountVND = hasFixedVndItem
+      ? fixedOrConvertedItemsVND + Math.round(calculatedTax * exchangeRate) + Math.round(calculatedShipping * exchangeRate)
+      : Math.round(calculatedTotal * exchangeRate);
     const prefix = process.env.SEPAY_PAYMENT_PREFIX || 'KDX';
 
     // 6. Attempt execution with MongoDB Multi-Document Transaction

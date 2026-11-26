@@ -226,7 +226,11 @@ const getCampaignCuratedProducts = async (req, res) => {
 
       if (topOrders && topOrders.length > 0) {
         const productIds = topOrders.map(o => o._id).filter(Boolean);
-        const found = await Product.find({ _id: { $in: productIds } });
+        const found = await Product.find({
+          _id: { $in: productIds },
+          isDigital: { $ne: true },
+          sku: { $ne: 'KDXX-TIP-2K' }
+        });
         // Giữ đúng thứ tự bán chạy
         const productMap = new Map(found.map(p => [p._id.toString(), p]));
         bestSellerProducts = productIds
@@ -237,11 +241,13 @@ const getCampaignCuratedProducts = async (req, res) => {
       console.warn('Order aggregation warning:', aggErr.message);
     }
 
-    // Fallback nếu chưa có nhiều đơn hàng: Lấy sản phẩm có rating/lượt review cao hoặc mới nhất
+    // Fallback nếu chưa có nhiều đơn hàng: Lấy sản phẩm có rating/lượt review cao hoặc mới nhất (bỏ qua sản phẩm Tip/Digital)
     if (bestSellerProducts.length < 4) {
       const existingIds = new Set(bestSellerProducts.map(p => p._id.toString()));
       const fallback = await Product.find({
         _id: { $nin: Array.from(existingIds) },
+        isDigital: { $ne: true },
+        sku: { $ne: 'KDXX-TIP-2K' },
         category: { $in: ['men', 'shoes', 'clothing', 'accessories'] }
       })
         .sort({ numReviews: -1, rating: -1, createdAt: -1 })
@@ -252,6 +258,8 @@ const getCampaignCuratedProducts = async (req, res) => {
     // 2. Lấy sản phẩm được gắn tag nổi bật (featured: true hoặc tags chứa featured/nổi bật)
     const bestSellerIdSet = new Set(bestSellerProducts.map(p => p._id.toString()));
     let featuredProducts = await Product.find({
+      isDigital: { $ne: true },
+      sku: { $ne: 'KDXX-TIP-2K' },
       $or: [
         { featured: true },
         { tags: { $in: ['featured', 'nổi bật', 'highlight', 'hot', 'best'] } }
@@ -264,7 +272,9 @@ const getCampaignCuratedProducts = async (req, res) => {
     if (featuredProducts.length < 4) {
       const featIds = new Set(featuredProducts.map(p => p._id.toString()));
       const extra = await Product.find({
-        _id: { $nin: Array.from(new Set([...featIds, ...bestSellerIdSet])) }
+        _id: { $nin: Array.from(new Set([...featIds, ...bestSellerIdSet])) },
+        isDigital: { $ne: true },
+        sku: { $ne: 'KDXX-TIP-2K' }
       })
         .sort({ createdAt: -1 })
         .limit(8 - featuredProducts.length);

@@ -85,6 +85,23 @@ const productSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isDigital: {
+    type: Boolean,
+    default: false
+  },
+  freeShipping: {
+    type: Boolean,
+    default: false
+  },
+  taxExempt: {
+    type: Boolean,
+    default: false
+  },
+  fixedAmountVND: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
   rating: {
     type: Number,
     default: 5.0,

@@ -1,6 +1,7 @@
 import React from 'react';
 import { useWishlist } from '../../context/WishlistContext';
 import { useCart } from '../../context/CartContext';
+import { formatProductPrice, getFixedUnitVND } from '../../utils/priceUtils';
 import './WishlistModal.css';
 
 const WishlistModal = ({ isOpen, onClose }) => {
@@ -47,7 +48,9 @@ const WishlistModal = ({ isOpen, onClose }) => {
                     </div>
                     <div className="wishlist-item-details">
                       <h4>{item.name}</h4>
-                      <p className="wishlist-item-price">${item.price}</p>
+                      <p className="wishlist-item-price">
+                        {getFixedUnitVND(item) > 0 ? formatProductPrice(item) : `$${item.price}`}
+                      </p>
                       {item.description && (
                         <p className="wishlist-item-desc">{item.description}</p>
                       )}

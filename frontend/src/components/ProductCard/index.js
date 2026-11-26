@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
+import { formatProductPrice, getFixedUnitVND } from '../../utils/priceUtils';
 import './ProductCard.css';
 
 const ProductCard = ({ product }) => {
@@ -84,7 +85,9 @@ const ProductCard = ({ product }) => {
 
       <div className="product-info">
         <h3 className="product-name">{product.name}</h3>
-        <p className="product-price">${product.price}</p>
+        <p className="product-price">
+          {getFixedUnitVND(product) > 0 ? formatProductPrice(product) : `$${product.price}`}
+        </p>
         {product.description && (
           <p className="product-description">{product.description}</p>
         )}

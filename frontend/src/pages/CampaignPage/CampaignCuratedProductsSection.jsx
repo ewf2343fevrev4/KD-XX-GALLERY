@@ -2,12 +2,17 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getCampaignCuratedProducts, getAllProducts } from '../../services/api';
+import { getFixedUnitVND } from '../../utils/priceUtils';
 import './CampaignCuratedProductsSection.css';
 
 /**
- * Format price matching AMIRI VN display (e.g. 52.080.000 VND)
+ * Format price matching AMIRI VN display (e.g. 52.080.000 VND or exact fixedAmountVND)
  */
-const formatPrice = (price) => {
+const formatPrice = (price, product) => {
+  const fixedVND = getFixedUnitVND(product);
+  if (fixedVND > 0) {
+    return `${Math.round(fixedVND).toLocaleString('vi-VN')} VND`;
+  }
   if (price === undefined || price === null || price === '') return '';
   const val = Number(price);
   if (isNaN(val) || val <= 0) return '';
@@ -140,7 +145,7 @@ const CuratedColumn = ({ product }) => {
             {product?.name || 'AMIRI Luxury Item'}
           </p>
           <p className="amiri-curated-col__price">
-            {formatPrice(product?.price)}
+            {formatPrice(product?.price, product)}
           </p>
         </div>
 

@@ -28,6 +28,11 @@ import {
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { getProductById, getAllProducts } from '../../services/api';
+import {
+  formatProductPrice,
+  getFixedUnitVND,
+  isFreeShippingItem
+} from '../../utils/priceUtils';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import ProductCard from '../../components/ProductCard';
@@ -261,8 +266,9 @@ export default function ProductDetailPage({
       return trimmed;
     };
 
-    const numericPrice = Number(product.price || 0);
-    const isVnd = numericPrice >= 100000;
+    const fixedVND = getFixedUnitVND(product);
+    const numericPrice = fixedVND > 0 ? fixedVND : Number(product.price || 0);
+    const isVnd = fixedVND > 0 || numericPrice >= 100000;
     const schemaImages = allImages.map(toAbsoluteUrl).filter(Boolean);
 
     const schema = {
@@ -711,7 +717,7 @@ export default function ProductDetailPage({
               {/* Price & Stock status */}
               <div className="detail-price-row">
                 <div className="detail-price">
-                  ${Number(product.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {formatProductPrice(product)}
                 </div>
                 <div className="detail-stock-indicator">
                   {isOutOfStock ? (
@@ -887,7 +893,7 @@ export default function ProductDetailPage({
                 ) : (
                   <>
                     <ShoppingBag size={19} />
-                    <span>THÊM VÀO GIỎ HÀNG • ${(Number(product.price || 0) * quantity).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span>THÊM VÀO GIỎ HÀNG • {formatProductPrice(product, quantity)}</span>
                   </>
                 )}
               </button>
@@ -910,8 +916,14 @@ export default function ProductDetailPage({
                   <Truck size={17} strokeWidth={1.5} />
                 </div>
                 <div className="perk-text-content">
-                  <span className="perk-title">GIAO HÀNG MIỄN PHÍ TOÀN CẦU</span>
-                  <p className="perk-desc">Áp dụng cho mọi đơn hàng giá trị trên $100</p>
+                  <span className="perk-title">
+                    {isFreeShippingItem(product) ? 'MIỄN PHÍ VẬN CHUYỂN & 0% VAT' : 'GIAO HÀNG MIỄN PHÍ TOÀN CẦU'}
+                  </span>
+                  <p className="perk-desc">
+                    {isFreeShippingItem(product)
+                      ? 'Sản phẩm điện tử — 0đ phí giao hàng, thanh toán SePay VietQR tức thì'
+                      : 'Áp dụng cho mọi đơn hàng giá trị trên $100'}
+                  </p>
                 </div>
               </div>
               <div className="perk-item">
