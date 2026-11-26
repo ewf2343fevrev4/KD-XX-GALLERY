@@ -237,8 +237,8 @@ const ensureDefaultTipProduct = async () => {
         isDigital: true,
         freeShipping: true,
         taxExempt: true,
-        images: ['/tip-cho-kd.jpg'],
-        image: '/tip-cho-kd.jpg',
+        images: ['/tip-cho-kd.jpg?v=2'],
+        image: '/tip-cho-kd.jpg?v=2',
         sizes: [],
         colors: [],
         tags: ['Tip', 'Support'],
@@ -255,8 +255,8 @@ const ensureDefaultTipProduct = async () => {
     ) {
       existingTip.subCategory = 'Digital Support';
       existingTip.description = cleanDescription;
-      existingTip.images = ['/tip-cho-kd.jpg'];
-      existingTip.image = '/tip-cho-kd.jpg';
+      existingTip.images = ['/tip-cho-kd.jpg?v=2'];
+      existingTip.image = '/tip-cho-kd.jpg?v=2';
       existingTip.tags = ['Tip', 'Support'];
       await existingTip.save();
       console.log('✅ Updated default Tip product image & description: TIP CHO KD');
