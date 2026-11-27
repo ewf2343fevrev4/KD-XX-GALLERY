@@ -1,11 +1,8 @@
 const User = require('../models/User');
-const jwt = require('jsonwebtoken');
-const { getJwtSecret } = require('../utils/jwtConfig');
+const { signAuthToken } = require('../utils/jwtConfig');
 
-const generateToken = (id) => {
-  return jwt.sign({ id }, getJwtSecret(), {
-    expiresIn: '30d'
-  });
+const generateToken = (id, tokenVersion = 0) => {
+  return signAuthToken(id, tokenVersion, '30d');
 };
 
 // @desc    Register user
@@ -33,7 +30,7 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id)
+        token: generateToken(user._id, user.tokenVersion)
       });
     } else {
       res.status(400).json({ message: 'Invalid user data' });
@@ -58,7 +55,7 @@ const authUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        token: generateToken(user._id)
+        token: generateToken(user._id, user.tokenVersion)
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
@@ -106,7 +103,7 @@ const updateUserProfile = async (req, res) => {
       phone: updatedUser.phone,
       address: updatedUser.address,
       role: updatedUser.role,
-      token: generateToken(updatedUser._id)
+      token: generateToken(updatedUser._id, updatedUser.tokenVersion)
     });
   } catch (error) {
     console.error(error);

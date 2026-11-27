@@ -7,6 +7,7 @@ const Product = require('../models/Product');
 const User = require('../models/User');
 const cloudinary = require('../config/cloudinary');
 const { protect, admin } = require('../middleware/authMiddleware');
+const { getJwtSecret, isTokenVersionValid } = require('../utils/jwtConfig');
 
 // Setup multer memory storage (up to 5 photos, max 8MB each)
 const storage = multer.memoryStorage();
@@ -28,8 +29,11 @@ const optionalAuth = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
-      req.user = await User.findById(decoded.id).select('-password');
+      const decoded = jwt.verify(token, getJwtSecret());
+      const user = await User.findById(decoded.id).select('-password');
+      if (isTokenVersionValid(user, decoded)) {
+        req.user = user;
+      }
     } catch (err) {
       // Ignore token failure for public actions
     }

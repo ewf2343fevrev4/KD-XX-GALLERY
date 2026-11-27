@@ -443,26 +443,55 @@ export default function AdminDashboard({ initialTab }) {
   const API_BASE_URL = API_ORIGIN;
 
   useEffect(() => {
+    let cancelled = false;
     const storedToken = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
-    
-    if (!storedToken) {
+
+    const redirectToLogin = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       window.location.href = '/admin/login';
+    };
+
+    if (!storedToken) {
+      redirectToLogin();
       return;
     }
 
     try {
       const user = JSON.parse(userStr || '{}');
-      
       if (user.role !== 'admin') {
         alert('⛔ Bạn không có quyền truy cập trang Admin!');
-        window.location.href = '/admin/login';
+        redirectToLogin();
         return;
       }
     } catch (err) {
       console.error('Error parsing user:', err);
-      window.location.href = '/admin/login';
+      redirectToLogin();
+      return;
     }
+
+    // Verify server-side session & tokenVersion so invalidated devices are logged out immediately
+    fetch(`${API_BASE_URL}/api/users/verify`, {
+      headers: { Authorization: `Bearer ${storedToken}` }
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!data?.user || data.user.role !== 'admin') {
+          throw new Error('Unauthorized role');
+        }
+        if (!cancelled) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) redirectToLogin();
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -480,6 +509,13 @@ export default function AdminDashboard({ initialTab }) {
             'Content-Type': 'application/json'
           }
         });
+
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/admin/login';
+          return;
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);

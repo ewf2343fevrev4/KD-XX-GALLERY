@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = mongoose.model('User');
+const { getJwtSecret, isTokenVersionValid } = require('../utils/jwtConfig');
 
 // Helper to generate a unique readable payment code (e.g. KDX8F29A)
 function generatePaymentCode(prefix = 'KDX') {
@@ -25,10 +26,10 @@ const verifyToken = async (req, res, next) => {
       return res.status(401).json({ message: 'No token provided' });
     }
     
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+    const decoded = jwt.verify(token, getJwtSecret());
     const user = await User.findById(decoded.id);
     
-    if (!user) {
+    if (!user || !isTokenVersionValid(user, decoded)) {
       return res.status(401).json({ message: 'Invalid token' });
     }
     

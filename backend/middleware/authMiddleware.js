@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { getJwtSecret } = require('../utils/jwtConfig');
+const { getJwtSecret, isTokenVersionValid } = require('../utils/jwtConfig');
 
 const protect = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -15,6 +15,10 @@ const protect = async (req, res, next) => {
 
       if (!req.user) {
         return res.status(401).json({ message: 'Not authorized, user no longer exists' });
+      }
+
+      if (!isTokenVersionValid(req.user, decoded)) {
+        return res.status(401).json({ message: 'Not authorized, session invalidated' });
       }
 
       return next();

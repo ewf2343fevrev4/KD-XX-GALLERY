@@ -373,7 +373,7 @@ module.exports = function createAuthRouter(User, generateToken) {
         });
       }
 
-      const token = generateToken(user._id);
+      const token = generateToken(user._id, user.tokenVersion);
       return renderAuthResult(res, { success: true, token, user });
 
     } catch (err) {
@@ -538,7 +538,7 @@ module.exports = function createAuthRouter(User, generateToken) {
         });
       }
 
-      const token = generateToken(user._id);
+      const token = generateToken(user._id, user.tokenVersion);
       return renderAuthResult(res, { success: true, token, user });
 
     } catch (err) {

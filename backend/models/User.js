@@ -60,6 +60,10 @@ const userSchema = new mongoose.Schema({
       ref: 'Product'
     }
   ],
+  tokenVersion: {
+    type: Number,
+    default: 0
+  },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
@@ -71,6 +75,9 @@ userSchema.pre('save', async function (next) {
   if (!this.password || !this.isModified('password')) return next();
 
   try {
+    if (!this.isNew && !this.isModified('tokenVersion')) {
+      this.tokenVersion = (Number(this.tokenVersion) || 0) + 1;
+    }
     const salt = await bcrypt.genSalt(12); // tăng độ bảo mật
     this.password = await bcrypt.hash(this.password, salt);
     next();

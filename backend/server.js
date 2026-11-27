@@ -54,7 +54,7 @@ app.use(express.json());
 connectDB();
 
 const { ensureTryOnIndexes } = require('./utils/ensureLedgerIndexes');
-const { getJwtSecret } = require('./utils/jwtConfig');
+const { getJwtSecret, signAuthToken, isTokenVersionValid } = require('./utils/jwtConfig');
 const { fetchSafeRemoteImage, PROXY_ALLOWED_MIME_TYPES } = require('./utils/ssrfImageFetcher');
 
 // Handle MongoDB connection events
@@ -151,7 +151,11 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
     default: []
-  }]
+  }],
+  tokenVersion: {
+    type: Number,
+    default: 0
+  }
 }, {
   timestamps: true
 });
@@ -161,7 +165,10 @@ userSchema.pre('save', async function(next) {
   if (!this.password || !this.isModified('password')) {
     return next();
   }
-  const salt = await bcrypt.genSalt(10);
+  if (!this.isNew && !this.isModified('tokenVersion')) {
+    this.tokenVersion = (Number(this.tokenVersion) || 0) + 1;
+  }
+  const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
@@ -174,17 +181,19 @@ userSchema.methods.matchPassword = async function(enteredPassword) {
 const User = mongoose.model('User', userSchema);
 
 // JWT token generation
-const generateToken = (userId) => {
-  return jwt.sign({ id: userId }, getJwtSecret(), {
-    expiresIn: process.env.JWT_EXPIRE || '7d'
-  });
+const generateToken = (userId, tokenVersion = 0) => {
+  return signAuthToken(userId, tokenVersion, process.env.JWT_EXPIRE || '7d');
 };
 
 const verifyToken = async (token) => {
   try {
     if (!token) return null;
     const decoded = jwt.verify(token, getJwtSecret());
-    return await User.findById(decoded.id);
+    const user = await User.findById(decoded.id);
+    if (!isTokenVersionValid(user, decoded)) {
+      return null;
+    }
+    return user;
   } catch (error) {
     return null;
   }
@@ -194,12 +203,17 @@ const createDefaultAdmin = async () => {
   try {
     const adminEmail = 'admin123@gmail.com';
     const existingAdmin = await User.findOne({ email: adminEmail });
-    
+
     if (!existingAdmin) {
+      const initialPassword = process.env.ADMIN_INITIAL_PASSWORD;
+      if (!initialPassword) {
+        console.warn('⚠️ Default admin missing and ADMIN_INITIAL_PASSWORD not configured; skipping seed');
+        return;
+      }
       await User.create({
         name: 'Admin',
         email: adminEmail,
-        password: 'admin123',
+        password: initialPassword,
         role: 'admin',
         wishlist: []
       });
@@ -398,7 +412,7 @@ app.post('/api/users/register', async (req, res) => {
       wishlist: []
     });
     
-    const token = generateToken(newUser._id);
+    const token = generateToken(newUser._id, newUser.tokenVersion);
     
     res.status(201).json({
       _id: newUser._id,
@@ -435,7 +449,7 @@ app.post('/api/users/login', async (req, res) => {
     const user = await User.findOne({ email }).select('+password');
     
     if (user && (await user.matchPassword(password))) {
-      const token = generateToken(user._id);
+      const token = generateToken(user._id, user.tokenVersion);
       
       res.json({
         token: token,

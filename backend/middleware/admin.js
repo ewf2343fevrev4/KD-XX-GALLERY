@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { getJwtSecret } = require('../utils/jwtConfig');
+const { getJwtSecret, isTokenVersionValid } = require('../utils/jwtConfig');
 
 // Middleware kiểm tra user đã đăng nhập
 const protect = async (req, res, next) => {
@@ -19,6 +19,10 @@ const protect = async (req, res, next) => {
 
       if (!req.user) {
         return res.status(401).json({ message: 'User không tồn tại' });
+      }
+
+      if (!isTokenVersionValid(req.user, decoded)) {
+        return res.status(401).json({ message: 'Phiên đăng nhập đã hết hiệu lực, vui lòng đăng nhập lại' });
       }
 
       next();

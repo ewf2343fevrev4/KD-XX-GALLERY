@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const Conversation = require('../models/Conversation');
 const ChatMessage = require('../models/ChatMessage');
 const User = require('../models/User');
+const { getJwtSecret, isTokenVersionValid } = require('../utils/jwtConfig');
 
 // Helper to optionally resolve user from token without throwing 401
 const resolveOptionalUser = async (req) => {
@@ -11,9 +12,12 @@ const resolveOptionalUser = async (req) => {
     const authHeader = req.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'amiri-store-super-secret-jwt-key-2024-make-it-very-long-and-random');
+      const decoded = jwt.verify(token, getJwtSecret());
       if (decoded && decoded.id) {
-        return await User.findById(decoded.id).select('-password');
+        const user = await User.findById(decoded.id).select('-password');
+        if (isTokenVersionValid(user, decoded)) {
+          return user;
+        }
       }
     }
   } catch (err) {
